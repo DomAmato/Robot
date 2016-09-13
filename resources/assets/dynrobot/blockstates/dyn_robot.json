@@ -1,0 +1,9 @@
+{
+    "variants": {
+        "normal": { "model": "dynrobot:dyn_robot" },
+        "facing=north": { "model": "dynrobot:dyn_robot" },
+        "facing=south": { "model": "dynrobot:dyn_robot", "y": 180 },
+        "facing=west": { "model": "dynrobot:dyn_robot", "y": 270 },
+        "dye=none,facing=east": { "model": "dynrobot:dyn_robot", "y": 90 }
+    }
+}
