@@ -1,8 +1,5 @@
 package com.dyn.robot.api;
 
-import java.util.ArrayList;
-
-import com.dyn.robot.entity.brain.DynRobotBrain;
 import com.dyn.robot.programs.Program;
 import com.dyn.robot.programs.ProgramState;
 import com.dyn.robot.programs.UserProgramLibrary;
@@ -15,10 +12,6 @@ import net.minecraft.util.EnumFacing;
 
 public abstract interface IDYNRobotAccess extends ITurtleAccess {
 	public abstract void clearSavedState();
-
-	public abstract void clearVariable(String paramString);
-
-	public abstract void clearVariables();
 
 	public abstract int createProgram(String paramString);
 
@@ -38,8 +31,6 @@ public abstract interface IDYNRobotAccess extends ITurtleAccess {
 
 	public abstract ProgramState getProgramState();
 
-	public abstract ArrayList<DynRobotBrain.BlockChange> getSavedBlockChanges();
-
 	public abstract EnumFacing getSavedDirection();
 
 	public abstract ItemStack[] getSavedInventory();
@@ -50,15 +41,11 @@ public abstract interface IDYNRobotAccess extends ITurtleAccess {
 
 	public abstract int getSelectedProgramIndex();
 
-	public abstract boolean isDemoTurtle();
-
 	public abstract boolean isLocked();
 
 	public abstract void renameProgram(int paramInt, String paramString);
 
 	public abstract void selectProgram(int paramInt);
-
-	public abstract void setDemoTurtle(boolean paramBoolean);
 
 	public abstract void setLocked(boolean paramBoolean);
 

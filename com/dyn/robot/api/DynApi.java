@@ -210,23 +210,8 @@ public class DynApi implements ILuaAPI {
 			});
 			return null;
 		}
-		case 11: {
-			if ((arguments.length < 1) || (!(arguments[0] instanceof String))) {
-				throw new LuaException("Expected string");
-			}
-			final String variable = (String) arguments[0];
-			context.issueMainThreadTask(() -> {
-				m_turtle.clearVariable(variable);
-				return null;
-			});
-			return null;
-		}
+		case 11:
 		case 12:
-			context.issueMainThreadTask(() -> {
-				m_turtle.clearVariables();
-				return null;
-			});
-			return null;
 		case 13:
 			return m_turtle.executeCommand(context, new TurtleSaveCommand());
 		case 14:
@@ -285,21 +270,19 @@ public class DynApi implements ILuaAPI {
 			fileSystem.unmount("rom/programs/dyn");
 		}
 		m_turtle.setProgramStopped();
-		m_turtle.clearVariables();
 		m_turtle.setProgramSlot(-1);
 	}
 
 	@Override
 	public void startup() {
 		m_turtle.setProgramStopped();
-		m_turtle.clearVariables();
 		m_turtle.setProgramSlot(-1);
 
 		FileSystem fileSystem = m_environment.getFileSystem();
 		synchronized (fileSystem) {
 			try {
 				if (s_autorunMount == null) {
-					s_autorunMount = ComputerCraftAPI.createResourceMount(DYNServerMod.class, "dyn",
+					s_autorunMount = ComputerCraftAPI.createResourceMount(DYNServerMod.class, "dynrobot",
 							"lua/rom/autorun/dyn");
 				}
 				if (s_autorunMount != null) {
@@ -309,7 +292,7 @@ public class DynApi implements ILuaAPI {
 			}
 			try {
 				if (s_programsMount == null) {
-					s_programsMount = ComputerCraftAPI.createResourceMount(DYNServerMod.class, "dyn",
+					s_programsMount = ComputerCraftAPI.createResourceMount(DYNServerMod.class, "dynrobot",
 							"lua/rom/programs/dyn");
 				}
 				if (s_programsMount != null) {

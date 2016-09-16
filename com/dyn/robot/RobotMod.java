@@ -1,16 +1,16 @@
 package com.dyn.robot;
 
-import java.util.Random;
-
-import com.dyn.robot.block.BlockDynRobot;
-import com.dyn.robot.block.ItemDynRobot;
-import com.dyn.robot.block.TileDynRobot;
+import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.render.DynRobotRenderer;
+import com.dyn.robot.gui.RobotGuiHandler;
+import com.dyn.robot.items.ItemDynRobotSpawner;
+import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.programs.UserProgramLibrary;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -21,6 +21,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -34,24 +35,17 @@ public class RobotMod {
 	public static Proxy proxy;
 
 	public static BlockDynRobot dynRobot;
+	public static ItemRemote dynRobotRemote;
+
+	public static void registerNewEntity(Class entityClass, String name, int id) {
+		EntityRegistry.registerModEntity(entityClass, name, id, instance, 64, 3, false);
+	}
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
-		registerTileEntities();
 		proxy.init();
-	}
-
-	@Mod.EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-
-	}
-
-	@Mod.EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
-		MetaData.init(event.getModMetadata());
-		registerItems();
-		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
-		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new DynRobotRenderer());
+		proxy.registerBlockItem(dynRobot);
+		proxy.registerItem(dynRobotRemote, "dyn_robot_remote", 0);
 	}
 
 	@Mod.EventHandler
@@ -68,22 +62,33 @@ public class RobotMod {
 		}
 	}
 
+	@Mod.EventHandler
+	public void postInit(FMLPostInitializationEvent event) {
+
+	}
+
+	@Mod.EventHandler
+	public void preInit(FMLPreInitializationEvent event) {
+		MetaData.init(event.getModMetadata());
+
+		registerItems();
+		registerBlocks();
+		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
+		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new DynRobotRenderer());
+
+		// is it cuz this isnt the main mod?
+		NetworkRegistry.INSTANCE.registerGuiHandler(this, new RobotGuiHandler());
+	}
+
+	private void registerBlocks() {
+		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot")
+				.setCreativeTab(CreativeTabs.tabRedstone);
+		GameRegistry.registerBlock(dynRobot, ItemDynRobotSpawner.class, "dyn_robot");
+	}
+
 	private void registerItems() {
-
-		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot").setCreativeTab(CreativeTabs.tabRedstone);
-		GameRegistry.registerBlock(dynRobot, ItemDynRobot.class, "dyn_robot");
-	}
-
-	private void registerTileEntities() {
-		GameRegistry.registerTileEntity(TileDynRobot.class, "dyn_robot_tile");
-	}
-
-	public static void registerNewEntity(Class entityClass, String name, int id) {
-		long seed = name.hashCode();
-		Random rand = new Random(seed);
-		int primaryColor = rand.nextInt() * 16777215;
-		int secondaryColor = rand.nextInt() * 16777215;
-
-		EntityRegistry.registerModEntity(entityClass, name, id, instance, 64, 3, false, primaryColor, secondaryColor);
+		dynRobotRemote = (ItemRemote) new ItemRemote().setUnlocalizedName("dyn_robot_remote")
+				.setCreativeTab(CreativeTabs.tabRedstone);
+		GameRegistry.registerItem(dynRobotRemote, "dyn_robot_remote");
 	}
 }

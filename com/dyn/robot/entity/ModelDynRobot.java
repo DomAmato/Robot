@@ -17,29 +17,29 @@ public class ModelDynRobot extends ModelBase {
 	public ModelRenderer antenna;
 
 	public ModelDynRobot() {
-		this.bipedHead = new ModelRenderer(this, 0, 0);
-		this.bipedHead.addBox(-5.5F, -6.0F, -3.5F, 11, 6, 7);
-		this.bipedHead.setRotationPoint(0.0F, 0.0F, 0.0F);
-		this.bipedBody = new ModelRenderer(this, 6, 13);
-		this.bipedBody.addBox(-3.5F, 0.0F, -1.5F, 7, 5, 3);
-		this.bipedBody.setRotationPoint(0.0F, 0.0F, 0.0F);
-		this.bipedRightArm = new ModelRenderer(this, 26, 13);
-		this.bipedRightArm.addBox(-0.5F, 0.0F, -0.5F, 1, 4, 1);
-		this.bipedRightArm.setRotationPoint(-4.0F, 1.0F, 0.0F);
-		this.bipedLeftArm = new ModelRenderer(this, 26, 13);
-		this.bipedLeftArm.mirror = true;
-		this.bipedLeftArm.addBox(-0.5F, 0.0F, -0.5F, 1, 4, 1);
-		this.bipedLeftArm.setRotationPoint(4.0F, 1.0F, 0.0F);
-		this.bipedRightLeg = new ModelRenderer(this, 0, 13);
-		this.bipedRightLeg.addBox(-1.0F, 0.0F, -0.5F, 2, 4, 1);
-		this.bipedRightLeg.setRotationPoint(-1.9F, 4.0F, 0.0F);
-		this.bipedLeftLeg = new ModelRenderer(this, 0, 13);
-		this.bipedLeftLeg.mirror = true;
-		this.bipedLeftLeg.addBox(-1.0F, 0.0F, -0.5F, 2, 4, 1);
-		this.bipedLeftLeg.setRotationPoint(1.9F, 4.0F, 0.0F);
-		this.antenna = new ModelRenderer(this, 0, 21);
-		this.antenna.addBox(-0.5F, -9.0F, -0.5F, 1, 3, 1);
-		this.antenna.setRotationPoint(0.0F, 0.0F, 0.0F);
+		bipedHead = new ModelRenderer(this, 0, 0);
+		bipedHead.addBox(-5.5F, -6.0F, -3.5F, 11, 6, 7);
+		bipedHead.setRotationPoint(0.0F, 0.0F, 0.0F);
+		bipedBody = new ModelRenderer(this, 6, 13);
+		bipedBody.addBox(-3.5F, 0.0F, -1.5F, 7, 5, 3);
+		bipedBody.setRotationPoint(0.0F, 0.0F, 0.0F);
+		bipedRightArm = new ModelRenderer(this, 26, 13);
+		bipedRightArm.addBox(-0.5F, 0.0F, -0.5F, 1, 4, 1);
+		bipedRightArm.setRotationPoint(-4.0F, 1.0F, 0.0F);
+		bipedLeftArm = new ModelRenderer(this, 26, 13);
+		bipedLeftArm.mirror = true;
+		bipedLeftArm.addBox(-0.5F, 0.0F, -0.5F, 1, 4, 1);
+		bipedLeftArm.setRotationPoint(4.0F, 1.0F, 0.0F);
+		bipedRightLeg = new ModelRenderer(this, 0, 13);
+		bipedRightLeg.addBox(-1.0F, 0.0F, -0.5F, 2, 4, 1);
+		bipedRightLeg.setRotationPoint(-1.9F, 4.0F, 0.0F);
+		bipedLeftLeg = new ModelRenderer(this, 0, 13);
+		bipedLeftLeg.mirror = true;
+		bipedLeftLeg.addBox(-1.0F, 0.0F, -0.5F, 2, 4, 1);
+		bipedLeftLeg.setRotationPoint(1.9F, 4.0F, 0.0F);
+		antenna = new ModelRenderer(this, 0, 21);
+		antenna.addBox(-0.5F, -9.0F, -0.5F, 1, 3, 1);
+		antenna.setRotationPoint(0.0F, 0.0F, 0.0F);
 	}
 
 	/**
@@ -48,18 +48,19 @@ public class ModelDynRobot extends ModelBase {
 	@Override
 	public void render(Entity entityIn, float p_78088_2_, float p_78088_3_, float p_78088_4_, float p_78088_5_,
 			float p_78088_6_, float scale) {
-		this.setRotationAngles(p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale, entityIn);
+		setRotationAngles(p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale, entityIn);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0.0F, 1.0F, 0.0F);
-		this.antenna.render(scale);
-		this.bipedHead.render(scale);
-		this.bipedBody.render(scale);
-		this.bipedRightArm.render(scale);
-		this.bipedLeftArm.render(scale);
-		//with the full biped rotation stuff we have to do this for some reason...
-		//GlStateManager.translate(0.0F, -0.5F, 0.0F);
-		this.bipedRightLeg.render(scale);
-		this.bipedLeftLeg.render(scale);
+		antenna.render(scale);
+		bipedHead.render(scale);
+		bipedBody.render(scale);
+		bipedRightArm.render(scale);
+		bipedLeftArm.render(scale);
+		// with the full biped rotation stuff we have to do this for some
+		// reason...
+		// GlStateManager.translate(0.0F, -0.5F, 0.0F);
+		bipedRightLeg.render(scale);
+		bipedLeftLeg.render(scale);
 
 		GlStateManager.popMatrix();
 	}
@@ -74,23 +75,23 @@ public class ModelDynRobot extends ModelBase {
 	public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
 			float headPitch, float scaleFactor, Entity entityIn) {
 
-		//head rotation seems fine
-		this.bipedHead.rotateAngleY = netHeadYaw / (180F / (float) Math.PI);
-		this.bipedHead.rotateAngleX = headPitch / (180F / (float) Math.PI);
-		
-		this.bipedRightArm.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 2.0F * limbSwingAmount
-				* 0.5F;
-		this.bipedLeftArm.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 2.0F * limbSwingAmount * 0.5F;
-		this.bipedRightArm.rotateAngleZ = 0.0F;
-		this.bipedLeftArm.rotateAngleZ = 0.0F;
-		this.bipedRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
-		this.bipedLeftLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount;
-		this.bipedRightLeg.rotateAngleY = 0.0F;
-		this.bipedLeftLeg.rotateAngleY = 0.0F;
+		// head rotation seems fine
+		bipedHead.rotateAngleY = netHeadYaw / (180F / (float) Math.PI);
+		bipedHead.rotateAngleX = headPitch / (180F / (float) Math.PI);
 
-		this.bipedRightArm.rotateAngleY = 0.0F;
-		this.bipedLeftArm.rotateAngleY = 0.0F;
-		
-		ModelDynRobot.copyModelAngles(bipedHead, antenna);
+		bipedRightArm.rotateAngleX = MathHelper.cos((limbSwing * 0.6662F) + (float) Math.PI) * 2.0F * limbSwingAmount
+				* 0.5F;
+		bipedLeftArm.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 2.0F * limbSwingAmount * 0.5F;
+		bipedRightArm.rotateAngleZ = 0.0F;
+		bipedLeftArm.rotateAngleZ = 0.0F;
+		bipedRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+		bipedLeftLeg.rotateAngleX = MathHelper.cos((limbSwing * 0.6662F) + (float) Math.PI) * 1.4F * limbSwingAmount;
+		bipedRightLeg.rotateAngleY = 0.0F;
+		bipedLeftLeg.rotateAngleY = 0.0F;
+
+		bipedRightArm.rotateAngleY = 0.0F;
+		bipedLeftArm.rotateAngleY = 0.0F;
+
+		ModelBase.copyModelAngles(bipedHead, antenna);
 	}
 }

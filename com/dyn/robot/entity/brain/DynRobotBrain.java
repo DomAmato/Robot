@@ -1,50 +1,27 @@
 package com.dyn.robot.entity.brain;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import com.dyn.robot.api.IDYNRobotAccess;
+import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.programs.Program;
 import com.dyn.robot.programs.ProgramState;
 import com.dyn.robot.programs.UserProgramLibrary;
 import com.google.common.base.Objects;
 
+import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.turtle.ITurtleUpgrade;
+import dan200.computercraft.api.turtle.TurtleSide;
 import dan200.computercraft.shared.computer.core.ServerComputer;
-import dan200.computercraft.shared.turtle.blocks.TileTurtle;
-import dan200.computercraft.shared.turtle.core.TurtleBrain;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
-public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
-	public class BlockChange {
-		private BlockPos m_coordinates;
-		private IBlockState m_previousState;
-
-		public BlockChange(BlockPos coordinates, IBlockState previousState) {
-			m_coordinates = coordinates;
-			m_previousState = previousState;
-		}
-
-		public BlockPos getCoordinates() {
-			return m_coordinates;
-		}
-
-		public IBlockState getPreviousState() {
-			return m_previousState;
-		}
-	}
+public class DynRobotBrain extends RobotBrain {
 
 	private boolean m_locked;
-	private boolean m_demo;
 	private String m_ownerName;
 	private UserProgramLibrary m_programLibrary;
 	private String m_selectedProgram;
@@ -55,13 +32,10 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	private int m_savedSlot;
 	private ItemStack[] m_savedInventory;
 
-	private ArrayList<BlockChange> m_savedBlockChanges;
-
-	public DynRobotBrain(EntityLiving robot) {
+	public DynRobotBrain(EntityRobot robot) {
 		super(robot);
 
 		m_locked = false;
-		m_demo = false;
 		m_ownerName = null;
 		m_programLibrary = null;
 		m_selectedProgram = null;
@@ -73,37 +47,11 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 		m_savedDirection = null;
 		m_savedSlot = -1;
 		m_savedInventory = null;
-		m_savedBlockChanges = new ArrayList();
 	}
 
 	@Override
 	public void clearSavedState() {
 		setSavedState(null, null, -1, null);
-	}
-
-	@Override
-	public void clearVariable(String variable) {
-		ServerComputer computer = getOwner().getServerComputer();
-		if (computer != null) {
-			computer.getUserData().removeTag("edu_variable_" + variable);
-			computer.updateUserData();
-		}
-	}
-
-	@Override
-	public void clearVariables() {
-		ServerComputer computer = getOwner().getServerComputer();
-		if (computer != null) {
-			NBTTagCompound userData = computer.getUserData();
-			Iterator it = userData.getKeySet().iterator();
-			while (it.hasNext()) {
-				String key = (String) it.next();
-				if (key.startsWith("edu_variable_")) {
-					it.remove();
-				}
-			}
-			computer.updateUserData();
-		}
 	}
 
 	@Override
@@ -218,14 +166,32 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	}
 
 	@Override
+	public int getDyeColour() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
 	public int getFuelLimit() {
 		// TODO: this will probably serve as our RAM metaphor
 		return 100;
 	}
 
 	@Override
+	public IInventory getInventory() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public String getOwnerName() {
 		return m_ownerName;
+	}
+
+	@Override
+	public IPeripheral getPeripheral(TurtleSide side) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -257,11 +223,6 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	}
 
 	@Override
-	public ArrayList<BlockChange> getSavedBlockChanges() {
-		return m_savedBlockChanges;
-	}
-
-	@Override
 	public EnumFacing getSavedDirection() {
 		return m_savedDirection;
 	}
@@ -290,6 +251,18 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 		return -1;
 	}
 
+	@Override
+	public ITurtleUpgrade getUpgrade(TurtleSide side) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public NBTTagCompound getUpgradeNBTData(TurtleSide side) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private void initProgramLibrary() {
 		World world = getWorld();
 		if (world != null) {
@@ -301,19 +274,12 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 							: null);
 				}
 				updateProgramLibrary();
-				getOwner().onInventoryDefinitelyChanged();
 			} else if ((m_ownerName == null) && (m_programLibrary != null)) {
 				m_programLibrary = null;
 				m_selectedProgram = null;
 				updateProgramLibrary();
-				getOwner().onInventoryDefinitelyChanged();
 			}
 		}
-	}
-
-	@Override
-	public boolean isDemoTurtle() {
-		return m_demo;
 	}
 
 	@Override
@@ -334,11 +300,6 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 			m_locked = nbttagcompound.getBoolean("locked");
 		} else {
 			m_locked = false;
-		}
-		if (nbttagcompound.hasKey("demo")) {
-			m_demo = nbttagcompound.getBoolean("demo");
-		} else {
-			m_demo = false;
 		}
 		if (nbttagcompound.hasKey("ownerName")) {
 			setOwnerNameInternal(nbttagcompound.getString("ownerName"));
@@ -366,28 +327,18 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	}
 
 	@Override
-	public boolean saveBlockChange(BlockPos coordinates, IBlockState previousState) {
-		if (m_savedPosition != null) {
-			m_savedBlockChanges.add(new BlockChange(coordinates, previousState));
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void selectProgram(int index) {
 		initProgramLibrary();
 		if (m_programLibrary != null) {
 			if ((index >= -1) && (index < m_programLibrary.getSize())) {
 				m_selectedProgram = m_programLibrary.getProgram(index).getPath();
-				getOwner().onInventoryDefinitelyChanged();
 			}
 		}
 	}
 
 	@Override
-	public void setDemoTurtle(boolean demo) {
-		m_demo = demo;
+	public void setDyeColour(int dyeColour) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -399,7 +350,6 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	public void setOwnerName(String name) {
 		if (setOwnerNameInternal(name)) {
 			updateProgramLibrary();
-			getOwner().onInventoryDefinitelyChanged();
 		}
 	}
 
@@ -465,15 +415,12 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 			m_savedDirection = direction;
 			m_savedSlot = slot;
 			m_savedInventory = savedInventory;
-			m_savedBlockChanges.clear();
 		} else {
 			m_savedPosition = null;
 			m_savedDirection = null;
 			m_savedSlot = -1;
 			m_savedInventory = null;
-			m_savedBlockChanges.clear();
 		}
-		getOwner().onTileEntityChange();
 	}
 
 	@Override
@@ -481,6 +428,12 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 		super.setupComputer(computer);
 		initProgramLibrary();
 		updateProgramLibrary(computer);
+	}
+
+	@Override
+	public void setUpgrade(TurtleSide side, ITurtleUpgrade upgrade) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -499,7 +452,7 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	}
 
 	public void updateProgramLibrary() {
-		TileTurtle owner = getOwner();
+		EntityRobot owner = getOwner();
 		if (owner != null) {
 			updateProgramLibrary(owner.getServerComputer());
 		}
@@ -533,11 +486,16 @@ public class DynRobotBrain extends RobotBrain implements IDYNRobotAccess {
 	}
 
 	@Override
+	public void updateUpgradeNBTData(TurtleSide side) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void writeToNBT(NBTTagCompound nbttagcompound) {
 		super.writeToNBT(nbttagcompound);
 
 		nbttagcompound.setBoolean("locked", m_locked);
-		nbttagcompound.setBoolean("demo", m_demo);
 		if (m_ownerName != null) {
 			nbttagcompound.setString("ownerName", m_ownerName);
 		}

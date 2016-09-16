@@ -1,9 +1,5 @@
 package com.dyn.robot.api;
 
-import java.util.ArrayList;
-
-import com.dyn.robot.entity.brain.DynRobotBrain;
-
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.ITurtleCommand;
 import dan200.computercraft.api.turtle.TurtleCommandResult;
@@ -32,14 +28,6 @@ public class TurtleRestoreCommand implements ITurtleCommand {
 						IInventory inv = turtle.getInventory();
 						for (int i = 0; i < inventory.length; i++) {
 							inv.setInventorySlotContents(i, inventory[i]);
-						}
-					}
-					ArrayList<DynRobotBrain.BlockChange> blockChanges = junior.getSavedBlockChanges();
-					for (int i = blockChanges.size() - 1; i >= 0; i--) {
-						DynRobotBrain.BlockChange blockChange = blockChanges.get(i);
-						BlockPos coordinates = blockChange.getCoordinates();
-						if (!coordinates.equals(position)) {
-							world.setBlockState(coordinates, blockChange.getPreviousState(), 3);
 						}
 					}
 					junior.clearSavedState();
