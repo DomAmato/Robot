@@ -1,5 +1,7 @@
 package com.dyn.robot.proxy;
 
+import com.dyn.robot.entity.DynRobotEntity;
+import com.dyn.robot.entity.render.DynRobotRenderer;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
@@ -7,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
@@ -20,6 +23,11 @@ public class Client implements Proxy {
 	public void openRobotGui() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void preInit() {
+		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new DynRobotRenderer());
 	}
 
 	@Override

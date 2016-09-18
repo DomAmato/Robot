@@ -8,6 +8,8 @@ public interface Proxy {
 
 	public void openRobotGui();
 
+	public void preInit();
+
 	public void registerBlockItem(Block block);
 
 	public void registerItem(Item item, String name, int meta);

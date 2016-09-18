@@ -2,7 +2,6 @@ package com.dyn.robot;
 
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
-import com.dyn.robot.entity.render.DynRobotRenderer;
 import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.items.ItemDynRobotSpawner;
 import com.dyn.robot.items.ItemRemote;
@@ -12,7 +11,6 @@ import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -74,9 +72,9 @@ public class RobotMod {
 		registerItems();
 		registerBlocks();
 		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
-		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new DynRobotRenderer());
 
-		// is it cuz this isnt the main mod?
+		proxy.preInit();
+
 		NetworkRegistry.INSTANCE.registerGuiHandler(this, new RobotGuiHandler());
 	}
 

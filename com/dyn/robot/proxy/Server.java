@@ -18,6 +18,12 @@ public class Server implements Proxy {
 	}
 
 	@Override
+	public void preInit() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void registerBlockItem(Block block) {
 		// TODO Auto-generated method stub
 

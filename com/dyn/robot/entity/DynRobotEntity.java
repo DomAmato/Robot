@@ -9,11 +9,9 @@ import com.dyn.robot.entity.brain.DynRobotBrain;
 import com.dyn.robot.entity.brain.RobotBrain;
 import com.dyn.robot.items.ItemRemote;
 
-import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.shared.computer.core.ComputerFamily;
 import dan200.computercraft.shared.computer.core.ServerComputer;
 import dan200.computercraft.shared.turtle.apis.TurtleAPI;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
@@ -32,11 +30,11 @@ public class DynRobotEntity extends EntityRobot {
 	public DynRobotEntity(World worldIn) {
 		this(worldIn, null);
 	}
-	
+
 	public DynRobotEntity(World worldIn, EntityPlayer player) {
 		super(worldIn);
 		setOwner(player);
-		
+
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
 
 		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, null, 1.0F, 1.5F, 10.0F));

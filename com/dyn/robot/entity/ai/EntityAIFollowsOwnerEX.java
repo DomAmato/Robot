@@ -45,7 +45,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public boolean continueExecuting() {
-		return !petPathfinder.noPath() && (thePet.getDistanceSqToEntity(theOwner) > maxDist * maxDist);
+		return !petPathfinder.noPath() && (thePet.getDistanceSqToEntity(theOwner) > (maxDist * maxDist));
 	}
 
 	private boolean func_181065_a(BlockPos p_181065_1_) {
@@ -77,7 +77,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 			return false;
 		} else if ((theOwner instanceof EntityPlayer) && ((EntityPlayer) theOwner).isSpectator()) {
 			return false;
-		} else if (thePet.getDistanceSqToEntity(theOwner) < minDist * minDist) {
+		} else if (thePet.getDistanceSqToEntity(theOwner) < (minDist * minDist)) {
 			return false;
 		} else {
 			return true;

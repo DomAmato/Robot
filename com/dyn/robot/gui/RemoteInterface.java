@@ -135,20 +135,20 @@ public class RemoteInterface extends GuiScreen {
 	/*
 	 * protected void keyTyped(char c, int k) throws IOException { if (k == 1) {
 	 * super.keyTyped(c, k); } else { this.m_terminalGui.keyTyped(c, k); } }
-	 * 
+	 *
 	 * protected void mouseClicked(int x, int y, int button) throws IOException
 	 * { super.mouseClicked(x, y, button); this.m_terminalGui.mouseClicked(x, y,
 	 * button); }
-	 * 
+	 *
 	 * public void handleMouseInput() throws IOException {
 	 * super.handleMouseInput(); int x = Mouse.getEventX() * this.width /
 	 * this.mc.displayWidth; int y = this.height - Mouse.getEventY() *
 	 * this.height / this.mc.displayHeight - 1;
 	 * this.m_terminalGui.handleMouseInput(x, y); }
-	 * 
+	 *
 	 * public void handleKeyboardInput() throws IOException {
 	 * super.handleKeyboardInput(); this.m_terminalGui.handleKeyboardInput(); }
-	 * 
+	 *
 	 * // protected void drawSelectionSlot(boolean advanced) // { // int x =
 	 * (this.width - this.xSize) / 2; // int y = (this.height - this.ySize) / 2;
 	 * // // int slot = this.m_container.getSelectedSlot(); // if (slot >= 0) //
@@ -159,22 +159,22 @@ public class RemoteInterface extends GuiScreen {
 	 * this.m_container.m_turtleInvStartX - 2 + slotX // * 18, y +
 	 * this.m_container.m_playerInvStartY - 2 + slotY * 18, 0, 217, // 24, 24);
 	 * // } // }
-	 * 
+	 *
 	 * protected void drawGuiContainerBackgroundLayer(float f, int mouseX, int
 	 * mouseY) { this.m_terminalGui.draw(Minecraft.getMinecraft(), 0, 0, mouseX,
 	 * mouseY);
-	 * 
+	 *
 	 * GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 	 * this.mc.getTextureManager().bindTexture(backgroundAdvanced); int x =
 	 * (this.width - this.xSize) / 2; int y = (this.height - this.ySize) / 2;
 	 * drawTexturedModalRect(x, y, 0, 0, this.xSize, this.ySize);
-	 * 
+	 *
 	 * // drawSelectionSlot(advanced); }
-	 * 
+	 *
 	 * @Override public void drawScreen(int mouseX, int mouseY, float
 	 * partialTicks) { super.drawScreen(mouseX, mouseY, partialTicks);
 	 * this.m_terminalGui.draw(Minecraft.getMinecraft(), 0, 0, mouseX, mouseY);
-	 * 
+	 *
 	 * GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 	 * this.mc.getTextureManager().bindTexture(backgroundAdvanced); int x =
 	 * (this.width - this.xSize) / 2; int y = (this.height - this.ySize) / 2;
