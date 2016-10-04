@@ -4,7 +4,6 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.api.DynApi;
 import com.dyn.robot.api.DynRobotAPI;
 import com.dyn.robot.api.IDYNRobotAccess;
-import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.brain.DynRobotBrain;
 import com.dyn.robot.entity.brain.RobotBrain;
 import com.dyn.robot.items.ItemRemote;
@@ -37,7 +36,6 @@ public class DynRobotEntity extends EntityRobot {
 
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
 
-		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, null, 1.0F, 1.5F, 10.0F));
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, new EntityAILookIdle(this));
 	}
@@ -101,7 +99,10 @@ public class DynRobotEntity extends EntityRobot {
 				setOwner(player);
 			}
 			if (getOwner() == player.getName()) {
-				player.openGui(RobotMod.instance, 0, worldObj, (int) posX, (int) posY, (int) posZ);
+				RobotMod.proxy.openRobotProgrammingWindow(worldObj, getPosition(), this);
+
+				// player.openGui(RobotMod.instance, 0, worldObj, (int) posX,
+				// (int) posY, (int) posZ);
 			} else {
 				System.out.println("Robot has different owner");
 			}
