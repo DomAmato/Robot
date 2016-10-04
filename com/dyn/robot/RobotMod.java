@@ -43,7 +43,7 @@ public class RobotMod {
 	public void init(FMLInitializationEvent event) {
 		proxy.init();
 		proxy.registerBlockItem(dynRobot);
-		proxy.registerItem(dynRobotRemote, "dyn_robot_remote", 0);
+		proxy.registerItem(dynRobotRemote, dynRobotRemote.getUnlocalizedName(), 0);
 	}
 
 	@Mod.EventHandler
