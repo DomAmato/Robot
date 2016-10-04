@@ -2,7 +2,6 @@ package com.dyn.robot;
 
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
-import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.items.ItemDynRobotSpawner;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.programs.UserProgramLibrary;
@@ -19,7 +18,6 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -74,8 +72,6 @@ public class RobotMod {
 		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
 
 		proxy.preInit();
-
-		NetworkRegistry.INSTANCE.registerGuiHandler(this, new RobotGuiHandler());
 	}
 
 	private void registerBlocks() {

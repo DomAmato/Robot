@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.gui.ProgrammingInterface;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -15,6 +16,18 @@ import net.minecraft.world.World;
 public class Server implements Proxy {
 
 	@Override
+	public void createNewProgrammingInterface(EntityRobot robot) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ProgrammingInterface getProgrammingInterface() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public void init() {
 		// MinecraftForge.EVENT_BUS.register(this);
 
@@ -22,6 +35,12 @@ public class Server implements Proxy {
 
 	@Override
 	public void openRobotGui() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void openRobotInterface() {
 		// TODO Auto-generated method stub
 
 	}
@@ -68,12 +87,9 @@ public class Server implements Proxy {
 
 	}
 
-	/**
-	 * @see forge.reference.proxy.Proxy#renderGUI()
-	 */
 	@Override
-	public void renderGUI() {
-		// Actions on render GUI for the server (logging)
+	public void toggleRenderProgramInterface(boolean state) {
+		// TODO Auto-generated method stub
 
 	}
 

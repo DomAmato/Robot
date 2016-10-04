@@ -2,14 +2,18 @@ package com.dyn.robot.proxy;
 
 import java.util.List;
 
-import com.dyn.render.RenderMod;
+import org.lwjgl.input.Keyboard;
+
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.render.DynRobotRenderer;
+import com.dyn.robot.gui.ProgrammingInterface;
 import com.dyn.robot.reference.Reference;
+import com.rabbit.gui.RabbitGui;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
@@ -17,20 +21,64 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
 
+	private ProgrammingInterface programInterface = new ProgrammingInterface();
+
+	private boolean showTurtleProgrammer = false;
+
+	@Override
+	public void createNewProgrammingInterface(EntityRobot robot) {
+		programInterface = new ProgrammingInterface(robot);
+	}
+
+	@Override
+	public ProgrammingInterface getProgrammingInterface() {
+		return programInterface;
+	}
+
 	@Override
 	public void init() {
+		MinecraftForge.EVENT_BUS.register(this);
+	}
 
+	@SubscribeEvent
+	public void onKeyInput(InputEvent.KeyInputEvent event) {
+		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
+			return;
+		}
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
+			showTurtleProgrammer = false;
+		}
+	}
+
+	@SubscribeEvent
+	public void onRenderTick(TickEvent.RenderTickEvent event) {
+		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof ProgrammingInterface))) {
+			if (Minecraft.getMinecraft().inGameHasFocus && showTurtleProgrammer) {
+				programInterface.onDraw(0, 0, event.renderTickTime);
+			}
+		}
 	}
 
 	@Override
 	public void openRobotGui() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void openRobotInterface() {
+		RabbitGui.proxy.display(programInterface);
 	}
 
 	@Override
@@ -53,11 +101,11 @@ public class Client implements Proxy {
 			System.out.println("Found " + robots.size() + " Robots");
 			// display the gui here
 			// eventually would be nice to have tabbed panels
-			if (RenderMod.proxy.getProgrammingInterface().getRobot() != robots.get(0)) {
-				RenderMod.proxy.createNewProgrammingInterface(robots.get(0));
+			if (getProgrammingInterface().getRobot() != robots.get(0)) {
+				createNewProgrammingInterface(robots.get(0));
 			}
 
-			RenderMod.proxy.openRobotInterface();
+			openRobotInterface();
 		} else {
 			System.out.println("No robots owned by player found");
 		}
@@ -86,11 +134,8 @@ public class Client implements Proxy {
 		ModelLoader.setCustomModelResourceLocation(item, meta, location);
 	}
 
-	/**
-	 * @see forge.reference.proxy.Proxy#renderGUI()
-	 */
 	@Override
-	public void renderGUI() {
-		// Render GUI when on call from client
+	public void toggleRenderProgramInterface(boolean state) {
+		showTurtleProgrammer = state;
 	}
 }
