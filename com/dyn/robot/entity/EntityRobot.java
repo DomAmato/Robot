@@ -500,7 +500,7 @@ public abstract class EntityRobot extends EntityCreature implements IDirectional
 	public void setOwner(Entity owner) {
 		if (owner instanceof EntityPlayer) {
 			this.owner = owner.getName();
-			tasks.addTask(1, new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.0F, 1.5F, 10.0F));
+			tasks.addTask(1, new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.5D, 6.0F, 2.0F));
 			m_brain.setOwnerName(owner.getName());
 		}
 	}
