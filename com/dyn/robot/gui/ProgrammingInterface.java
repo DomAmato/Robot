@@ -1,9 +1,9 @@
 package com.dyn.robot.gui;
 
-import com.dyn.render.gui.widgets.TerminalInterface;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.api.IDYNRobotAccess;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.gui.widgets.TerminalInterface;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.display.Panel;
