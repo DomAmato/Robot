@@ -1,13 +1,11 @@
 package com.dyn.robot.proxy;
 
-import java.util.List;
-
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.render.DynRobotRenderer;
-import com.dyn.robot.gui.ProgrammingInterface;
+import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 
@@ -15,11 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
@@ -30,17 +24,17 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
 
-	private ProgrammingInterface programInterface = new ProgrammingInterface();
+	private RobotProgrammingInterface programInterface = new RobotProgrammingInterface();
 
-	private boolean showTurtleProgrammer = false;
+	private boolean showRobotProgrammer = false;
 
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
-		programInterface = new ProgrammingInterface(robot);
+		programInterface = new RobotProgrammingInterface(robot);
 	}
 
 	@Override
-	public ProgrammingInterface getProgrammingInterface() {
+	public RobotProgrammingInterface getProgrammingInterface() {
 		return programInterface;
 	}
 
@@ -56,15 +50,15 @@ public class Client implements Proxy {
 		}
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
-			showTurtleProgrammer = false;
+			showRobotProgrammer = false;
 		}
 	}
 
 	@SubscribeEvent
 	public void onRenderTick(TickEvent.RenderTickEvent event) {
 		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
-				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof ProgrammingInterface))) {
-			if (Minecraft.getMinecraft().inGameHasFocus && showTurtleProgrammer) {
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
+			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer) {
 				programInterface.onDraw(0, 0, event.renderTickTime);
 			}
 		}
@@ -82,33 +76,12 @@ public class Client implements Proxy {
 	}
 
 	@Override
-	public void openRobotProgrammingWindow(World world, BlockPos pos, Entity entity) {
-		int radius = 5;
-		// hopefully this works... its possible robots will overlap each
-		// other
-
-		List<EntityRobot> robots = world.getEntitiesWithinAABB(DynRobotEntity.class, AxisAlignedBB.fromBounds(
-				pos.getX(), pos.getY(), pos.getZ(), pos.getX() + radius, pos.getY() + radius, pos.getZ() + radius));
-		for (EntityRobot robot : robots) {
-			System.out.println("dyn robot owners: " + robot.getOwner());
+	public void openRobotProgrammingWindow(EntityRobot robot) {
+		if (getProgrammingInterface().getRobot() != robot) {
+			createNewProgrammingInterface(robot);
 		}
-		if (robots.size() > 0) {
-			if (robots.get(0).getClientComputer() == null) {
-				robots.get(0).createClientComputer().turnOn();
-			} else if (!robots.get(0).getClientComputer().isOn()) {
-				robots.get(0).getClientComputer().turnOn();
-			}
-			System.out.println("Found " + robots.size() + " Robots");
-			// display the gui here
-			// eventually would be nice to have tabbed panels
-			if (getProgrammingInterface().getRobot() != robots.get(0)) {
-				createNewProgrammingInterface(robots.get(0));
-			}
 
-			openRobotInterface();
-		} else {
-			System.out.println("No robots owned by player found");
-		}
+		openRobotInterface();
 	}
 
 	@Override
@@ -135,7 +108,7 @@ public class Client implements Proxy {
 	}
 
 	@Override
-	public void toggleRenderProgramInterface(boolean state) {
-		showTurtleProgrammer = state;
+	public void toggleRenderRobotProgramInterface(boolean state) {
+		showRobotProgrammer = state;
 	}
 }
