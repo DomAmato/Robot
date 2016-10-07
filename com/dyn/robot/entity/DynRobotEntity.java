@@ -1,16 +1,8 @@
 package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.DynApi;
-import com.dyn.robot.api.DynRobotAPI;
-import com.dyn.robot.api.IDYNRobotAccess;
-import com.dyn.robot.entity.brain.DynRobotBrain;
-import com.dyn.robot.entity.brain.RobotBrain;
 import com.dyn.robot.items.ItemRemote;
 
-import dan200.computercraft.shared.computer.core.ComputerFamily;
-import dan200.computercraft.shared.computer.core.ServerComputer;
-import dan200.computercraft.shared.turtle.apis.TurtleAPI;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
@@ -50,30 +42,6 @@ public class DynRobotEntity extends EntityRobot {
 		getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(1.0D);
 	}
 
-	// part needed for computer craft programming of robot
-	@Override
-	protected RobotBrain createBrain() {
-		return new DynRobotBrain(this);
-	}
-
-	@Override
-	protected ServerComputer createComputer(int instanceID, int id) {
-		System.out.println("Creating Computer");
-		return createComputer(instanceID, id, 39, 13);
-	}
-
-	protected final ServerComputer createComputer(int instanceID, int id, int termWidth, int termHeight) {
-		ServerComputer computer = new ServerComputer(worldObj, id, "robot", instanceID, ComputerFamily.Advanced,
-				termWidth, termHeight);
-
-		computer.setPosition(getPosition());
-		computer.addAPI(new TurtleAPI(computer.getAPIEnvironment(), getAccess()));
-		computer.addAPI(new DynApi(computer.getAPIEnvironment(), (IDYNRobotAccess) getAccess()));
-		computer.addAPI(new DynRobotAPI(computer.getAPIEnvironment(), getAccess()));
-		m_brain.setupComputer(computer);
-		return computer;
-	}
-
 	@Override
 	protected void dropFewItems(boolean recentlyAttacked, int lootModify) {
 		super.dropFewItems(recentlyAttacked, lootModify);
@@ -99,10 +67,7 @@ public class DynRobotEntity extends EntityRobot {
 				setOwner(player);
 			}
 			if (getOwner() == player.getName()) {
-				RobotMod.proxy.openRobotProgrammingWindow(worldObj, getPosition(), this);
-
-				// player.openGui(RobotMod.instance, 0, worldObj, (int) posX,
-				// (int) posY, (int) posZ);
+				RobotMod.proxy.openRobotProgrammingWindow(this);
 			} else {
 				System.out.println("Robot has different owner");
 			}
