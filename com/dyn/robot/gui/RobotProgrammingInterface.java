@@ -1,43 +1,36 @@
 package com.dyn.robot.gui;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.IDYNRobotAccess;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.gui.widgets.TerminalInterface;
 import com.rabbit.gui.component.control.Button;
+import com.rabbit.gui.component.control.MultiTextbox;
 import com.rabbit.gui.component.control.PictureButton;
+import com.rabbit.gui.component.control.TextBox;
 import com.rabbit.gui.component.display.Panel;
 import com.rabbit.gui.component.display.Picture;
 import com.rabbit.gui.show.Show;
 
-import dan200.computercraft.shared.computer.core.IComputer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
-public class ProgrammingInterface extends Show {
+public class RobotProgrammingInterface extends Show {
 
-	protected final IDYNRobotAccess m_robot;
-	protected final IComputer m_computer;
+	protected final EntityRobot robot;
+	private String termText;
 
-	public ProgrammingInterface() {
+	public RobotProgrammingInterface() {
 		title = "Turtle Programmer";
-		m_robot = null;
-		m_computer = null;
+		termText = "Welcome to the progamming interface!";
+		robot = null;
 	}
 
-	public ProgrammingInterface(EntityRobot robot) {
+	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		m_robot = (IDYNRobotAccess) robot.getAccess();
-		m_computer = robot.getComputer();
-
-		if (!m_computer.isOn()) {
-			System.out.println("Turning Computer On");
-			m_computer.turnOn();
-		}
+		this.robot = robot;
 	}
 
-	public IDYNRobotAccess getRobot() {
-		return m_robot;
+	public EntityRobot getRobot() {
+		return robot;
 	}
 
 	@Override
@@ -51,17 +44,20 @@ public class ProgrammingInterface extends Show {
 		panel.registerComponent(new Picture(0, 0, (panel.getWidth()), (panel.getHeight()),
 				new ResourceLocation("dyn", "textures/gui/background2.png")));
 
-		panel.registerComponent(
-				new TerminalInterface(10, 15, panel.getWidth() - 20, panel.getHeight() - 30, m_computer));
+		panel.registerComponent(new MultiTextbox(10, 15, panel.getWidth() - 20, panel.getHeight() - 25)
+				.setText(termText).setBackgroundVisibility(false).setDrawUnicode(true)
+				.setTextChangedListener((TextBox textbox, String previousText) -> {
+					termText = previousText;
+				}));
 
 		panel.registerComponent(new PictureButton(panel.getWidth() - 15, 0, 15, 15,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setClickListener(btn -> {
-					RobotMod.proxy.toggleRenderProgramInterface(false);
+					RobotMod.proxy.toggleRenderRobotProgramInterface(false);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));
 
 		panel.registerComponent(new Button(0, 0, 45, 15, "<<Game").setClickListener(btn -> {
-			RobotMod.proxy.toggleRenderProgramInterface(true);
+			RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 			Minecraft.getMinecraft().setIngameFocus();
 		}));
 	}
