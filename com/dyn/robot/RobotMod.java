@@ -2,6 +2,7 @@ package com.dyn.robot;
 
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
+import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.items.ItemDynRobotSpawner;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.proxy.Proxy;
@@ -17,7 +18,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, dependencies = "required-after:dyn|server;after:ComputerCraft")
+@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, dependencies = "required-after:dyn|server")
 public class RobotMod {
 	@Mod.Instance(Reference.MOD_ID)
 	public static RobotMod instance;
@@ -28,6 +29,9 @@ public class RobotMod {
 	public static BlockDynRobot dynRobot;
 	public static ItemRemote dynRobotRemote;
 
+	public static EntityRobot currentRobot;
+	public static String robotName;
+
 	public static void registerNewEntity(Class entityClass, String name, int id) {
 		EntityRegistry.registerModEntity(entityClass, name, id, instance, 64, 3, false);
 	}
@@ -36,7 +40,6 @@ public class RobotMod {
 	public void init(FMLInitializationEvent event) {
 		proxy.init();
 		proxy.registerBlockItem(dynRobot);
-		proxy.registerItem(dynRobotRemote, dynRobotRemote.getUnlocalizedName(), 0);
 	}
 
 	@Mod.EventHandler
@@ -50,6 +53,7 @@ public class RobotMod {
 
 		registerItems();
 		registerBlocks();
+
 		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
 
 		proxy.preInit();
@@ -65,5 +69,6 @@ public class RobotMod {
 		dynRobotRemote = (ItemRemote) new ItemRemote().setUnlocalizedName("dyn_robot_remote")
 				.setCreativeTab(CreativeTabs.tabRedstone);
 		GameRegistry.registerItem(dynRobotRemote, "dyn_robot_remote");
+		proxy.registerItem(dynRobotRemote, dynRobotRemote.getUnlocalizedName(), 0);
 	}
 }
