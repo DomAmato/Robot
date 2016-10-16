@@ -1,10 +1,13 @@
 package com.dyn.robot.proxy;
 
+import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 
 public class Server implements Proxy {
 
@@ -23,6 +26,18 @@ public class Server implements Proxy {
 	@Override
 	public void init() {
 		// MinecraftForge.EVENT_BUS.register(this);
+
+	}
+
+	@Override
+	public void openRemoteInterface(EntityRobot robot) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos) {
+		// TODO Auto-generated method stub
 
 	}
 

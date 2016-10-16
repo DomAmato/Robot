@@ -1,10 +1,13 @@
 package com.dyn.robot.proxy;
 
+import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 
 public interface Proxy {
 	public void createNewProgrammingInterface(EntityRobot robot);
@@ -12,6 +15,10 @@ public interface Proxy {
 	public RobotProgrammingInterface getProgrammingInterface();
 
 	public void init();
+
+	public void openRemoteInterface(EntityRobot robot);
+
+	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos);
 
 	public void openRobotGui();
 
