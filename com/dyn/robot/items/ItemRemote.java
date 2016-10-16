@@ -1,8 +1,8 @@
 package com.dyn.robot.items;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 
 import net.minecraft.entity.Entity;
@@ -44,23 +44,10 @@ public class ItemRemote extends Item {
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
 		if (worldIn.isRemote) {
-			List<EntityRobot> robotsOwned = new ArrayList<EntityRobot>();
-			for (EntityRobot robot : getEntitiesInRadius(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, 32)) {
-				if (robot.getOwner() == playerIn.getName()) {
-					robotsOwned.add(robot);
-				}
-			}
-			// System.out.println("opening gui");
-			// //since we are on the client side we can probably use rabbit
-			// instead of guihandlers
-			// playerIn.openGui(RobotMod.instance, 1, worldIn, (int)
-			// playerIn.posX, (int) playerIn.posY,
-			// (int) playerIn.posZ);
+			RobotMod.proxy.openRemoteInterface(RobotMod.currentRobot);
 		} else {
-			// we need to create the computer and turn it on
-			// createServerComputer().turnOn();
+
 		}
-		// open gui with list of robot entities
 		return itemStackIn;
 	}
 

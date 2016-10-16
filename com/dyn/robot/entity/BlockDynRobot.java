@@ -1,13 +1,12 @@
 package com.dyn.robot.entity;
 
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -17,7 +16,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockDynRobot extends BlockFalling {
 	public BlockDynRobot() {
-		super(Material.rock);
+		super(Material.iron);
 	}
 
 	// the block will render in the SOLID layer. See
@@ -55,22 +54,12 @@ public class BlockDynRobot extends BlockFalling {
 			EnumFacing side, float hitX, float hitY, float hitZ) {
 		// without this it fires twice
 		if (worldIn.isRemote) {
-			return true;
-		}
-		if (!isAir(worldIn, pos)) {
 			if ((playerIn.getCurrentEquippedItem() != null)
 					&& (playerIn.getCurrentEquippedItem().getItem() instanceof ItemRemote)) {
-				// open gui
-				worldIn.setBlockToAir(pos);
-				DynRobotEntity robot = (DynRobotEntity) ItemMonsterPlacer.spawnCreature(worldIn,
-						EntityList.classToStringMapping.get(DynRobotEntity.class), pos.getX() + 0.5, pos.getY(),
-						pos.getZ() + 0.5);
-				if (robot != null) {
-					robot.setOwner(playerIn);
-					return true;
-				}
+				RobotMod.proxy.openRemoteInterface(worldIn, this, pos);
 			}
+			return true;
 		}
-		return false;
+		return true;
 	}
 }

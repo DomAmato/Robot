@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathNavigateGround;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Vec3;
@@ -60,16 +61,14 @@ public class DynRobotEntity extends EntityRobot {
 	public boolean interact(EntityPlayer player) {
 		ItemStack itemstack = player.inventory.getCurrentItem();
 
-		if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive() && !isChild()
-				&& !player.isSneaking()) {
+		if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
 			if (getOwner() == null) {
-				System.out.println("Robot has no owner setting owner");
-				setOwner(player);
+				RobotMod.proxy.openRemoteInterface(this);
 			}
 			if (getOwner() == player.getName()) {
 				RobotMod.proxy.openRobotProgrammingWindow(this);
 			} else {
-				System.out.println("Robot has different owner");
+				player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));
 			}
 			return true;
 		}
