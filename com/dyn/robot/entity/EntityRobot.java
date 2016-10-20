@@ -2,11 +2,14 @@ package com.dyn.robot.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,6 +17,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.server.management.PreYggdrasilConverter;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -29,8 +33,10 @@ public abstract class EntityRobot extends EntityCreature {
 	}
 
 	protected boolean m_on;
-	protected String owner;
+	protected EntityLivingBase owner;
 	public RobotInventory m_inventory;
+	public EntityAIFollowsOwnerEX followTask = null;
+	private String robotName = "";
 
 	public List<BlockPos> markedChests = new ArrayList();
 
@@ -43,6 +49,30 @@ public abstract class EntityRobot extends EntityCreature {
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
+		if ((is == null) || (is.stackSize <= 0)) {
+			return null;
+		}
+
+		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
+			if ((m_inventory.getStackInSlot(a) == null) || (m_inventory.getStackInSlot(a).stackSize <= 0)) {
+				m_inventory.setInventorySlotContents(a, is);
+				return null;
+			}
+			ItemStack is2 = m_inventory.getStackInSlot(a);
+			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
+				int amount = Math.min(is.stackSize, is2.getMaxStackSize() - is2.stackSize);
+				is.stackSize -= amount;
+				is2.stackSize += amount;
+				m_inventory.setInventorySlotContents(a, is2);
+			}
+			if (is.stackSize <= 0) {
+				return null;
+			}
+		}
+		return is;
+	}
+	
+	public ItemStack addItemStackToInventory(ItemStack is) {
 		if ((is == null) || (is.stackSize <= 0)) {
 			return null;
 		}
@@ -184,7 +214,7 @@ public abstract class EntityRobot extends EntityCreature {
 		return false;
 	}
 
-	public String getOwner() {
+	public EntityLivingBase getOwner() {
 		return owner;
 	}
 
@@ -244,12 +274,23 @@ public abstract class EntityRobot extends EntityCreature {
 		}
 
 		m_on = nbttagcompound.getBoolean("on");
+		robotName = nbttagcompound.getString("robotName");
+		String s = "";
 
-		if (nbttagcompound.hasKey("owner")) {
-			owner = nbttagcompound.getString("owner");
-		} else {
-			owner = null;
-		}
+        if (nbttagcompound.hasKey("OwnerUUID", 8))
+        {
+            s = nbttagcompound.getString("OwnerUUID");
+        }
+        else
+        {
+            String s1 = nbttagcompound.getString("Owner");
+            s = PreYggdrasilConverter.getStringUUIDFromName(s1);
+        }
+
+        if (s.length() > 0)
+        {
+            this.setOwnerId(s);
+        }
 	}
 
 	public boolean setMoveTo(BlockPos pos, float ms) {
@@ -266,8 +307,9 @@ public abstract class EntityRobot extends EntityCreature {
 
 	public void setOwner(Entity owner) {
 		if (owner instanceof EntityPlayer) {
-			this.owner = owner.getName();
-			tasks.addTask(1, new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.5D, 6.0F, 2.0F));
+			this.owner = (EntityLiving) owner;
+			setOwnerId(owner.getUniqueID().toString());
+			tasks.addTask(1, followTask = new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.5D, 6.0F, 2.0F));
 		}
 	}
 
@@ -289,8 +331,55 @@ public abstract class EntityRobot extends EntityCreature {
 			}
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
-
+		nbttagcompound.setString("robotName", robotName);
 		nbttagcompound.setBoolean("on", m_on);
-		nbttagcompound.setString("owner", owner);
+		
+		 if (this.getOwnerId() == null)
+	        {
+			 nbttagcompound.setString("OwnerUUID", "");
+	        }
+	        else
+	        {
+	        	nbttagcompound.setString("OwnerUUID", this.getOwnerId());
+	        }
 	}
+	
+	public EntityLivingBase getOwnerByID()
+    {
+        try
+        {
+            UUID uuid = UUID.fromString(this.getOwnerId());
+            return uuid == null ? null : this.worldObj.getPlayerEntityByUUID(uuid);
+        }
+        catch (IllegalArgumentException var2)
+        {
+            return null;
+        }
+    }
+	
+	public String getOwnerId()
+    {
+        return this.dataWatcher.getWatchableObjectString(17);
+    }
+	
+	 public void setOwnerId(String ownerUuid)
+	    {
+	        this.dataWatcher.updateObject(17, ownerUuid);
+	        UUID uuid = UUID.fromString(ownerUuid);
+	        owner = worldObj.getPlayerEntityByUUID(uuid);
+	    }
+	 
+	 public String getRobotName()
+	    {
+	        return this.robotName;
+	    }
+		
+		 public void setRobotName(String robotName)
+		    {
+		        this.robotName = robotName;
+		    }
+	 public boolean isOwner(EntityLivingBase entityIn)
+	    {
+	        return entityIn == this.getOwner();
+	    }
 }

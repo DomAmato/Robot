@@ -104,7 +104,7 @@ public class RobotInventory implements IInventory {
 
 	@Override
 	public boolean isUseableByPlayer(EntityPlayer player) {
-		return robot.getOwner() == player.getName();
+		return robot.isOwner(player);
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public class DynRobotEntity extends EntityRobot {
 			if (getOwner() == null) {
 				RobotMod.proxy.openRemoteInterface(this);
 			}
-			if (getOwner() == player.getName()) {
+			if (isOwner(player)) {
 				RobotMod.proxy.openRobotProgrammingWindow(this);
 			} else {
 				player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));

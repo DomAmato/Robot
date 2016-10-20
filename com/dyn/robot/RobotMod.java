@@ -1,5 +1,6 @@
 package com.dyn.robot;
 
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
@@ -30,7 +31,7 @@ public class RobotMod {
 	public static ItemRemote dynRobotRemote;
 
 	public static EntityRobot currentRobot;
-	public static String robotName;
+//	public static String robotName;
 
 	public static void registerNewEntity(Class entityClass, String name, int id) {
 		EntityRegistry.registerModEntity(entityClass, name, id, instance, 64, 3, false);
@@ -55,7 +56,9 @@ public class RobotMod {
 		registerBlocks();
 
 		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
-
+		
+		RobotAPI.registerCommands();
+		
 		proxy.preInit();
 	}
 

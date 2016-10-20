@@ -22,6 +22,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	private int field_75343_h;
 	float maxDist;
 	float minDist;
+	private boolean shouldFollow;
 
 	public EntityAIFollowsOwnerEX(EntityLiving follower, EntityLivingBase owner, double followSpeedIn, float minDistIn,
 			float maxDistIn) {
@@ -70,7 +71,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public boolean shouldExecute() {
-		if (theOwner == null) {
+		if (theOwner == null || !shouldFollow) {
 			return false;
 		} else if ((theOwner instanceof EntityPlayer) && ((EntityPlayer) theOwner).isSpectator()) {
 			return false;
@@ -120,5 +121,13 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 				}
 			}
 		}
+	}
+
+	public boolean getIsFollowing() {
+		return shouldFollow;
+	}
+
+	public void setIsFollowing(boolean shouldFollow) {
+		this.shouldFollow = shouldFollow;
 	}
 }
