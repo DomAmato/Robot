@@ -11,6 +11,7 @@ import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 
+import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -28,24 +29,25 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
 
-	private RobotProgrammingInterface programInterface;
+	private RobotProgrammingInterface robotProgramInterface;
 
 	private boolean showRobotProgrammer = false;
 
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
-		programInterface = new RobotProgrammingInterface(robot);
+		robotProgramInterface = new RobotProgrammingInterface(robot);
 	}
 
 	@Override
 	public RobotProgrammingInterface getProgrammingInterface() {
-		return programInterface;
+		return robotProgramInterface;
 	}
 
 	@Override
 	public void init() {
 		MinecraftForge.EVENT_BUS.register(this);
-		programInterface = new RobotProgrammingInterface();
+		RaspberryJamMod.EVENT_BUS.register(this);
+		robotProgramInterface = new RobotProgrammingInterface();
 	}
 
 	@SubscribeEvent
@@ -64,7 +66,7 @@ public class Client implements Proxy {
 		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
 				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
 			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer) {
-				programInterface.onDraw(0, 0, event.renderTickTime);
+				robotProgramInterface.onDraw(0, 0, event.renderTickTime);
 			}
 		}
 	}
@@ -89,7 +91,7 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRobotInterface() {
-		RabbitGui.proxy.display(programInterface);
+		RabbitGui.proxy.display(robotProgramInterface);
 	}
 
 	@Override

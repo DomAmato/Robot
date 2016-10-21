@@ -261,8 +261,7 @@ public class RobotProgrammingInterface extends Show {
 				.setClickListener(btn -> {
 					codeWindow.clearError();
 					errorPanel.setVisible(false);
-					NetworkDispatcher.sendToServer(
-							new MessageRunPythonScript(termText));
+					NetworkDispatcher.sendToServer(new MessageRunPythonScript(termText));
 				}));
 
 		panel.registerComponent(new PictureButton(panel.getWidth() - 15, 0, 15, 15,

@@ -9,7 +9,6 @@ import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
@@ -25,7 +24,10 @@ public class DynRobotEntity extends EntityRobot {
 
 	public DynRobotEntity(World worldIn, EntityPlayer player) {
 		super(worldIn);
-		setOwner(player);
+
+		if (player != null) {
+			setOwnerId(player.getUniqueID().toString());
+		}
 
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
 
@@ -59,18 +61,20 @@ public class DynRobotEntity extends EntityRobot {
 	 */
 	@Override
 	public boolean interact(EntityPlayer player) {
-		ItemStack itemstack = player.inventory.getCurrentItem();
+		if (worldObj.isRemote) {
+			ItemStack itemstack = player.inventory.getCurrentItem();
 
-		if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
-			if (getOwner() == null) {
-				RobotMod.proxy.openRemoteInterface(this);
+			if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
+				if (isOwner(player)) {
+					// maybe allow kids to toggle the programming environment
+					// from the remote?
+					RobotMod.proxy.openRemoteInterface(this);
+					// RobotMod.proxy.openRobotProgrammingWindow(this);
+				} else {
+					player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));
+				}
+				return true;
 			}
-			if (isOwner(player)) {
-				RobotMod.proxy.openRobotProgrammingWindow(this);
-			} else {
-				player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));
-			}
-			return true;
 		}
 		return super.interact(player);
 	}
@@ -108,11 +112,6 @@ public class DynRobotEntity extends EntityRobot {
 
 	}
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		super.readFromNBT(nbttagcompound);
-	}
-
 	public void slightMoveWhenStill() {
 		if ((Math.abs(motionX) + Math.abs(motionZ)) <= 0.4) {
 			Vec3 vec = getLookVec();
@@ -137,10 +136,5 @@ public class DynRobotEntity extends EntityRobot {
 					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, var4,
 					var6, var8);
 		}
-	}
-
-	@Override
-	public void writeToNBT(NBTTagCompound nbttagcompound) {
-		super.writeToNBT(nbttagcompound);
 	}
 }

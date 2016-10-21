@@ -1,5 +1,7 @@
 package com.dyn.robot.entity.ai;
 
+import com.dyn.robot.entity.EntityRobot;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLiving;
@@ -14,7 +16,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 public class EntityAIFollowsOwnerEX extends EntityAIBase {
-	private EntityLiving follower;
+	private EntityRobot follower;
 	private EntityLivingBase theOwner;
 	World theWorld;
 	private double followSpeed;
@@ -22,9 +24,8 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	private int field_75343_h;
 	float maxDist;
 	float minDist;
-	private boolean shouldFollow;
 
-	public EntityAIFollowsOwnerEX(EntityLiving follower, EntityLivingBase owner, double followSpeedIn, float minDistIn,
+	public EntityAIFollowsOwnerEX(EntityRobot follower, EntityLivingBase owner, double followSpeedIn, float minDistIn,
 			float maxDistIn) {
 		this.follower = follower;
 		theWorld = follower.worldObj;
@@ -62,16 +63,12 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 		entityPath.clearPathEntity();
 	}
 
-	public void setOwner(EntityLivingBase owner) {
-		theOwner = owner;
-	}
-
 	/**
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	@Override
 	public boolean shouldExecute() {
-		if (theOwner == null || !shouldFollow) {
+		if ((theOwner == null) || !follower.getIsFollowing()) {
 			return false;
 		} else if ((theOwner instanceof EntityPlayer) && ((EntityPlayer) theOwner).isSpectator()) {
 			return false;
@@ -121,13 +118,5 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 				}
 			}
 		}
-	}
-
-	public boolean getIsFollowing() {
-		return shouldFollow;
-	}
-
-	public void setIsFollowing(boolean shouldFollow) {
-		this.shouldFollow = shouldFollow;
 	}
 }

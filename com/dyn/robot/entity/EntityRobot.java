@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,14 +18,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.management.PreYggdrasilConverter;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
-public abstract class EntityRobot extends EntityCreature {
+public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
 
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
@@ -33,10 +33,10 @@ public abstract class EntityRobot extends EntityCreature {
 	}
 
 	protected boolean m_on;
-	protected EntityLivingBase owner;
+	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
-	public EntityAIFollowsOwnerEX followTask = null;
-	private String robotName = "";
+//	public EntityAIFollowsOwnerEX followTask = null;
+	private boolean shouldFollow;
 
 	public List<BlockPos> markedChests = new ArrayList();
 
@@ -46,6 +46,8 @@ public abstract class EntityRobot extends EntityCreature {
 		width = 0.8f;
 		m_on = false;
 		m_inventory = new RobotInventory(this);
+		dataWatcher.addObject(17, "");// owner uuid
+		dataWatcher.addObject(18, "");// robot name
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
@@ -71,7 +73,7 @@ public abstract class EntityRobot extends EntityCreature {
 		}
 		return is;
 	}
-	
+
 	public ItemStack addItemStackToInventory(ItemStack is) {
 		if ((is == null) || (is.stackSize <= 0)) {
 			return null;
@@ -214,8 +216,27 @@ public abstract class EntityRobot extends EntityCreature {
 		return false;
 	}
 
-	public EntityLivingBase getOwner() {
+	@Override
+	public EntityPlayer getOwner() {
 		return owner;
+	}
+
+	public EntityLivingBase getOwnerByID() {
+		try {
+			UUID uuid = UUID.fromString(getOwnerId());
+			return uuid == null ? null : worldObj.getPlayerEntityByUUID(uuid);
+		} catch (IllegalArgumentException var2) {
+			return null;
+		}
+	}
+
+	@Override
+	public String getOwnerId() {
+		return dataWatcher.getWatchableObjectString(17);
+	}
+
+	public String getRobotName() {
+		return dataWatcher.getWatchableObjectString(18);
 	}
 
 	public boolean hasNeededItem() {
@@ -249,6 +270,17 @@ public abstract class EntityRobot extends EntityCreature {
 		return true;
 	}
 
+	public boolean isOwner(EntityLivingBase entityIn) {
+		try {
+		if(getOwner() == null){
+			owner = worldObj.getPlayerEntityByUUID(UUID.fromString(getOwnerId()));
+		}
+		} catch(Exception e){
+			DYNServerMod.logger.info("No Owner Information Present");
+		}
+		return entityIn == getOwner() || getOwnerId().equals(entityIn.getUniqueID().toString());
+	}
+
 	@Override
 	public void onDeath(DamageSource d) {
 		super.onDeath(d);
@@ -260,8 +292,8 @@ public abstract class EntityRobot extends EntityCreature {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		super.readFromNBT(nbttagcompound);
+	public void readEntityFromNBT(NBTTagCompound nbttagcompound) {
+		super.readEntityFromNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", 10);
 		// m_inventory = new ItemStack[32];
@@ -274,23 +306,14 @@ public abstract class EntityRobot extends EntityCreature {
 		}
 
 		m_on = nbttagcompound.getBoolean("on");
-		robotName = nbttagcompound.getString("robotName");
-		String s = "";
-
-        if (nbttagcompound.hasKey("OwnerUUID", 8))
-        {
-            s = nbttagcompound.getString("OwnerUUID");
-        }
-        else
-        {
-            String s1 = nbttagcompound.getString("Owner");
-            s = PreYggdrasilConverter.getStringUUIDFromName(s1);
-        }
-
-        if (s.length() > 0)
-        {
-            this.setOwnerId(s);
-        }
+		String robotName = nbttagcompound.getString("robotName");
+		if (robotName.length() > 0) {
+			setRobotName(robotName);
+		}
+		String ownerID = nbttagcompound.getString("OwnerUUID");
+		if (ownerID.length() > 0) {
+			setOwnerId(ownerID);
+		}
 	}
 
 	public boolean setMoveTo(BlockPos pos, float ms) {
@@ -305,12 +328,29 @@ public abstract class EntityRobot extends EntityCreature {
 		return setMoveTo(e.posX, e.posY, e.posZ, ms);
 	}
 
-	public void setOwner(Entity owner) {
-		if (owner instanceof EntityPlayer) {
-			this.owner = (EntityLiving) owner;
-			setOwnerId(owner.getUniqueID().toString());
-			tasks.addTask(1, followTask = new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.5D, 6.0F, 2.0F));
-		}
+	public void setOwner(EntityPlayer player) {
+		owner = player;
+		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, owner, 1.5D, 6.0F, 2.0F));
+		setOwnerId(player.getUniqueID().toString());
+		worldObj.setEntityState(this, (byte) 7);
+	}
+
+	public void setOwner(UUID playerId) {
+		owner = worldObj.getPlayerEntityByUUID(playerId);
+		System.out.println(owner + ", " + (worldObj.isRemote ? "Client" : "Server"));
+		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, owner, 1.5D, 6.0F, 2.0F));
+		worldObj.setEntityState(this, (byte) 7);
+	}
+
+	public void setOwnerId(String ownerUuid) {
+		dataWatcher.updateObject(17, ownerUuid);
+		setOwner(UUID.fromString(ownerUuid));
+	}
+
+	public void setRobotName(String robotName) {
+		dataWatcher.updateObject(18, robotName);
+		setCustomNameTag(robotName);
+		setAlwaysRenderNameTag(true);
 	}
 
 	public boolean shouldStoreItems(int a) {
@@ -318,8 +358,8 @@ public abstract class EntityRobot extends EntityCreature {
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbttagcompound) {
-		super.writeToNBT(nbttagcompound);
+	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
+		super.writeEntityToNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = new NBTTagList();
 		for (int i = 0; i < 16; i++) {
@@ -331,55 +371,26 @@ public abstract class EntityRobot extends EntityCreature {
 			}
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
-		nbttagcompound.setString("robotName", robotName);
+		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
 		nbttagcompound.setBoolean("on", m_on);
-		
-		 if (this.getOwnerId() == null)
-	        {
-			 nbttagcompound.setString("OwnerUUID", "");
-	        }
-	        else
-	        {
-	        	nbttagcompound.setString("OwnerUUID", this.getOwnerId());
-	        }
+
+		if (getOwnerId() == null) {
+			nbttagcompound.setString("OwnerUUID", "");
+		} else {
+			nbttagcompound.setString("OwnerUUID", getOwnerId());
+		}
 	}
 	
-	public EntityLivingBase getOwnerByID()
-    {
-        try
-        {
-            UUID uuid = UUID.fromString(this.getOwnerId());
-            return uuid == null ? null : this.worldObj.getPlayerEntityByUUID(uuid);
-        }
-        catch (IllegalArgumentException var2)
-        {
-            return null;
-        }
-    }
+	public void printInfo(){
+		DYNServerMod.logger.info(getRobotName() + " " + getEntityId() + ": "
+				+ getOwnerId() + " - " + (worldObj.isRemote ? "Client" : "Server"));
+	}
 	
-	public String getOwnerId()
-    {
-        return this.dataWatcher.getWatchableObjectString(17);
-    }
+	public boolean getIsFollowing() {
+		return shouldFollow;
+	}
 	
-	 public void setOwnerId(String ownerUuid)
-	    {
-	        this.dataWatcher.updateObject(17, ownerUuid);
-	        UUID uuid = UUID.fromString(ownerUuid);
-	        owner = worldObj.getPlayerEntityByUUID(uuid);
-	    }
-	 
-	 public String getRobotName()
-	    {
-	        return this.robotName;
-	    }
-		
-		 public void setRobotName(String robotName)
-		    {
-		        this.robotName = robotName;
-		    }
-	 public boolean isOwner(EntityLivingBase entityIn)
-	    {
-	        return entityIn == this.getOwner();
-	    }
+	public void setIsFollowing(boolean shouldFollow) {
+		this.shouldFollow = shouldFollow;
+	}
 }
