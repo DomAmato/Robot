@@ -4,8 +4,6 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -30,9 +28,8 @@ public class DynRobotEntity extends EntityRobot {
 		}
 
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
+		((PathNavigateGround) getNavigator()).setEnterDoors(true);
 
-		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-		tasks.addTask(3, new EntityAILookIdle(this));
 	}
 
 	@Override

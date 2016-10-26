@@ -57,9 +57,6 @@ public class ModelDynRobot extends ModelBase {
 		bipedBody.render(scale);
 		bipedRightArm.render(scale);
 		bipedLeftArm.render(scale);
-		// with the full biped rotation stuff we have to do this for some
-		// reason...
-		// GlStateManager.translate(0.0F, -0.5F, 0.0F);
 		bipedRightLeg.render(scale);
 		bipedLeftLeg.render(scale);
 

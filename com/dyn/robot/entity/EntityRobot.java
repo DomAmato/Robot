@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.dyn.DYNServerMod;
+import com.dyn.robot.entity.ai.EntityAIFollowPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 
 import net.minecraft.entity.Entity;
@@ -12,6 +13,10 @@ import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -32,22 +37,29 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return list;
 	}
 
-	protected boolean m_on;
+	protected boolean shouldFollow;
 	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
-//	public EntityAIFollowsOwnerEX followTask = null;
-	private boolean shouldFollow;
+	private List<BlockPos> programPath = new ArrayList();
+	private boolean executeCode = false;
+	// public EntityAIFollowsOwnerEX followTask = null;
 
 	public List<BlockPos> markedChests = new ArrayList();
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
-		height = 1;
-		width = 0.8f;
-		m_on = false;
+		height = .9f;
+		width = 0.5f;
+		shouldFollow = false;
+		executeCode = false;
 		m_inventory = new RobotInventory(this);
 		dataWatcher.addObject(17, "");// owner uuid
 		dataWatcher.addObject(18, "");// robot name
+
+		tasks.addTask(1, new EntityAIFollowPath(this, 1.5D));
+		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(4, new EntityAILookIdle(this));
+
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
@@ -125,6 +137,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
+	public void addToProgramPath(BlockPos pos) {
+		// block pos is integer based but we want to move to the center of the
+		// block
+		programPath.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+	}
+
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
@@ -141,6 +159,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return par1Entity.attackEntityFrom(DamageSource.causeMobDamage(this), 1.0f);
 	}
 
+	public void beginExecuteCode(boolean executeCode) {
+		DYNServerMod.logger.info("Set Code Execute to:");
+		this.executeCode = executeCode;
+	}
+
 	@Override
 	protected boolean canDespawn() {
 		return false;
@@ -152,6 +175,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	protected boolean canNameWithTag(EntityPlayer player) {
 		return false;
+	}
+
+	public void clearProgramPath() {
+		programPath.clear();
 	}
 
 	public boolean decreaseItemStack(ItemStack is) {
@@ -216,6 +243,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return false;
 	}
 
+	public boolean getIsFollowing() {
+		return shouldFollow;
+	}
+
 	@Override
 	public EntityPlayer getOwner() {
 		return owner;
@@ -233,6 +264,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	public String getOwnerId() {
 		return dataWatcher.getWatchableObjectString(17);
+	}
+
+	public List<BlockPos> getProgramPath() {
+		return programPath;
 	}
 
 	public String getRobotName() {
@@ -270,15 +305,95 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return true;
 	}
 
-	public boolean isOwner(EntityLivingBase entityIn) {
+	public boolean isOwner(EntityPlayer entityIn) {
 		try {
-		if(getOwner() == null){
-			owner = worldObj.getPlayerEntityByUUID(UUID.fromString(getOwnerId()));
-		}
-		} catch(Exception e){
+			if (getOwner() == null) {
+				if (getOwnerId().equals(entityIn.getUniqueID().toString())) {
+					owner = entityIn;
+				}
+			}
+		} catch (Exception e) {
 			DYNServerMod.logger.info("No Owner Information Present");
 		}
-		return entityIn == getOwner() || getOwnerId().equals(entityIn.getUniqueID().toString());
+		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID().toString());
+	}
+
+	public void moveBackward(int num) {
+		if (getIsFollowing()) {
+			setIsFollowing(false);
+		}
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		switch (getHorizontalFacing()) {
+		case NORTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.south();
+				addToProgramPath(dest);
+			}
+			break;
+		case SOUTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.north();
+				addToProgramPath(dest);
+			}
+			break;
+		case EAST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.west();
+				addToProgramPath(dest);
+			}
+			break;
+		case WEST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.east();
+				addToProgramPath(dest);
+			}
+			break;
+		default:
+			dest = getPosition();
+			break;
+		}
+	}
+
+	public void moveForward(int num) {
+		if (getIsFollowing()) {
+			setIsFollowing(false);
+		}
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		switch (getHorizontalFacing()) {
+		case NORTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.north();
+				addToProgramPath(dest);
+			}
+			break;
+		case SOUTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.south();
+				addToProgramPath(dest);
+			}
+			break;
+		case EAST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.east();
+				addToProgramPath(dest);
+			}
+			break;
+		case WEST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.west();
+				addToProgramPath(dest);
+			}
+			break;
+		default:
+			dest = getPosition();
+			break;
+		}
 	}
 
 	@Override
@@ -305,7 +420,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 
-		m_on = nbttagcompound.getBoolean("on");
+		shouldFollow = nbttagcompound.getBoolean("follow");
 		String robotName = nbttagcompound.getString("robotName");
 		if (robotName.length() > 0) {
 			setRobotName(robotName);
@@ -316,30 +431,36 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
-	public boolean setMoveTo(BlockPos pos, float ms) {
-		return setMoveTo(pos.getX(), pos.getY(), pos.getZ(), ms);
+	public void reinitNonEssentialAI() {
+		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(4, new EntityAILookIdle(this));
 	}
 
-	public boolean setMoveTo(double x, double y, double z, float ms) {
-		return getNavigator().tryMoveToXYZ((int) x, (int) y, (int) z, ms);
+	public void removeNonEssentialAI() {
+		List<EntityAIBase> nonEssentialAIs = new ArrayList();
+		for (EntityAITaskEntry task : tasks.taskEntries) {
+			if ((task.action instanceof EntityAIWatchClosest) || (task.action instanceof EntityAILookIdle)) {
+				nonEssentialAIs.add(task.action);
+			}
+		}
+		for (EntityAIBase ai : nonEssentialAIs) {
+			tasks.removeTask(ai);
+		}
 	}
 
-	public boolean setMoveTo(Entity e, float ms) {
-		return setMoveTo(e.posX, e.posY, e.posZ, ms);
+	public void setIsFollowing(boolean shouldFollow) {
+		this.shouldFollow = shouldFollow;
 	}
 
 	public void setOwner(EntityPlayer player) {
 		owner = player;
-		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, owner, 1.5D, 6.0F, 2.0F));
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 2.0F));
 		setOwnerId(player.getUniqueID().toString());
-		worldObj.setEntityState(this, (byte) 7);
 	}
 
 	public void setOwner(UUID playerId) {
 		owner = worldObj.getPlayerEntityByUUID(playerId);
-		System.out.println(owner + ", " + (worldObj.isRemote ? "Client" : "Server"));
-		tasks.addTask(1, new EntityAIFollowsOwnerEX(this, owner, 1.5D, 6.0F, 2.0F));
-		worldObj.setEntityState(this, (byte) 7);
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 2.0F));
 	}
 
 	public void setOwnerId(String ownerUuid) {
@@ -351,6 +472,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.updateObject(18, robotName);
 		setCustomNameTag(robotName);
 		setAlwaysRenderNameTag(true);
+	}
+
+	public boolean shouldExecuteCode() {
+		return executeCode;
 	}
 
 	public boolean shouldStoreItems(int a) {
@@ -372,25 +497,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
 		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
-		nbttagcompound.setBoolean("on", m_on);
+		nbttagcompound.setBoolean("follow", shouldFollow);
 
 		if (getOwnerId() == null) {
 			nbttagcompound.setString("OwnerUUID", "");
 		} else {
 			nbttagcompound.setString("OwnerUUID", getOwnerId());
 		}
-	}
-	
-	public void printInfo(){
-		DYNServerMod.logger.info(getRobotName() + " " + getEntityId() + ": "
-				+ getOwnerId() + " - " + (worldObj.isRemote ? "Client" : "Server"));
-	}
-	
-	public boolean getIsFollowing() {
-		return shouldFollow;
-	}
-	
-	public void setIsFollowing(boolean shouldFollow) {
-		this.shouldFollow = shouldFollow;
 	}
 }

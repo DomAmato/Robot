@@ -16,6 +16,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MathHelper;
 
 public class RobotAPI extends Python2MinecraftApi {
 
@@ -31,6 +33,10 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	public static int getRobotId() {
 		return robotId;
+	}
+
+	public static void notifyFailure(String failMessage) {
+		fail(failMessage);
 	}
 
 	public static void registerCommands() {
@@ -96,12 +102,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			int x = scan.nextInt();
 			int y = scan.nextInt();
 			int z = scan.nextInt();
-			BlockPos dest = new BlockPos(x, y, z);
-			BlockPos curLoc = robot.getPosition();
-			float speed = (float) (curLoc.distanceSq(dest) / (robot.getAIMoveSpeed() * robot.getAIMoveSpeed()));
-			if (!robot.setMoveTo(dest, speed)) {
-				fail("Cannot move to location");
-			}
+			robot.addToProgramPath(new BlockPos(x, y, z));
 		});
 		APIRegistry.registerCommand(ROBOTPLACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
@@ -127,23 +128,41 @@ public class RobotAPI extends Python2MinecraftApi {
 			// only place the block if the block is air
 			if (robot.worldObj.getBlockState(placeBlock).getBlock() == Blocks.air) {
 				Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(), placeBlock.getZ());
-				short id = scan.nextShort();
-				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
-				String tagString = getRest(scan);
+				if (args.length() > 0) {
+					short id = scan.nextShort();
+					short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+					String tagString = getRest(scan);
 
-				SetBlockState setState;
+					SetBlockState setState;
 
-				if (tagString.contains("{")) {
-					try {
-						setState = new SetBlockNBT(pos, id, meta, JsonToNBT.getTagFromJson(tagString));
-					} catch (NBTException e) {
-						System.err.println("Cannot parse NBT");
+					if (tagString.contains("{")) {
+						try {
+							setState = new SetBlockNBT(pos, id, meta, JsonToNBT.getTagFromJson(tagString));
+						} catch (NBTException e) {
+							System.err.println("Cannot parse NBT");
+							setState = new SetBlockState(pos, id, meta);
+						}
+					} else {
 						setState = new SetBlockState(pos, id, meta);
 					}
+					eventHandler.queueServerAction(setState);
 				} else {
-					setState = new SetBlockState(pos, id, meta);
+					if (!robot.isInventoryEmpty()) {
+						for (int i = 0; i < robot.m_inventory.getSizeInventory(); i++) {
+							Block inventoryBlock = Block
+									.getBlockFromItem(robot.m_inventory.getStackInSlot(i).getItem());
+							if ((inventoryBlock != null) && inventoryBlock.canPlaceBlockAt(robot.worldObj, pos)) {
+								robot.m_inventory.decrStackSize(i, 1);
+								pos.getWorld().setBlockState(pos, inventoryBlock.getBlockState().getBaseState(), 3);
+								break;
+							}
+						}
+					} else {
+						fail("No Block in Inventory");
+						// pos.getWorld().setBlockState(pos, (IBlockState)
+						// Blocks.dirt.getDefaultState(), 3);
+					}
 				}
-				eventHandler.queueServerAction(setState);
 			}
 		});
 		APIRegistry.registerCommand(ROBOTBREAK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
@@ -217,7 +236,10 @@ public class RobotAPI extends Python2MinecraftApi {
 			if (args.isEmpty()) {
 				fail("Requires an an arguement between -180 and 180");
 			}
-			robot.rotationYaw += scan.nextFloat();
+			float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + scan.nextFloat());
+			robot.rotationYaw = newYaw;
+			robot.setRotationYawHead(newYaw);
+			robot.setRenderYawOffset(newYaw);
 		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
@@ -289,17 +311,39 @@ public class RobotAPI extends Python2MinecraftApi {
 				dest = curLoc;
 				break;
 			}
-			float speed = (float) (curLoc.distanceSq(dest) / (robot.getAIMoveSpeed() * robot.getAIMoveSpeed()));
-			if (!robot.setMoveTo(dest, speed)) {
-				fail("Cannot move to location");
-			}
+			robot.addToProgramPath(dest);
 		});
 		APIRegistry.registerCommand(GETROBOTID, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			robot.setIsFollowing(false);
+			robot.removeNonEssentialAI();
+			BlockPos loc = robot.getPosition();
+			// snap the robot to the center of the block and set its facing to
+			// the current direction
+			if ((robot.rotationYaw % 90) != 0) {
+				robot.setPositionAndRotation(loc.getX() + .5, loc.getY(), loc.getZ() + .5,
+						getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
+			}
 			sendLine(robotId);
 		});
 	}
 
 	public static void setRobotId(int id) {
 		robotId = id;
+	}
+	
+	private static float getAngleFromFacing(EnumFacing dir) {
+		switch (dir) {
+		case SOUTH:
+			return 0;
+		case NORTH:
+			return 180;
+		case EAST:
+			return 270;
+		case WEST:
+			return 90;
+		default:
+			return 0;
+		}
 	}
 }

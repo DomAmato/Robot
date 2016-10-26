@@ -12,6 +12,7 @@ import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
+import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -32,6 +33,13 @@ public class Client implements Proxy {
 	private RobotProgrammingInterface robotProgramInterface;
 
 	private boolean showRobotProgrammer = false;
+
+	@SubscribeEvent
+	public void codeError(CodeEvent.ErrorEvent event) {
+		if (showRobotProgrammer) {
+			robotProgramInterface.handleErrorMessage(event);
+		}
+	}
 
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
