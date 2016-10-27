@@ -9,6 +9,7 @@ import mobi.omegacentauri.raspberryjammod.actions.SetBlockState;
 import mobi.omegacentauri.raspberryjammod.api.APIRegistry;
 import mobi.omegacentauri.raspberryjammod.api.APIRegistry.Python2MinecraftApi;
 import mobi.omegacentauri.raspberryjammod.events.MCEventHandler;
+import mobi.omegacentauri.raspberryjammod.util.BlockState;
 import mobi.omegacentauri.raspberryjammod.util.Location;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -29,6 +30,7 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTINTERACT = "robot.interact";
 	private static final String ROBOTTURN = "robot.turn";
 	private static final String ROBOTFORWARD = "robot.forward";
+	private static final String ROBOTINSPECT = "robot.inspect";
 	public static int robotId = 0;
 
 	public static int getRobotId() {
@@ -43,62 +45,51 @@ public class RobotAPI extends Python2MinecraftApi {
 		// robot
 		APIRegistry.registerCommand("robot." + GETPOS, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			entityGetPos(robotId);
 		});
 		APIRegistry.registerCommand("robot." + GETTILE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			entityGetTile(robotId);
 		});
 		APIRegistry.registerCommand("robot." + GETROTATION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
 					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					robot.setIsFollowing(false);
 					entityGetRotation(robotId);
 				});
 		APIRegistry.registerCommand("robot." + SETROTATION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
 					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					robot.setIsFollowing(false);
 					entitySetRotation(robotId, scan.nextFloat());
 				});
 		APIRegistry.registerCommand("robot." + GETDIRECTION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
 					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					robot.setIsFollowing(false);
 					entityGetDirection(robotId);
 				});
 		APIRegistry.registerCommand("robot." + SETDIRECTION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
 					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					robot.setIsFollowing(false);
 					entitySetDirection(robotId, scan);
 				});
 		APIRegistry.registerCommand("robot." + SETTILE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			entitySetTile(robotId, scan);
 		});
 		APIRegistry.registerCommand("robot." + SETPOS, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			entitySetPos(robotId, scan);
 		});
 		APIRegistry.registerCommand("robot." + SETDIMENSION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
 					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					robot.setIsFollowing(false);
 					entitySetDimension(robotId, scan.nextInt());
 				});
 		APIRegistry.registerCommand("robot." + GETNAME, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			entityGetNameAndUUID(robotId);
 		});
 		APIRegistry.registerCommand(ROBOTMOVE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			int x = scan.nextInt();
 			int y = scan.nextInt();
 			int z = scan.nextInt();
@@ -106,7 +97,6 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTPLACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			BlockPos curLoc = robot.getPosition();
 			BlockPos placeBlock = null;
 			switch (robot.getHorizontalFacing()) {
@@ -167,7 +157,6 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTBREAK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			BlockPos curLoc = robot.getPosition();
 			BlockPos breakBlock = null;
 			switch (robot.getHorizontalFacing()) {
@@ -199,7 +188,6 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTINTERACT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			BlockPos curLoc = robot.getPosition();
 			BlockPos interactBlock = null;
 			if (Block.isEqualTo(robot.worldObj.getBlockState(curLoc).getBlock(), Blocks.lever)
@@ -232,7 +220,6 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTTURN, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			if (args.isEmpty()) {
 				fail("Requires an an arguement between -180 and 180");
 			}
@@ -243,7 +230,6 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			robot.setIsFollowing(false);
 			BlockPos curLoc = robot.getPosition();
 			BlockPos dest = null;
 			switch (robot.getHorizontalFacing()) {
@@ -325,6 +311,17 @@ public class RobotAPI extends Python2MinecraftApi {
 						getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
 			}
 			sendLine(robotId);
+		});
+		APIRegistry.registerCommand(ROBOTINSPECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			
+			BlockPos loc = robot.getPosition();
+			Location block = new Location(robot.worldObj, loc.offset(robot.getHorizontalFacing()));
+			if(!args.isEmpty()){
+				block = (Location) block.add(getBlockLocation(scan));
+			}
+			BlockState state = eventHandler.getBlockState(block);
+			sendLine("" + state.id + "," + state.meta);
 		});
 	}
 

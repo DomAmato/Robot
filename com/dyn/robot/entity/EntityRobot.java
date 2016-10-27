@@ -160,7 +160,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void beginExecuteCode(boolean executeCode) {
-		DYNServerMod.logger.info("Set Code Execute to:");
 		this.executeCode = executeCode;
 	}
 
