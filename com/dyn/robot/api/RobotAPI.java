@@ -30,8 +30,9 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTINTERACT = "robot.interact";
 	private static final String ROBOTTURN = "robot.turn";
 	private static final String ROBOTFORWARD = "robot.forward";
+	private static final String ROBOTBACKWARD = "robot.backward";
 	private static final String ROBOTINSPECT = "robot.inspect";
-	public static int robotId = 0;
+	private static int robotId = 0;
 
 	public static int getRobotId() {
 		return robotId;
@@ -44,59 +45,49 @@ public class RobotAPI extends Python2MinecraftApi {
 	public static void registerCommands() {
 		// robot
 		APIRegistry.registerCommand("robot." + GETPOS, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
 			entityGetPos(robotId);
 		});
 		APIRegistry.registerCommand("robot." + GETTILE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
 			entityGetTile(robotId);
 		});
 		APIRegistry.registerCommand("robot." + GETROTATION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
-					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					entityGetRotation(robotId);
+					entityGetRotation(scan.nextInt());
 				});
 		APIRegistry.registerCommand("robot." + SETROTATION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
-					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					entitySetRotation(robotId, scan.nextFloat());
+					entitySetRotation(scan.nextInt(), scan.nextFloat());
 				});
 		APIRegistry.registerCommand("robot." + GETDIRECTION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
-					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					entityGetDirection(robotId);
+					entityGetDirection(scan.nextInt());
 				});
 		APIRegistry.registerCommand("robot." + SETDIRECTION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
-					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					entitySetDirection(robotId, scan);
+					entitySetDirection(scan.nextInt(), scan);
 				});
 		APIRegistry.registerCommand("robot." + SETTILE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			entitySetTile(robotId, scan);
+			entitySetTile(scan.nextInt(), scan);
 		});
 		APIRegistry.registerCommand("robot." + SETPOS, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			entitySetPos(robotId, scan);
+			entitySetPos(scan.nextInt(), scan);
 		});
 		APIRegistry.registerCommand("robot." + SETDIMENSION,
 				(String args, Scanner scan, MCEventHandler eventHandler) -> {
-					EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-					entitySetDimension(robotId, scan.nextInt());
+					entitySetDimension(scan.nextInt(), scan.nextInt(), eventHandler);
 				});
 		APIRegistry.registerCommand("robot." + GETNAME, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			entityGetNameAndUUID(robotId);
+			entityGetNameAndUUID(scan.nextInt());
 		});
 		APIRegistry.registerCommand(ROBOTMOVE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			int x = scan.nextInt();
-			int y = scan.nextInt();
-			int z = scan.nextInt();
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
+			int x = (int) (robot.posX + scan.nextInt());
+			int y = (int) (robot.posY + scan.nextInt());
+			int z = (int) (robot.posZ + scan.nextInt());
 			robot.addToProgramPath(new BlockPos(x, y, z));
 		});
 		APIRegistry.registerCommand(ROBOTPLACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
 			BlockPos curLoc = robot.getPosition();
 			BlockPos placeBlock = null;
 			switch (robot.getHorizontalFacing()) {
@@ -118,7 +109,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			// only place the block if the block is air
 			if (robot.worldObj.getBlockState(placeBlock).getBlock() == Blocks.air) {
 				Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(), placeBlock.getZ());
-				if (args.length() > 0) {
+				if (scan.hasNext()) {
 					short id = scan.nextShort();
 					short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 					String tagString = getRest(scan);
@@ -156,7 +147,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			}
 		});
 		APIRegistry.registerCommand(ROBOTBREAK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
 			BlockPos curLoc = robot.getPosition();
 			BlockPos breakBlock = null;
 			switch (robot.getHorizontalFacing()) {
@@ -187,7 +178,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			}
 		});
 		APIRegistry.registerCommand(ROBOTINTERACT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
 			BlockPos curLoc = robot.getPosition();
 			BlockPos interactBlock = null;
 			if (Block.isEqualTo(robot.worldObj.getBlockState(curLoc).getBlock(), Blocks.lever)
@@ -219,85 +210,20 @@ public class RobotAPI extends Python2MinecraftApi {
 			}
 		});
 		APIRegistry.registerCommand(ROBOTTURN, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			if (args.isEmpty()) {
-				fail("Requires an an arguement between -180 and 180");
-			}
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
 			float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + scan.nextFloat());
 			robot.rotationYaw = newYaw;
 			robot.setRotationYawHead(newYaw);
 			robot.setRenderYawOffset(newYaw);
 		});
+		APIRegistry.registerCommand(ROBOTBACKWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
+			robot.moveBackward(scan.nextInt());
+			
+		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
-			BlockPos curLoc = robot.getPosition();
-			BlockPos dest = null;
-			switch (robot.getHorizontalFacing()) {
-			case NORTH:
-				if (!args.isEmpty()) {
-					int rep = scan.nextInt();
-					if (rep < 0) {
-						fail("Must be a positive number");
-						return;
-					}
-					dest = curLoc;
-					for (int i = 0; i < rep; i++) {
-						dest = dest.north();
-					}
-				} else {
-					dest = curLoc.north();
-				}
-				break;
-			case SOUTH:
-				if (!args.isEmpty()) {
-					int rep = scan.nextInt();
-					if (rep < 0) {
-						fail("Must be a positive number");
-						return;
-					}
-					dest = curLoc;
-					for (int i = 0; i < rep; i++) {
-						dest = dest.south();
-					}
-				} else {
-					dest = curLoc.south();
-				}
-				break;
-			case EAST:
-				if (!args.isEmpty()) {
-					int rep = scan.nextInt();
-					if (rep < 0) {
-						fail("Must be a positive number");
-						return;
-					}
-					dest = curLoc;
-					for (int i = 0; i < rep; i++) {
-						dest = dest.east();
-					}
-				} else {
-					dest = curLoc.east();
-				}
-				break;
-			case WEST:
-				if (!args.isEmpty()) {
-					int rep = scan.nextInt();
-					if (rep < 0) {
-						fail("Must be a positive number");
-						return;
-					}
-					dest = curLoc;
-					for (int i = 0; i < rep; i++) {
-						dest = dest.west();
-					}
-				} else {
-					dest = curLoc.west();
-				}
-				break;
-			default:
-				dest = curLoc;
-				break;
-			}
-			robot.addToProgramPath(dest);
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
+			robot.moveForward(scan.nextInt());
 		});
 		APIRegistry.registerCommand(GETROBOTID, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
@@ -313,11 +239,12 @@ public class RobotAPI extends Python2MinecraftApi {
 			sendLine(robotId);
 		});
 		APIRegistry.registerCommand(ROBOTINSPECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robotId);
+			EntityRobot robot = (EntityRobot) getServerEntityByID(scan.nextInt());
 			
 			BlockPos loc = robot.getPosition();
 			Location block = new Location(robot.worldObj, loc.offset(robot.getHorizontalFacing()));
-			if(!args.isEmpty()){
+			if(scan.hasNext()){
+				//if something other than the id was sent
 				block = (Location) block.add(getBlockLocation(scan));
 			}
 			BlockState state = eventHandler.getBlockState(block);
