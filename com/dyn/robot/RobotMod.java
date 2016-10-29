@@ -1,5 +1,7 @@
 package com.dyn.robot;
 
+import java.util.Map;
+
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
@@ -9,8 +11,12 @@ import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -30,6 +36,11 @@ public class RobotMod {
 	public static BlockDynRobot dynRobot;
 	public static ItemRemote dynRobotRemote;
 
+	// server
+	public static Map<Integer, Boolean> robotEcho = Maps.newHashMap();
+	public static BiMap<Integer, EntityPlayer> robotid2player = HashBiMap.create();
+
+	// client
 	public static EntityRobot currentRobot;
 
 	public static void registerNewEntity(Class entityClass, String name, int id) {

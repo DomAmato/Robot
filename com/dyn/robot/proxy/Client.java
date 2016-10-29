@@ -2,6 +2,7 @@ package com.dyn.robot.proxy;
 
 import org.lwjgl.input.Keyboard;
 
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
@@ -132,6 +133,16 @@ public class Client implements Proxy {
 		}
 		ModelResourceLocation location = new ModelResourceLocation(Reference.MOD_ID + ":" + name, "inventory");
 		ModelLoader.setCustomModelResourceLocation(item, meta, location);
+	}
+
+	@SubscribeEvent
+	public void socketClose(CodeEvent.SocketCloseEvent event) {
+		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
+			World world = event.getPlayer().worldObj;
+			EntityRobot robot = (EntityRobot) world
+					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
+			robot.stopExecutingCode();
+		}
 	}
 
 	@Override

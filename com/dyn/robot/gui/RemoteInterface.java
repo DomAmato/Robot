@@ -51,7 +51,7 @@ public class RemoteInterface extends Show {
 
 	@Override
 	public void setup() {
-		Panel debugPanel = new Panel((int) (width * .2), (int) (height * .2), (int) (width * .4), (int) (height * .6))
+		Panel debugPanel = new Panel((int) (width * .1), (int) (height * .1), (int) (width * .35), (int) (height * .6))
 				.setVisible(false);
 
 		debugPanel.registerComponent(new Picture(0, 0, debugPanel.getWidth(), debugPanel.getHeight(),
@@ -64,11 +64,24 @@ public class RemoteInterface extends Show {
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 2) - 15, 30, 30, "L")
 						.doesDrawHoverText(true).addHoverText("Turn Left").setClickListener(btn -> {
-							// RobotMod.currentRobot.rotationYaw += 90;
-							RobotMod.currentRobot.setRotationYawHead(RobotMod.currentRobot.rotationYaw);
 							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.LEFT, 90));
 						}));
+		debugPanel.registerComponent(
+				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 4) - 15, 30, 30, "C")
+						.doesDrawHoverText(true).addHoverText("Climb").setClickListener(btn -> {
+							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+									MessageDebugRobot.CommandType.CLIMB, 1));
+						}));
+		// debugPanel.registerComponent(
+		// new Button((int) ((debugPanel.getWidth() *.75) - 15),
+		// (debugPanel.getHeight() / 4) - 15, 30, 30, "J")
+		// .doesDrawHoverText(true).addHoverText("Jump").setClickListener(btn ->
+		// {
+		// NetworkDispatcher.sendToServer(new
+		// MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+		// MessageDebugRobot.CommandType.JUMP, 0));
+		// }));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 4) - 15, 30, 30, "I")
 						.doesDrawHoverText(true).addHoverText("Interact With").setClickListener(btn -> {
@@ -90,22 +103,18 @@ public class RemoteInterface extends Show {
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 2) - 15, 30, 30, "R")
 						.doesDrawHoverText(true).addHoverText("Turn Right").setClickListener(btn -> {
-							// RobotMod.currentRobot.rotationYaw -= 90;
-							RobotMod.currentRobot.setRotationYawHead(RobotMod.currentRobot.rotationYaw);
 							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.RIGHT, 90));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (int) (debugPanel.getHeight() * .75) - 15, 30, 30, "P")
 						.doesDrawHoverText(true).addHoverText("Place").setClickListener(btn -> {
-							RobotMod.currentRobot.setRotationYawHead(RobotMod.currentRobot.rotationYaw);
 							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.PLACE, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (int) (debugPanel.getHeight() * .75) - 15, 30,
 						30, "Br").doesDrawHoverText(true).addHoverText("Break").setClickListener(btn -> {
-							RobotMod.currentRobot.setRotationYawHead(RobotMod.currentRobot.rotationYaw);
 							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.BREAK, 0));
 						}));
@@ -181,12 +190,12 @@ public class RemoteInterface extends Show {
 		} else if (RobotMod.currentRobot != null) {
 			panel.registerComponent(new Button((int) (panel.getWidth() * .075), (int) (panel.getHeight() * .55),
 					(int) (panel.getWidth() * .4), 20, "Open Programmer").setClickListener(btn -> {
-						panel.setVisible(false);
-						debugPanel.setVisible(true);
+						// panel.setVisible(false);
+						// debugPanel.setVisible(true);
 						// these are the final solution but lets make a
 						// debug panel
-						// getStage().close();
-						// RobotMod.proxy.openRobotProgrammingWindow(RobotMod.currentRobot);
+						getStage().close();
+						RobotMod.proxy.openRobotProgrammingWindow(RobotMod.currentRobot);
 					}));
 
 			panel.registerComponent(new Button((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .55),

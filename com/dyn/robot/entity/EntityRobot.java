@@ -2,14 +2,18 @@ package com.dyn.robot.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.ai.EntityAIFollowPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
+import com.dyn.robot.entity.ai.EntityAIJumpToward;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -23,6 +27,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.pathfinding.PathNavigate;
+import net.minecraft.pathfinding.PathNavigateClimber;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -30,6 +36,28 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
+
+	static class PathNavigateRobot extends PathNavigateClimber {
+
+		public PathNavigateRobot(EntityLiving entityLivingIn, World worldIn) {
+			super(entityLivingIn, worldIn);
+		}
+
+		@Override
+		public void onUpdateNavigation() {
+			// we have to do this hack because the vanilla minecraft code is
+			// dumb and the entity will never reach its destination if its
+			// width is too small to square
+			if (!noPath()) {
+				super.onUpdateNavigation();
+			} else {
+				theEntity.width = 1;
+				super.onUpdateNavigation();
+				theEntity.width = .5f;
+			}
+		}
+
+	}
 
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
@@ -41,10 +69,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
 	private List<BlockPos> programPath = new ArrayList();
-	private boolean executeCode = false;
-	// public EntityAIFollowsOwnerEX followTask = null;
 
+	private boolean executeCode = false;
 	public List<BlockPos> markedChests = new ArrayList();
+	private boolean shouldJump;
+	public Map<Long, String> messages = new TreeMap<Long, String>();
+	private String lastMessage;
+
+	private long lastMessageTime;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
@@ -57,6 +89,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.addObject(18, "");// robot name
 
 		tasks.addTask(1, new EntityAIFollowPath(this, 1.5D));
+		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(4, new EntityAILookIdle(this));
 
@@ -137,10 +170,23 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
+	public void addMessage(String message) {
+		long time = System.currentTimeMillis();
+		if (message.equals(lastMessage) && ((lastMessageTime + 5000L) > time)) {
+			return;
+		}
+		messages.put(time, message);
+		if (messages.size() > 3) {
+			messages.remove(messages.keySet().iterator().next());
+		}
+		lastMessage = message;
+		lastMessageTime = time;
+	}
+
 	public void addToProgramPath(BlockPos pos) {
 		// block pos is integer based but we want to move to the center of the
 		// block
-		programPath.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+		programPath.add(pos);
 	}
 
 	@Override
@@ -159,10 +205,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return par1Entity.attackEntityFrom(DamageSource.causeMobDamage(this), 1.0f);
 	}
 
-	public void beginExecuteCode(boolean executeCode) {
-		this.executeCode = executeCode;
-	}
-
 	@Override
 	protected boolean canDespawn() {
 		return false;
@@ -178,6 +220,24 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void clearProgramPath() {
 		programPath.clear();
+	}
+
+	public void climb(int amount) {
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		if (isOnLadder() || worldObj.getBlockState(getPosition()).getBlock().isLadder(worldObj, getPosition(), this)) {
+			for (int i = 0; i < amount; i++) {
+				dest = dest.up();
+				addToProgramPath(dest);
+			}
+		} else {
+			for (int i = 0; i < amount; i++) {
+				dest = dest.up().offset(getHorizontalFacing());
+				addToProgramPath(dest);
+			}
+		}
 	}
 
 	public boolean decreaseItemStack(ItemStack is) {
@@ -246,6 +306,23 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return shouldFollow;
 	}
 
+	public Map<Long, String> getMessages() {
+		Map<Long, String> messages = new TreeMap<Long, String>();
+		long time = System.currentTimeMillis();
+		for (Map.Entry<Long, String> entry : this.messages.entrySet()) {
+			if (time > (entry.getKey() + 10000L)) {
+				continue;
+			}
+			messages.put(entry.getKey(), entry.getValue());
+		}
+		return this.messages = messages;
+	}
+
+	@Override
+	protected PathNavigate getNewNavigator(World worldIn) {
+		return new PathNavigateRobot(this, worldIn);
+	}
+
 	@Override
 	public EntityPlayer getOwner() {
 		return owner;
@@ -271,6 +348,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public String getRobotName() {
 		return dataWatcher.getWatchableObjectString(18);
+	}
+
+	public boolean getShouldJump() {
+		return shouldJump;
 	}
 
 	public boolean hasNeededItem() {
@@ -453,13 +534,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setOwner(EntityPlayer player) {
 		owner = player;
-		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 2.0F));
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 		setOwnerId(player.getUniqueID().toString());
 	}
 
 	public void setOwner(UUID playerId) {
 		owner = worldObj.getPlayerEntityByUUID(playerId);
-		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 2.0F));
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 	}
 
 	public void setOwnerId(String ownerUuid) {
@@ -473,12 +554,26 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		setAlwaysRenderNameTag(true);
 	}
 
+	public void setShouldJump(boolean state) {
+		shouldJump = state;
+	}
+
 	public boolean shouldExecuteCode() {
 		return executeCode;
 	}
 
 	public boolean shouldStoreItems(int a) {
 		return true;
+	}
+
+	public void startExecutingCode() {
+		System.out.println("Start Executing");
+		executeCode = true;
+	}
+
+	public void stopExecutingCode() {
+		System.out.println("Stop Executing");
+		executeCode = false;
 	}
 
 	@Override

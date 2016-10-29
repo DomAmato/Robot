@@ -1,20 +1,16 @@
 package com.dyn.robot.entity.ai;
 
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
 
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 
 public class EntityAIFollowPath extends EntityAIBase {
 	private EntityRobot entity;
 	private double speed;
 
 	/** Block to move to */
-	private boolean canReachDestination;
 	private BlockPos destinationBlock = BlockPos.ORIGIN;
-	private boolean reachedEnd;
 
 	public EntityAIFollowPath(EntityRobot entity, double speed) {
 		this.entity = entity;
@@ -27,40 +23,9 @@ public class EntityAIFollowPath extends EntityAIBase {
 	 */
 	@Override
 	public boolean continueExecuting() {
-		if (!canReachDestination) {
-			entity.clearProgramPath();
-			entity.getNavigator().clearPathEntity();
-			entity.beginExecuteCode(false);
-			RobotAPI.notifyFailure("Cant Reach Destination, Path might be obscured");
-			return false;
-		} else if (reachedEnd) {
-			// center it on top of the block since it never reaches the exact
-			// center otherwise
-			entity.setPositionAndRotation(destinationBlock.getX() + 0.5D, destinationBlock.getY(),
-					destinationBlock.getZ() + .5D, getAngleFromFacing(entity.getHorizontalFacing()),
-					entity.rotationPitch);
-			entity.clearProgramPath();
-			entity.getNavigator().clearPathEntity();
-			entity.beginExecuteCode(false);
-			return false;
-		}
-		// execute if path isnt empty and there is more program to execute
-		return true;
-	}
-
-	private float getAngleFromFacing(EnumFacing dir) {
-		switch (dir) {
-		case SOUTH:
-			return 0;
-		case NORTH:
-			return 180;
-		case EAST:
-			return 270;
-		case WEST:
-			return 90;
-		default:
-			return 0;
-		}
+		// run as long as commands exist in the buffer and keep running until
+		// the script is finished
+		return entity.shouldExecuteCode() || (!entity.getProgramPath().isEmpty() && !entity.getNavigator().noPath());
 	}
 
 	/**
@@ -75,12 +40,7 @@ public class EntityAIFollowPath extends EntityAIBase {
 	 */
 	@Override
 	public boolean shouldExecute() {
-		if (entity.shouldExecuteCode() && !entity.getProgramPath().isEmpty() && entity.getNavigator().noPath()) {
-			canReachDestination = true;
-			reachedEnd = false;
-			return true;
-		}
-		return false;
+		return entity.shouldExecuteCode();
 	}
 
 	/**
@@ -88,10 +48,7 @@ public class EntityAIFollowPath extends EntityAIBase {
 	 */
 	@Override
 	public void startExecuting() {
-		destinationBlock = entity.getProgramPath().iterator().next();
-		entity.getProgramPath().remove(destinationBlock);
-		canReachDestination = entity.getNavigator().tryMoveToXYZ((destinationBlock.getX()) + 0.5D,
-				(destinationBlock.getY()), (destinationBlock.getZ()) + 0.5D, speed);
+		destinationBlock = entity.getPosition();
 	}
 
 	/**
@@ -105,11 +62,11 @@ public class EntityAIFollowPath extends EntityAIBase {
 			if (!entity.getProgramPath().isEmpty()) {
 				destinationBlock = entity.getProgramPath().iterator().next();
 				entity.getProgramPath().remove(destinationBlock);
-				canReachDestination = entity.getNavigator().tryMoveToXYZ((destinationBlock.getX()) + 0.5D,
-						(destinationBlock.getY()), (destinationBlock.getZ()) + 0.5D, speed);
-			} else {
-				// there is no more code left to execute and
-				reachedEnd = true;
+				if (!entity.getNavigator().tryMoveToXYZ((destinationBlock.getX()) + 0.5D, (destinationBlock.getY()),
+						(destinationBlock.getZ()) + 0.5D, speed)) {
+					entity.getMoveHelper().setMoveTo((destinationBlock.getX()) + 0.5D, (destinationBlock.getY()),
+							(destinationBlock.getZ()) + 0.5D, speed);
+				}
 			}
 		}
 	}

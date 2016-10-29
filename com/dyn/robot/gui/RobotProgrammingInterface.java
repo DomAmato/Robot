@@ -10,10 +10,9 @@ import java.util.regex.Pattern;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkDispatcher;
-import com.dyn.server.network.messages.MessageRunPythonScript;
+import com.dyn.server.network.messages.MessageRunRobotScript;
 import com.dyn.utils.FileUtils;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.CodeInterface;
@@ -72,7 +71,6 @@ public class RobotProgrammingInterface extends Show {
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
 		this.robot = robot;
-		RobotAPI.robotId = robot.getEntityId();
 	}
 
 	public void entrySelected(SelectListEntry entry, DisplayList dlist, int mouseX, int mouseY) {
@@ -130,7 +128,6 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(e.getLine() - 2, e.getCode(), e.getError());
 		}
-
 	}
 
 	@Override
@@ -261,7 +258,7 @@ public class RobotProgrammingInterface extends Show {
 				.setClickListener(btn -> {
 					codeWindow.clearError();
 					errorPanel.setVisible(false);
-					NetworkDispatcher.sendToServer(new MessageRunPythonScript(termText));
+					NetworkDispatcher.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
 				}));
 
 		panel.registerComponent(new PictureButton(panel.getWidth() - 15, 0, 15, 15,
