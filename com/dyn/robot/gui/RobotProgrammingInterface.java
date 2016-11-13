@@ -11,11 +11,11 @@ import java.util.regex.Pattern;
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.server.network.NetworkDispatcher;
+import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageRunRobotScript;
 import com.dyn.utils.FileUtils;
+import com.rabbit.gui.component.code.CodeInterface;
 import com.rabbit.gui.component.control.Button;
-import com.rabbit.gui.component.control.CodeInterface;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.control.TextBox;
 import com.rabbit.gui.component.display.Panel;
@@ -57,7 +57,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
-		termText = "#Welcome to the progamming interface!";
+		termText = "#Welcome to the progamming interface!\n\nfrom robot import *\n\nrobo = Robot()";
 
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
@@ -66,7 +66,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!";
+		termText = "#Welcome to the progamming interface!\n\nfrom robot import *\n\nrobo = Robot()";
 
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
@@ -113,6 +113,10 @@ public class RobotProgrammingInterface extends Show {
 		}
 	}
 
+	public String getConsoleText() {
+		return codeWindow.getText();
+	}
+
 	public EntityRobot getRobot() {
 		return robot;
 	}
@@ -122,7 +126,7 @@ public class RobotProgrammingInterface extends Show {
 		// an extra space
 		errorPanel.setVisible(true);
 		errorLabel.setText(e.getError());
-		if (e.getError().contains("NameError")) {
+		if (e.getError().contains("NameError") || e.getError().contains("RequestError")) {
 			// name errors dont seem to have the same offset as other errors
 			codeWindow.notifyError(e.getLine() - 1, e.getCode(), e.getError());
 		} else {
@@ -258,7 +262,7 @@ public class RobotProgrammingInterface extends Show {
 				.setClickListener(btn -> {
 					codeWindow.clearError();
 					errorPanel.setVisible(false);
-					NetworkDispatcher.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+					NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
 				}));
 
 		panel.registerComponent(new PictureButton(panel.getWidth() - 15, 0, 15, 15,
