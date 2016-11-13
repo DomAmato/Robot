@@ -7,7 +7,7 @@ import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 
-public class EntityAIFollowPathDebug extends EntityAIBase {
+public class EntityAIDebugProgramPath extends EntityAIBase {
 	private EntityRobot entity;
 	private double speed;
 
@@ -16,7 +16,7 @@ public class EntityAIFollowPathDebug extends EntityAIBase {
 	private BlockPos destinationBlock = BlockPos.ORIGIN;
 	private boolean reachedEnd;
 
-	public EntityAIFollowPathDebug(EntityRobot entity, double speed) {
+	public EntityAIDebugProgramPath(EntityRobot entity, double speed) {
 		this.entity = entity;
 		this.speed = speed;
 		setMutexBits(7);
