@@ -2,6 +2,7 @@ package com.dyn.robot.proxy;
 
 import org.lwjgl.input.Keyboard;
 
+import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
@@ -18,11 +19,13 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -33,11 +36,14 @@ public class Client implements Proxy {
 
 	private RobotProgrammingInterface robotProgramInterface;
 
+	private KeyBinding scriptKey;
+
 	private boolean showRobotProgrammer = false;
 
 	@SubscribeEvent
 	public void codeError(CodeEvent.ErrorEvent event) {
-		if (showRobotProgrammer) {
+		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
 			robotProgramInterface.handleErrorMessage(event);
 		}
 	}
@@ -57,12 +63,22 @@ public class Client implements Proxy {
 		MinecraftForge.EVENT_BUS.register(this);
 		RaspberryJamMod.EVENT_BUS.register(this);
 		robotProgramInterface = new RobotProgrammingInterface();
+
+		scriptKey = new KeyBinding("key.toggle.scriptui", Keyboard.KEY_P, "key.categories.toggle");
+
+		ClientRegistry.registerKeyBinding(scriptKey);
 	}
 
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
 			return;
+		}
+
+		if (scriptKey.isPressed() && showRobotProgrammer) {
+			DYNServerMod.logger.info("Program Gui Toggled");
+			showRobotProgrammer = false;
+			RabbitGui.proxy.display(robotProgramInterface);
 		}
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
@@ -141,6 +157,7 @@ public class Client implements Proxy {
 			World world = event.getPlayer().worldObj;
 			EntityRobot robot = (EntityRobot) world
 					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
+			DYNServerMod.logger.info("Stop Executing Code from Socket Message");
 			robot.stopExecutingCode();
 		}
 	}
