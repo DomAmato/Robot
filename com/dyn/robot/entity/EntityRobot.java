@@ -7,7 +7,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import com.dyn.DYNServerMod;
-import com.dyn.robot.entity.ai.EntityAIFollowPath;
+import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
 
@@ -74,9 +74,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public List<BlockPos> markedChests = new ArrayList();
 	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<Long, String>();
-	private String lastMessage;
-
 	private long lastMessageTime;
+	private boolean pauseCode = false;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
@@ -88,7 +87,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.addObject(17, "");// owner uuid
 		dataWatcher.addObject(18, "");// robot name
 
-		tasks.addTask(1, new EntityAIFollowPath(this, 1.5D));
+		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(4, new EntityAILookIdle(this));
@@ -172,14 +171,15 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void addMessage(String message) {
 		long time = System.currentTimeMillis();
-		if (message.equals(lastMessage) && ((lastMessageTime + 5000L) > time)) {
-			return;
-		}
+		// this makes sense so it doesnt spam messages but its possible it will
+		// send the same message twice within a short span
+//		if ( message.equals(lastMessage) &&  ((lastMessageTime + 5000L) > time)) {
+//			return;
+//		}
 		messages.put(time, message);
 		if (messages.size() > 3) {
 			messages.remove(messages.keySet().iterator().next());
 		}
-		lastMessage = message;
 		lastMessageTime = time;
 	}
 
@@ -363,6 +363,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return false;
 	}
 
+	public boolean isCodePaused() {
+		return pauseCode;
+	}
+
 	public boolean isInventoryEmpty() {
 		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
 			if (m_inventory.getStackInSlot(a) != null) {
@@ -402,6 +406,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (getIsFollowing()) {
 			setIsFollowing(false);
 		}
+		pauseCodeExecution();
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
@@ -435,12 +440,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			dest = getPosition();
 			break;
 		}
+		resumeExecution();
 	}
 
 	public void moveForward(int num) {
 		if (getIsFollowing()) {
 			setIsFollowing(false);
 		}
+		pauseCodeExecution();
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
@@ -474,6 +481,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			dest = getPosition();
 			break;
 		}
+		resumeExecution();
 	}
 
 	@Override
@@ -484,6 +492,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
+	}
+
+	private void pauseCodeExecution() {
+		pauseCode = true;
 	}
 
 	@Override
@@ -526,6 +538,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		for (EntityAIBase ai : nonEssentialAIs) {
 			tasks.removeTask(ai);
 		}
+	}
+
+	private void resumeExecution() {
+		pauseCode = false;
 	}
 
 	public void setIsFollowing(boolean shouldFollow) {
@@ -572,7 +588,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void stopExecutingCode() {
-		System.out.println("Stop Executing");
 		executeCode = false;
 	}
 

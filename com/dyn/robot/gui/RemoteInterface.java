@@ -5,7 +5,7 @@ import java.awt.Color;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.server.network.NetworkDispatcher;
+import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageActivateRobot;
 import com.dyn.server.network.messages.MessageDebugRobot;
 import com.dyn.server.network.messages.MessageOpenRobotInventory;
@@ -44,7 +44,7 @@ public class RemoteInterface extends Show {
 
 	public RemoteInterface(EntityRobot robot, EntityPlayer player) {
 		this.player = player;
-		if (RobotMod.currentRobot == null) {
+		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
 			RobotMod.currentRobot = robot;
 		}
 	}
@@ -64,13 +64,13 @@ public class RemoteInterface extends Show {
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 2) - 15, 30, 30, "L")
 						.doesDrawHoverText(true).addHoverText("Turn Left").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.LEFT, 90));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 4) - 15, 30, 30, "C")
 						.doesDrawHoverText(true).addHoverText("Climb").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.CLIMB, 1));
 						}));
 		// debugPanel.registerComponent(
@@ -85,43 +85,43 @@ public class RemoteInterface extends Show {
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 4) - 15, 30, 30, "I")
 						.doesDrawHoverText(true).addHoverText("Interact With").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.INTERACT, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (debugPanel.getHeight() / 4) - 15, 30, 30, "F")
 						.doesDrawHoverText(true).addHoverText("Move Forward").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.FORWARD, 1));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (debugPanel.getHeight() / 2) - 15, 30, 30, "E")
 						.doesDrawHoverText(true).addHoverText("Execute Program").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.RUN, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 2) - 15, 30, 30, "R")
 						.doesDrawHoverText(true).addHoverText("Turn Right").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.RIGHT, 90));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (int) (debugPanel.getHeight() * .75) - 15, 30, 30, "P")
 						.doesDrawHoverText(true).addHoverText("Place").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.PLACE, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (int) (debugPanel.getHeight() * .75) - 15, 30,
 						30, "Br").doesDrawHoverText(true).addHoverText("Break").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.BREAK, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (int) ((debugPanel.getHeight() * .75) - 15), 30, 30, "B")
 						.doesDrawHoverText(true).addHoverText("Move Back").setClickListener(btn -> {
-							NetworkDispatcher.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
+							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.BACK, 1));
 						}));
 
@@ -146,7 +146,7 @@ public class RemoteInterface extends Show {
 			panel.registerComponent(new ToggleButton((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .05),
 					(int) (panel.getWidth() * .3), 20, "is Following", RobotMod.currentRobot.getIsFollowing())
 							.setClickListener(btn -> {
-								NetworkDispatcher.sendToServer(new MessageToggleRobotFollow(
+								NetworkManager.sendToServer(new MessageToggleRobotFollow(
 										RobotMod.currentRobot.getEntityId(), !((ToggleButton) btn).getToggleState()));
 								RobotMod.currentRobot.setIsFollowing(!((ToggleButton) btn).getToggleState());
 							}));
@@ -163,12 +163,12 @@ public class RemoteInterface extends Show {
 					(int) (panel.getWidth() * .25), 20, "Activate").setClickListener(btn -> {
 						if (RobotMod.currentRobot != null) {
 							BlockPos pos = RobotMod.currentRobot.getPosition();
-							NetworkDispatcher.sendToServer(new MessageActivateRobot(player.getName(), pos,
+							NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
 									RobotMod.currentRobot.dimension, false));
 							RobotMod.currentRobot.setDead();
 							RobotMod.currentRobot = null;
 						}
-						NetworkDispatcher
+						NetworkManager
 								.sendToServer(
 										new MessageActivateRobot(
 												(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random())
@@ -180,7 +180,7 @@ public class RemoteInterface extends Show {
 				panel.registerComponent(new Button((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .6),
 						(int) (panel.getWidth() * .25), 20, "Deactivate").setClickListener(btn -> {
 							BlockPos pos = RobotMod.currentRobot.getPosition();
-							NetworkDispatcher.sendToServer(new MessageActivateRobot(player.getName(), pos,
+							NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
 									RobotMod.currentRobot.dimension, false));
 							RobotMod.currentRobot.setDead();
 							RobotMod.currentRobot = null;
@@ -201,7 +201,7 @@ public class RemoteInterface extends Show {
 			panel.registerComponent(new Button((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .55),
 					(int) (panel.getWidth() * .35), 20, "Deactivate").setClickListener(btn -> {
 						BlockPos pos = RobotMod.currentRobot.getPosition();
-						NetworkDispatcher.sendToServer(new MessageActivateRobot(player.getName(), pos,
+						NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
 								RobotMod.currentRobot.dimension, false));
 						RobotMod.currentRobot.setDead();
 						RobotMod.currentRobot = null;
@@ -210,13 +210,12 @@ public class RemoteInterface extends Show {
 
 			panel.registerComponent(new Button((int) (panel.getWidth() * .5), (int) (panel.getHeight() * .75),
 					(int) (panel.getWidth() * .45), 20, "Open Inventory").setClickListener(btn -> {
-						NetworkDispatcher
-								.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobot.getEntityId()));
+						NetworkManager.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobot.getEntityId()));
 					}));
 
 			panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .75),
 					(int) (panel.getWidth() * .35), 20, "Teleport to Me").setClickListener(btn -> {
-						NetworkDispatcher.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
+						NetworkManager.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
 						BlockPos pos = Minecraft.getMinecraft().thePlayer.getPosition();
 						RobotMod.currentRobot.setPositionAndUpdate(pos.getX(), pos.getY(), pos.getZ());
 					}));
