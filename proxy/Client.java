@@ -2,20 +2,30 @@ package com.dyn.robot.proxy;
 
 import org.lwjgl.input.Keyboard;
 
+import com.dyn.DYNServerMod;
+import com.dyn.robot.RobotMod;
+import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.render.DynRobotRenderer;
+import com.dyn.robot.gui.RemoteInterface;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 
+import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
+import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -24,29 +34,51 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
 
-	private RobotProgrammingInterface programInterface = new RobotProgrammingInterface();
+	private RobotProgrammingInterface robotProgramInterface;
+
+	private KeyBinding scriptKey;
 
 	private boolean showRobotProgrammer = false;
 
+	@SubscribeEvent
+	public void codeError(CodeEvent.ErrorEvent event) {
+		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
+			robotProgramInterface.handleErrorMessage(event);
+		}
+	}
+
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
-		programInterface = new RobotProgrammingInterface(robot);
+		robotProgramInterface = new RobotProgrammingInterface(robot);
 	}
 
 	@Override
 	public RobotProgrammingInterface getProgrammingInterface() {
-		return programInterface;
+		return robotProgramInterface;
 	}
 
 	@Override
 	public void init() {
 		MinecraftForge.EVENT_BUS.register(this);
+		RaspberryJamMod.EVENT_BUS.register(this);
+		robotProgramInterface = new RobotProgrammingInterface();
+
+		scriptKey = new KeyBinding("key.toggle.scriptui", Keyboard.KEY_P, "key.categories.toggle");
+
+		ClientRegistry.registerKeyBinding(scriptKey);
 	}
 
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
 			return;
+		}
+
+		if (scriptKey.isPressed() && showRobotProgrammer) {
+			DYNServerMod.logger.info("Program Gui Toggled");
+			showRobotProgrammer = false;
+			RabbitGui.proxy.display(robotProgramInterface);
 		}
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
@@ -59,9 +91,21 @@ public class Client implements Proxy {
 		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
 				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
 			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer) {
-				programInterface.onDraw(0, 0, event.renderTickTime);
+				robotProgramInterface.onDraw(0, 0, event.renderTickTime);
 			}
 		}
+	}
+
+	@Override
+	public void openRemoteInterface(EntityRobot robot) {
+		if (robot != null) {
+			RabbitGui.proxy.display(new RemoteInterface(robot, Minecraft.getMinecraft().thePlayer));
+		}
+	}
+
+	@Override
+	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos) {
+		RabbitGui.proxy.display(new RemoteInterface(robot, Minecraft.getMinecraft().thePlayer, pos));
 	}
 
 	@Override
@@ -72,7 +116,7 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRobotInterface() {
-		RabbitGui.proxy.display(programInterface);
+		RabbitGui.proxy.display(robotProgramInterface);
 	}
 
 	@Override
@@ -105,6 +149,17 @@ public class Client implements Proxy {
 		}
 		ModelResourceLocation location = new ModelResourceLocation(Reference.MOD_ID + ":" + name, "inventory");
 		ModelLoader.setCustomModelResourceLocation(item, meta, location);
+	}
+
+	@SubscribeEvent
+	public void socketClose(CodeEvent.SocketCloseEvent event) {
+		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
+			World world = event.getPlayer().worldObj;
+			EntityRobot robot = (EntityRobot) world
+					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
+			DYNServerMod.logger.info("Stop Executing Code from Socket Message");
+			robot.stopExecutingCode();
+		}
 	}
 
 	@Override

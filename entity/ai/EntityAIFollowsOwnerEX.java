@@ -1,9 +1,9 @@
 package com.dyn.robot.entity.ai;
 
+import com.dyn.robot.entity.EntityRobot;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -14,8 +14,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 public class EntityAIFollowsOwnerEX extends EntityAIBase {
-	private EntityLiving follower;
-	private EntityLivingBase theOwner;
+	private EntityRobot follower;
 	World theWorld;
 	private double followSpeed;
 	private PathNavigate entityPath;
@@ -23,8 +22,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	float maxDist;
 	float minDist;
 
-	public EntityAIFollowsOwnerEX(EntityLiving follower, EntityLivingBase owner, double followSpeedIn, float minDistIn,
-			float maxDistIn) {
+	public EntityAIFollowsOwnerEX(EntityRobot follower, double followSpeedIn, float minDistIn, float maxDistIn) {
 		this.follower = follower;
 		theWorld = follower.worldObj;
 		followSpeed = followSpeedIn;
@@ -32,7 +30,6 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 		minDist = minDistIn;
 		maxDist = maxDistIn;
 		setMutexBits(3);
-		theOwner = owner;
 
 		if (!(follower.getNavigator() instanceof PathNavigateGround)) {
 			throw new IllegalArgumentException("Unsupported mob type for FollowOwnerGoal");
@@ -44,7 +41,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public boolean continueExecuting() {
-		return !entityPath.noPath() && (follower.getDistanceSqToEntity(theOwner) > (maxDist * maxDist));
+		return !entityPath.noPath() && (follower.getDistanceSqToEntity(follower.getOwner()) > (maxDist * maxDist));
 	}
 
 	private boolean func_181065_a(BlockPos p_181065_1_) {
@@ -61,20 +58,18 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 		entityPath.clearPathEntity();
 	}
 
-	public void setOwner(EntityLivingBase owner) {
-		theOwner = owner;
-	}
-
 	/**
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	@Override
 	public boolean shouldExecute() {
-		if (theOwner == null) {
+		if ((follower.getOwner() == null)) {
 			return false;
-		} else if ((theOwner instanceof EntityPlayer) && ((EntityPlayer) theOwner).isSpectator()) {
+		} else if (!follower.getIsFollowing()) {
 			return false;
-		} else if (follower.getDistanceSqToEntity(theOwner) < (minDist * minDist)) {
+		} else if ((follower.getOwner() instanceof EntityPlayer) && follower.getOwner().isSpectator()) {
+			return false;
+		} else if (follower.getDistanceSqToEntity(follower.getOwner()) < (minDist * minDist)) {
 			return false;
 		}
 		return true;
@@ -93,16 +88,16 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public void updateTask() {
-		follower.getLookHelper().setLookPositionWithEntity(theOwner, 10.0F, follower.getVerticalFaceSpeed());
+		follower.getLookHelper().setLookPositionWithEntity(follower.getOwner(), 10.0F, follower.getVerticalFaceSpeed());
 
 		if (--field_75343_h <= 0) {
 			field_75343_h = 10;
 
-			if (!entityPath.tryMoveToEntityLiving(theOwner, followSpeed)) {
-				if (follower.getDistanceSqToEntity(theOwner) >= 144.0D) {
-					int i = MathHelper.floor_double(theOwner.posX) - 2;
-					int j = MathHelper.floor_double(theOwner.posZ) - 2;
-					int k = MathHelper.floor_double(theOwner.getEntityBoundingBox().minY);
+			if (!entityPath.tryMoveToEntityLiving(follower.getOwner(), followSpeed)) {
+				if (follower.getDistanceSqToEntity(follower.getOwner()) >= 144.0D) {
+					int i = MathHelper.floor_double(follower.getOwner().posX) - 2;
+					int j = MathHelper.floor_double(follower.getOwner().posZ) - 2;
+					int k = MathHelper.floor_double(follower.getOwner().getEntityBoundingBox().minY);
 
 					for (int l = 0; l <= 4; ++l) {
 						for (int i1 = 0; i1 <= 4; ++i1) {

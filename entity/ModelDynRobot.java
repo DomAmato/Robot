@@ -48,6 +48,7 @@ public class ModelDynRobot extends ModelBase {
 	@Override
 	public void render(Entity entityIn, float p_78088_2_, float p_78088_3_, float p_78088_4_, float p_78088_5_,
 			float p_78088_6_, float scale) {
+		super.render(entityIn, p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale);
 		setRotationAngles(p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale, entityIn);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0.0F, 1.0F, 0.0F);
@@ -56,9 +57,6 @@ public class ModelDynRobot extends ModelBase {
 		bipedBody.render(scale);
 		bipedRightArm.render(scale);
 		bipedLeftArm.render(scale);
-		// with the full biped rotation stuff we have to do this for some
-		// reason...
-		// GlStateManager.translate(0.0F, -0.5F, 0.0F);
 		bipedRightLeg.render(scale);
 		bipedLeftLeg.render(scale);
 

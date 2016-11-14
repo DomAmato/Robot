@@ -4,13 +4,11 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathNavigateGround;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Vec3;
@@ -24,12 +22,14 @@ public class DynRobotEntity extends EntityRobot {
 
 	public DynRobotEntity(World worldIn, EntityPlayer player) {
 		super(worldIn);
-		setOwner(player);
+
+		if (player != null) {
+			setOwnerId(player.getUniqueID().toString());
+		}
 
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
+		((PathNavigateGround) getNavigator()).setEnterDoors(true);
 
-		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-		tasks.addTask(3, new EntityAILookIdle(this));
 	}
 
 	@Override
@@ -58,20 +58,20 @@ public class DynRobotEntity extends EntityRobot {
 	 */
 	@Override
 	public boolean interact(EntityPlayer player) {
-		ItemStack itemstack = player.inventory.getCurrentItem();
+		if (worldObj.isRemote) {
+			ItemStack itemstack = player.inventory.getCurrentItem();
 
-		if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive() && !isChild()
-				&& !player.isSneaking()) {
-			if (getOwner() == null) {
-				System.out.println("Robot has no owner setting owner");
-				setOwner(player);
+			if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
+				if (isOwner(player)) {
+					// maybe allow kids to toggle the programming environment
+					// from the remote?
+					RobotMod.proxy.openRemoteInterface(this);
+					// RobotMod.proxy.openRobotProgrammingWindow(this);
+				} else {
+					player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));
+				}
+				return true;
 			}
-			if (getOwner() == player.getName()) {
-				RobotMod.proxy.openRobotProgrammingWindow(this);
-			} else {
-				System.out.println("Robot has different owner");
-			}
-			return true;
 		}
 		return super.interact(player);
 	}
@@ -109,11 +109,6 @@ public class DynRobotEntity extends EntityRobot {
 
 	}
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		super.readFromNBT(nbttagcompound);
-	}
-
 	public void slightMoveWhenStill() {
 		if ((Math.abs(motionX) + Math.abs(motionZ)) <= 0.4) {
 			Vec3 vec = getLookVec();
@@ -139,9 +134,9 @@ public class DynRobotEntity extends EntityRobot {
 					var6, var8);
 		}
 	}
-
+	
 	@Override
-	public void writeToNBT(NBTTagCompound nbttagcompound) {
-		super.writeToNBT(nbttagcompound);
+	public String getName() {
+		return "DYNRobot";
 	}
 }

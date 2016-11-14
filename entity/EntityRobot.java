@@ -2,25 +2,62 @@ package com.dyn.robot.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
 
+import com.dyn.DYNServerMod;
+import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
+import com.dyn.robot.entity.ai.EntityAIJumpToward;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.pathfinding.PathNavigate;
+import net.minecraft.pathfinding.PathNavigateClimber;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
-public abstract class EntityRobot extends EntityCreature {
+public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
+
+	static class PathNavigateRobot extends PathNavigateClimber {
+
+		public PathNavigateRobot(EntityLiving entityLivingIn, World worldIn) {
+			super(entityLivingIn, worldIn);
+		}
+
+		@Override
+		public void onUpdateNavigation() {
+			// we have to do this hack because the vanilla minecraft code is
+			// dumb and the entity will never reach its destination if its
+			// width is too small to square
+			if (!noPath()) {
+				super.onUpdateNavigation();
+			} else {
+				theEntity.width = 1;
+				super.onUpdateNavigation();
+				theEntity.width = .5f;
+			}
+		}
+
+	}
 
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
@@ -28,21 +65,59 @@ public abstract class EntityRobot extends EntityCreature {
 		return list;
 	}
 
-	protected boolean m_on;
-	protected String owner;
+	protected boolean shouldFollow;
+	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
+	private List<BlockPos> programPath = new ArrayList();
 
+	private boolean executeCode = false;
 	public List<BlockPos> markedChests = new ArrayList();
+	private boolean shouldJump;
+	public Map<Long, String> messages = new TreeMap<Long, String>();
+	private boolean pauseCode = false;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
-		height = 1;
-		width = 0.8f;
-		m_on = false;
+		height = .9f;
+		width = 0.5f;
+		shouldFollow = false;
+		executeCode = false;
 		m_inventory = new RobotInventory(this);
+		dataWatcher.addObject(17, "");// owner uuid
+		dataWatcher.addObject(18, "");// robot name
+
+		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
+		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
+		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(4, new EntityAILookIdle(this));
+
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
+		if ((is == null) || (is.stackSize <= 0)) {
+			return null;
+		}
+
+		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
+			if ((m_inventory.getStackInSlot(a) == null) || (m_inventory.getStackInSlot(a).stackSize <= 0)) {
+				m_inventory.setInventorySlotContents(a, is);
+				return null;
+			}
+			ItemStack is2 = m_inventory.getStackInSlot(a);
+			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
+				int amount = Math.min(is.stackSize, is2.getMaxStackSize() - is2.stackSize);
+				is.stackSize -= amount;
+				is2.stackSize += amount;
+				m_inventory.setInventorySlotContents(a, is2);
+			}
+			if (is.stackSize <= 0) {
+				return null;
+			}
+		}
+		return is;
+	}
+
+	public ItemStack addItemStackToInventory(ItemStack is) {
 		if ((is == null) || (is.stackSize <= 0)) {
 			return null;
 		}
@@ -93,6 +168,21 @@ public abstract class EntityRobot extends EntityCreature {
 		}
 	}
 
+	public void addMessage(String message) {
+		long time = System.currentTimeMillis();
+
+		messages.put(time, message);
+		if (messages.size() > 3) {
+			messages.remove(messages.keySet().iterator().next());
+		}
+	}
+
+	public void addToProgramPath(BlockPos pos) {
+		// block pos is integer based but we want to move to the center of the
+		// block
+		programPath.add(pos);
+	}
+
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
@@ -120,6 +210,28 @@ public abstract class EntityRobot extends EntityCreature {
 
 	protected boolean canNameWithTag(EntityPlayer player) {
 		return false;
+	}
+
+	public void clearProgramPath() {
+		programPath.clear();
+	}
+
+	public void climb(int amount) {
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		if (isOnLadder() || worldObj.getBlockState(getPosition()).getBlock().isLadder(worldObj, getPosition(), this)) {
+			for (int i = 0; i < amount; i++) {
+				dest = dest.up();
+				addToProgramPath(dest);
+			}
+		} else {
+			for (int i = 0; i < amount; i++) {
+				dest = dest.up().offset(getHorizontalFacing());
+				addToProgramPath(dest);
+			}
+		}
 	}
 
 	public boolean decreaseItemStack(ItemStack is) {
@@ -184,8 +296,56 @@ public abstract class EntityRobot extends EntityCreature {
 		return false;
 	}
 
-	public String getOwner() {
+	public boolean getIsFollowing() {
+		return shouldFollow;
+	}
+
+	public Map<Long, String> getMessages() {
+		Map<Long, String> messages = new TreeMap<Long, String>();
+		long time = System.currentTimeMillis();
+		for (Map.Entry<Long, String> entry : this.messages.entrySet()) {
+			if (time > (entry.getKey() + 10000L)) {
+				continue;
+			}
+			messages.put(entry.getKey(), entry.getValue());
+		}
+		return this.messages = messages;
+	}
+
+	@Override
+	protected PathNavigate getNewNavigator(World worldIn) {
+		return new PathNavigateRobot(this, worldIn);
+	}
+
+	@Override
+	public EntityPlayer getOwner() {
 		return owner;
+	}
+
+	public EntityLivingBase getOwnerByID() {
+		try {
+			UUID uuid = UUID.fromString(getOwnerId());
+			return uuid == null ? null : worldObj.getPlayerEntityByUUID(uuid);
+		} catch (IllegalArgumentException var2) {
+			return null;
+		}
+	}
+
+	@Override
+	public String getOwnerId() {
+		return dataWatcher.getWatchableObjectString(17);
+	}
+
+	public List<BlockPos> getProgramPath() {
+		return programPath;
+	}
+
+	public String getRobotName() {
+		return dataWatcher.getWatchableObjectString(18);
+	}
+
+	public boolean getShouldJump() {
+		return shouldJump;
 	}
 
 	public boolean hasNeededItem() {
@@ -195,6 +355,10 @@ public abstract class EntityRobot extends EntityCreature {
 	@Override
 	public boolean isAIDisabled() {
 		return false;
+	}
+
+	public boolean isCodePaused() {
+		return pauseCode;
 	}
 
 	public boolean isInventoryEmpty() {
@@ -219,19 +383,108 @@ public abstract class EntityRobot extends EntityCreature {
 		return true;
 	}
 
-	@Override
-	public void onDeath(DamageSource d) {
-		super.onDeath(d);
+	public boolean isOwner(EntityPlayer entityIn) {
+		try {
+			if (getOwner() == null) {
+				if (getOwnerId().equals(entityIn.getUniqueID().toString())) {
+					owner = entityIn;
+				}
+			}
+		} catch (Exception e) {
+			DYNServerMod.logger.info("No Owner Information Present");
+		}
+		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID().toString());
+	}
+
+	public void moveBackward(int num) {
+		if (getIsFollowing()) {
+			setIsFollowing(false);
+		}
+		pauseCodeExecution();
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		switch (getHorizontalFacing()) {
+		case NORTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.south();
+				addToProgramPath(dest);
+			}
+			break;
+		case SOUTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.north();
+				addToProgramPath(dest);
+			}
+			break;
+		case EAST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.west();
+				addToProgramPath(dest);
+			}
+			break;
+		case WEST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.east();
+				addToProgramPath(dest);
+			}
+			break;
+		default:
+			dest = getPosition();
+			break;
+		}
+		resumeExecution();
+	}
+
+	public void moveForward(int num) {
+		if (getIsFollowing()) {
+			setIsFollowing(false);
+		}
+		pauseCodeExecution();
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+		switch (getHorizontalFacing()) {
+		case NORTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.north();
+				addToProgramPath(dest);
+			}
+			break;
+		case SOUTH:
+			for (int i = 0; i < num; i++) {
+				dest = dest.south();
+				addToProgramPath(dest);
+			}
+			break;
+		case EAST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.east();
+				addToProgramPath(dest);
+			}
+			break;
+		case WEST:
+			for (int i = 0; i < num; i++) {
+				dest = dest.west();
+				addToProgramPath(dest);
+			}
+			break;
+		default:
+			dest = getPosition();
+			break;
+		}
+		resumeExecution();
+	}
+
+	private void pauseCodeExecution() {
+		pauseCode = true;
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-	}
-
-	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		super.readFromNBT(nbttagcompound);
+	public void readEntityFromNBT(NBTTagCompound nbttagcompound) {
+		super.readEntityFromNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", 10);
 		// m_inventory = new ItemStack[32];
@@ -243,41 +496,88 @@ public abstract class EntityRobot extends EntityCreature {
 			}
 		}
 
-		m_on = nbttagcompound.getBoolean("on");
-
-		if (nbttagcompound.hasKey("owner")) {
-			owner = nbttagcompound.getString("owner");
-		} else {
-			owner = null;
+		shouldFollow = nbttagcompound.getBoolean("follow");
+		String robotName = nbttagcompound.getString("robotName");
+		if (robotName.length() > 0) {
+			setRobotName(robotName);
+		}
+		String ownerID = nbttagcompound.getString("OwnerUUID");
+		if (ownerID.length() > 0) {
+			setOwnerId(ownerID);
 		}
 	}
 
-	public boolean setMoveTo(BlockPos pos, float ms) {
-		return setMoveTo(pos.getX(), pos.getY(), pos.getZ(), ms);
+	public void reinitNonEssentialAI() {
+		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(4, new EntityAILookIdle(this));
 	}
 
-	public boolean setMoveTo(double x, double y, double z, float ms) {
-		return getNavigator().tryMoveToXYZ((int) x, (int) y, (int) z, ms);
-	}
-
-	public boolean setMoveTo(Entity e, float ms) {
-		return setMoveTo(e.posX, e.posY, e.posZ, ms);
-	}
-
-	public void setOwner(Entity owner) {
-		if (owner instanceof EntityPlayer) {
-			this.owner = owner.getName();
-			tasks.addTask(1, new EntityAIFollowsOwnerEX(this, (EntityPlayer) owner, 1.5D, 6.0F, 2.0F));
+	public void removeNonEssentialAI() {
+		List<EntityAIBase> nonEssentialAIs = new ArrayList();
+		for (EntityAITaskEntry task : tasks.taskEntries) {
+			if ((task.action instanceof EntityAIWatchClosest) || (task.action instanceof EntityAILookIdle)) {
+				nonEssentialAIs.add(task.action);
+			}
 		}
+		for (EntityAIBase ai : nonEssentialAIs) {
+			tasks.removeTask(ai);
+		}
+	}
+
+	private void resumeExecution() {
+		pauseCode = false;
+	}
+
+	public void setIsFollowing(boolean shouldFollow) {
+		this.shouldFollow = shouldFollow;
+	}
+
+	public void setOwner(EntityPlayer player) {
+		owner = player;
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
+		setOwnerId(player.getUniqueID().toString());
+	}
+
+	public void setOwner(UUID playerId) {
+		owner = worldObj.getPlayerEntityByUUID(playerId);
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
+	}
+
+	public void setOwnerId(String ownerUuid) {
+		dataWatcher.updateObject(17, ownerUuid);
+		setOwner(UUID.fromString(ownerUuid));
+	}
+
+	public void setRobotName(String robotName) {
+		dataWatcher.updateObject(18, robotName);
+		setCustomNameTag(robotName);
+		setAlwaysRenderNameTag(true);
+	}
+
+	public void setShouldJump(boolean state) {
+		shouldJump = state;
+	}
+
+	public boolean shouldExecuteCode() {
+		return executeCode;
 	}
 
 	public boolean shouldStoreItems(int a) {
 		return true;
 	}
 
+	public void startExecutingCode() {
+		System.out.println("Start Executing");
+		executeCode = true;
+	}
+
+	public void stopExecutingCode() {
+		executeCode = false;
+	}
+
 	@Override
-	public void writeToNBT(NBTTagCompound nbttagcompound) {
-		super.writeToNBT(nbttagcompound);
+	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
+		super.writeEntityToNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = new NBTTagList();
 		for (int i = 0; i < 16; i++) {
@@ -289,8 +589,13 @@ public abstract class EntityRobot extends EntityCreature {
 			}
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
+		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
+		nbttagcompound.setBoolean("follow", shouldFollow);
 
-		nbttagcompound.setBoolean("on", m_on);
-		nbttagcompound.setString("owner", owner);
+		if (getOwnerId() == null) {
+			nbttagcompound.setString("OwnerUUID", "");
+		} else {
+			nbttagcompound.setString("OwnerUUID", getOwnerId());
+		}
 	}
 }
