@@ -74,7 +74,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public List<BlockPos> markedChests = new ArrayList();
 	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<Long, String>();
-	private long lastMessageTime;
 	private boolean pauseCode = false;
 
 	public EntityRobot(World worldIn) {
@@ -171,16 +170,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void addMessage(String message) {
 		long time = System.currentTimeMillis();
-		// this makes sense so it doesnt spam messages but its possible it will
-		// send the same message twice within a short span
-//		if ( message.equals(lastMessage) &&  ((lastMessageTime + 5000L) > time)) {
-//			return;
-//		}
+
 		messages.put(time, message);
 		if (messages.size() > 3) {
 			messages.remove(messages.keySet().iterator().next());
 		}
-		lastMessageTime = time;
 	}
 
 	public void addToProgramPath(BlockPos pos) {
@@ -482,16 +476,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			break;
 		}
 		resumeExecution();
-	}
-
-	@Override
-	public void onDeath(DamageSource d) {
-		super.onDeath(d);
-	}
-
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
 	}
 
 	private void pauseCodeExecution() {
