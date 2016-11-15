@@ -112,7 +112,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Moving", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			int x = (int) (robot.posX + scan.nextInt());
@@ -127,7 +127,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Place", robId), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(robId);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			BlockPos curLoc = robot.getPosition();
@@ -191,7 +191,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Break", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			BlockPos curLoc = robot.getPosition();
@@ -221,7 +221,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Interacting", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			BlockPos curLoc = robot.getPosition();
@@ -246,7 +246,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Turning", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + scan.nextFloat());
@@ -261,7 +261,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Forward", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			robot.moveForward(scan.nextInt());
@@ -273,7 +273,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Backward", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			robot.moveBackward(scan.nextInt());
@@ -299,7 +299,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Inspect", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			BlockPos loc = robot.getPosition();
@@ -317,7 +317,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			int id = scan.nextInt();
 			EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			// adds a comma to the beginning so we substring
@@ -330,7 +330,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				NetworkManager.sendTo(new RobotSpeakMessage("Inspect", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
-			if(!robot.shouldExecuteCode()){
+			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
 			robot.setShouldJump(true);

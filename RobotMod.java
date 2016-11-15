@@ -2,7 +2,6 @@ package com.dyn.robot;
 
 import java.util.Map;
 
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
@@ -66,8 +65,6 @@ public class RobotMod {
 		registerBlocks();
 
 		registerNewEntity(DynRobotEntity.class, "dynRobotEntity", 0);
-
-		RobotAPI.registerCommands();
 
 		proxy.preInit();
 	}
