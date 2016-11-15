@@ -134,9 +134,4 @@ public class DynRobotEntity extends EntityRobot {
 					var6, var8);
 		}
 	}
-	
-	@Override
-	public String getName() {
-		return "DYNRobot";
-	}
 }

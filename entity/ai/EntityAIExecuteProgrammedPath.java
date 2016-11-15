@@ -35,8 +35,9 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 		boolean doContinue = (watchDog > 0) && (entity.shouldExecuteCode()
 				|| (!entity.getProgramPath().isEmpty() && !entity.getNavigator().noPath()));
 		if (!doContinue) {
-			if(watchDog <= 0){
-				RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Watchdog timed out", entity.getEntityId()));
+			if (watchDog <= 0) {
+				RaspberryJamMod.EVENT_BUS
+						.post(new CodeEvent.FailEvent("Watchdog timed out", entity.getEntityId(), entity.getOwner()));
 				notifySuccess = false;
 				entity.stopExecutingCode();
 				entity.clearProgramPath();
@@ -46,10 +47,12 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 			}
 			if (notifySuccess) {
 				if (entity.getPosition().equals(destination)) {
-					RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId()));
+					RaspberryJamMod.EVENT_BUS
+							.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
 				} else {
-					RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination", entity.getEntityId()));
+					RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination",
+							entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
 					entity.stopExecutingCode();
 					entity.clearProgramPath();
@@ -100,7 +103,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				// the entity made no progress is it stuck?
 				watchDog--;
 			}
-//			DYNServerMod.logger.info(entity.getDistanceSqToCenter(destination));
+			// DYNServerMod.logger.info(entity.getDistanceSqToCenter(destination));
 		} else if (!entity.isCodePaused()) {
 			// only update when execution is not paused
 			if (!entity.getProgramPath().isEmpty()) {
@@ -117,8 +120,8 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, (destination.getY()) + 0.5D,
 								(destination.getZ()) + 0.5D, speed);
 					} else {
-						RaspberryJamMod.EVENT_BUS.post(
-								new CodeEvent.FailEvent("Failed trying to set destination", entity.getEntityId()));
+						RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
+								entity.getEntityId(), entity.getOwner()));
 						notifySuccess = false;
 						entity.setPositionAndUpdate(prevDestination.getX() + .5, prevDestination.getY(),
 								prevDestination.getZ() + .5);
@@ -130,7 +133,8 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				}
 			} else if (notifySuccess) {
 				// the program path is empty lets send a 1 time event
-				RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId()));
+				RaspberryJamMod.EVENT_BUS
+						.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 				notifySuccess = false;
 			}
 		}
