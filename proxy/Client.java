@@ -3,7 +3,6 @@ package com.dyn.robot.proxy;
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.DYNServerMod;
-import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
@@ -13,8 +12,6 @@ import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 
-import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -40,14 +37,6 @@ public class Client implements Proxy {
 
 	private boolean showRobotProgrammer = false;
 
-	@SubscribeEvent
-	public void codeError(CodeEvent.ErrorEvent event) {
-		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
-				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
-			robotProgramInterface.handleErrorMessage(event);
-		}
-	}
-
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
 		robotProgramInterface = new RobotProgrammingInterface(robot);
@@ -59,9 +48,16 @@ public class Client implements Proxy {
 	}
 
 	@Override
+	public void handleErrorMessage(String error, String code, int line) {
+		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
+			robotProgramInterface.handleErrorMessage(error, code, line);
+		}
+	}
+
+	@Override
 	public void init() {
 		MinecraftForge.EVENT_BUS.register(this);
-		RaspberryJamMod.EVENT_BUS.register(this);
 		robotProgramInterface = new RobotProgrammingInterface();
 
 		scriptKey = new KeyBinding("key.toggle.scriptui", Keyboard.KEY_P, "key.categories.toggle");
@@ -149,17 +145,6 @@ public class Client implements Proxy {
 		}
 		ModelResourceLocation location = new ModelResourceLocation(Reference.MOD_ID + ":" + name, "inventory");
 		ModelLoader.setCustomModelResourceLocation(item, meta, location);
-	}
-
-	@SubscribeEvent
-	public void socketClose(CodeEvent.SocketCloseEvent event) {
-		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
-			World world = event.getPlayer().worldObj;
-			EntityRobot robot = (EntityRobot) world
-					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
-			DYNServerMod.logger.info("Stop Executing Code from Socket Message");
-			robot.stopExecutingCode();
-		}
 	}
 
 	@Override

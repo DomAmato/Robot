@@ -29,7 +29,6 @@ import com.rabbit.gui.component.list.entries.SelectListEntry;
 import com.rabbit.gui.component.list.entries.SelectStringEntry;
 import com.rabbit.gui.show.Show;
 
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import scala.actors.threadpool.Arrays;
@@ -121,17 +120,18 @@ public class RobotProgrammingInterface extends Show {
 		return robot;
 	}
 
-	public void handleErrorMessage(CodeEvent.ErrorEvent e) {
+	public void handleErrorMessage(String error, String code, int line) {
 		// we have to subtract 2 since lines start at 0 and the error produces
 		// an extra space
 		errorPanel.setVisible(true);
-		errorLabel.setText(e.getError());
-		if (e.getError().contains("NameError") || e.getError().contains("RequestError")) {
+		errorLabel.setText(error);
+		if (error.contains("NameError") || error.contains("RequestError")) {
 			// name errors dont seem to have the same offset as other errors
-			codeWindow.notifyError(e.getLine() - 1, e.getCode(), e.getError());
+			codeWindow.notifyError(line - 1, code, error);
 		} else {
-			codeWindow.notifyError(e.getLine() - 2, e.getCode(), e.getError());
+			codeWindow.notifyError(line - 2, code, error);
 		}
+
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.dyn.robot.proxy;
 
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotProgrammingInterface;
@@ -24,8 +25,13 @@ public class Server implements Proxy {
 	}
 
 	@Override
+	public void handleErrorMessage(String error, String code, int line) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void init() {
-		// MinecraftForge.EVENT_BUS.register(this);
 
 	}
 
@@ -60,8 +66,7 @@ public class Server implements Proxy {
 
 	@Override
 	public void preInit() {
-		// TODO Auto-generated method stub
-
+		RobotAPI.registerCommands();
 	}
 
 	@Override

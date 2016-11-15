@@ -14,6 +14,8 @@ public interface Proxy {
 
 	public RobotProgrammingInterface getProgrammingInterface();
 
+	public void handleErrorMessage(String error, String code, int line);
+
 	public void init();
 
 	public void openRemoteInterface(EntityRobot robot);
