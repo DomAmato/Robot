@@ -24,7 +24,10 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.SERVER)
 public class RobotAPI extends Python2MinecraftApi {
 
 	private static final String GETROBOTID = "robot.id";
