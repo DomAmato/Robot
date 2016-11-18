@@ -34,6 +34,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.relauncher.Side;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
 
@@ -86,7 +88,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.addObject(17, "");// owner uuid
 		dataWatcher.addObject(18, "");// robot name
 
-		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
+		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
+		}
 		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(4, new EntityAILookIdle(this));

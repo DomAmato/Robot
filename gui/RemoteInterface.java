@@ -11,7 +11,6 @@ import com.dyn.server.network.messages.MessageDebugRobot;
 import com.dyn.server.network.messages.MessageOpenRobotInventory;
 import com.dyn.server.network.messages.MessageTeleportRobot;
 import com.dyn.server.network.messages.MessageToggleRobotFollow;
-import com.forgeessentials.chat.Censor;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.control.TextBox;
@@ -172,7 +171,7 @@ public class RemoteInterface extends Show {
 								.sendToServer(
 										new MessageActivateRobot(
 												(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random())
-														: Censor.filter(robotName)),
+														: robotName),
 												robotBlockPos, player.dimension, true));
 						getStage().close();
 					}));
