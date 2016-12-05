@@ -2,9 +2,11 @@ package com.dyn.robot;
 
 import java.util.Map;
 
+import com.dyn.fixins.tab.RoboTab;
 import com.dyn.robot.entity.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.items.ItemDynRobotBlock;
 import com.dyn.robot.items.ItemDynRobotSpawner;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.proxy.Proxy;
@@ -34,6 +36,9 @@ public class RobotMod {
 
 	public static BlockDynRobot dynRobot;
 	public static ItemRemote dynRobotRemote;
+	public static ItemDynRobotSpawner robotSpawner;
+
+	public static CreativeTabs roboTab = new RoboTab();
 
 	// server
 	public static Map<Integer, Boolean> robotEcho = Maps.newHashMap();
@@ -70,15 +75,17 @@ public class RobotMod {
 	}
 
 	private void registerBlocks() {
-		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot")
-				.setCreativeTab(CreativeTabs.tabRedstone);
-		GameRegistry.registerBlock(dynRobot, ItemDynRobotSpawner.class, "dyn_robot");
+		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot").setCreativeTab(roboTab);
+		GameRegistry.registerBlock(dynRobot, ItemDynRobotBlock.class, "dyn_robot");
 	}
 
 	private void registerItems() {
-		dynRobotRemote = (ItemRemote) new ItemRemote().setUnlocalizedName("dyn_robot_remote")
-				.setCreativeTab(CreativeTabs.tabRedstone);
+		dynRobotRemote = (ItemRemote) new ItemRemote().setUnlocalizedName("dyn_robot_remote").setCreativeTab(roboTab);
 		GameRegistry.registerItem(dynRobotRemote, "dyn_robot_remote");
 		proxy.registerItem(dynRobotRemote, dynRobotRemote.getUnlocalizedName(), 0);
+		
+		robotSpawner = (ItemDynRobotSpawner) new ItemDynRobotSpawner().setUnlocalizedName("dyn_robot_spawn");
+		GameRegistry.registerItem(robotSpawner, "dyn_robot_spawn");
+		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName(), 0);
 	}
 }
