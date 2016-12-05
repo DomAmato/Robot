@@ -20,6 +20,13 @@ public class RenderDynRobot extends RenderLiving<EntityRobot> {
 
 	@Override
 	protected ResourceLocation getEntityTexture(EntityRobot entity) {
+		entity.counter++;
+		entity.counter %= 101;
+		if ((entity.counter > entity.on1) && (entity.counter < entity.on2)) {
+			return new ResourceLocation(Reference.MOD_ID + ":" + "textures/models/robot2.png");
+		} else if (entity.counter >= entity.on2) {
+			return new ResourceLocation(Reference.MOD_ID + ":" + "textures/models/robot3.png");
+		}
 		return new ResourceLocation(Reference.MOD_ID + ":" + "textures/models/robot.png");
 	}
 
