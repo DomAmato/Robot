@@ -86,7 +86,8 @@ public class Client implements Proxy {
 	public void onRenderTick(TickEvent.RenderTickEvent event) {
 		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
 				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
-			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer) {
+			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer
+					&& !robotProgramInterface.getRobot().isDead) {
 				robotProgramInterface.onDraw(0, 0, event.renderTickTime);
 			}
 		}
@@ -94,7 +95,7 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRemoteInterface(EntityRobot robot) {
-		if (robot != null) {
+		if ((robot != null) && !robot.isDead) {
 			RabbitGui.proxy.display(new RemoteInterface(robot, Minecraft.getMinecraft().thePlayer));
 		}
 	}
@@ -112,7 +113,9 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRobotInterface() {
-		RabbitGui.proxy.display(robotProgramInterface);
+		if (!robotProgramInterface.getRobot().isDead) {
+			RabbitGui.proxy.display(robotProgramInterface);
+		}
 	}
 
 	@Override
@@ -149,6 +152,10 @@ public class Client implements Proxy {
 
 	@Override
 	public void toggleRenderRobotProgramInterface(boolean state) {
-		showRobotProgrammer = state;
+		if (!robotProgramInterface.getRobot().isDead) {
+			showRobotProgrammer = state;
+		} else {
+			showRobotProgrammer = false;
+		}
 	}
 }
