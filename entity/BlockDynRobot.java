@@ -6,6 +6,7 @@ import com.dyn.robot.items.ItemRemote;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -17,6 +18,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class BlockDynRobot extends BlockFalling {
 	public BlockDynRobot() {
 		super(Material.iron);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer) {
+		return false;
 	}
 
 	// the block will render in the SOLID layer. See
