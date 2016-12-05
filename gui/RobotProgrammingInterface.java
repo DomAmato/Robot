@@ -6,6 +6,7 @@ import java.io.FilenameFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.dyn.DYNServerMod;
@@ -14,6 +15,7 @@ import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageRunRobotScript;
 import com.dyn.utils.FileUtils;
+import com.google.common.collect.Lists;
 import com.rabbit.gui.component.code.CodeInterface;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.PictureButton;
@@ -75,6 +77,7 @@ public class RobotProgrammingInterface extends Show {
 	public void entrySelected(SelectListEntry entry, DisplayList dlist, int mouseX, int mouseY) {
 		if (entry.getTitle().equals("..")) {
 			dlist.clear();
+			((ScrollableDisplayList) dlist).setScrollAmount(0);
 			currentDir = currentDir.getParentFile();
 			openPath.setText("Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath())));
 			files = currentDir.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py")
@@ -93,6 +96,7 @@ public class RobotProgrammingInterface extends Show {
 
 		} else {
 			if (((File) entry.getValue()).isDirectory()) {
+				((ScrollableDisplayList) dlist).setScrollAmount(0);
 				currentDir = (File) entry.getValue();
 				openPath.setText("Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath())));
 				dlist.clear();
@@ -287,6 +291,20 @@ public class RobotProgrammingInterface extends Show {
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
 					errorPanel.setVisible(false);
 				}));
+		
+		List<String> robotMembers = Lists.newArrayList();
+		robotMembers.add("forward()");
+		robotMembers.add("backward()");
+		robotMembers.add("inspect()");
+		robotMembers.add("left()");
+		robotMembers.add("right()");
+		robotMembers.add("breakBlock()");
+		robotMembers.add("placeBlock()");
+		robotMembers.add("jump()");
+		robotMembers.add("say()");
+		robotMembers.add("interact()");
+		
+		codeWindow.addClassMembers("Robot", robotMembers);
 
 	}
 
