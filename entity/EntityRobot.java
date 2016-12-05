@@ -19,6 +19,7 @@ import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
@@ -27,38 +28,95 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateClimber;
+import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
 
-	static class PathNavigateRobot extends PathNavigateClimber {
+	static class PathNavigateRobot extends PathNavigateGround {
+		/** Current path navigation target */
+		private BlockPos targetPosition;
 
 		public PathNavigateRobot(EntityLiving entityLivingIn, World worldIn) {
 			super(entityLivingIn, worldIn);
 		}
 
 		@Override
-		public void onUpdateNavigation() {
-			// we have to do this hack because the vanilla minecraft code is
-			// dumb and the entity will never reach its destination if its
-			// width is too small to square
-			if (!noPath()) {
-				super.onUpdateNavigation();
+		/**
+		 * Returns path to given BlockPos
+		 */
+		public PathEntity getPathToPos(BlockPos pos) {
+			this.targetPosition = pos;
+			return super.getPathToPos(pos);
+		}
+
+		@Override
+		/**
+		 * Returns the path to the given EntityLiving. Args : entity
+		 */
+		public PathEntity getPathToEntityLiving(Entity entityIn) {
+			this.targetPosition = new BlockPos(entityIn);
+			return super.getPathToEntityLiving(entityIn);
+		}
+
+		@Override
+		/**
+		 * Try to find and set a path to EntityLiving. Returns true if
+		 * successful. Args : entity, speed
+		 */
+		public boolean tryMoveToEntityLiving(Entity entityIn, double speedIn) {
+			PathEntity pathentity = this.getPathToEntityLiving(entityIn);
+
+			if (pathentity != null) {
+				return this.setPath(pathentity, speedIn);
 			} else {
-				theEntity.width = 1;
-				super.onUpdateNavigation();
-				theEntity.width = .5f;
+				this.targetPosition = new BlockPos(entityIn);
+				this.speed = speedIn;
+				return true;
 			}
 		}
 
+		public void onUpdateNavigation() {
+			if (!this.noPath()) {
+				{
+					int i = MathHelper.floor_double(this.theEntity.getEntityBoundingBox().minY + 0.5D);
+					double d0 = targetPosition.getX() - this.theEntity.posX;
+					double d1 = targetPosition.getZ() - this.theEntity.posZ;
+					double d2 = targetPosition.getY() - (double) i;
+
+					System.out.println(d0 + ", " + d2 + ", " + d1);
+				}
+				super.onUpdateNavigation();
+			} else {
+				if (this.targetPosition != null) {
+					double d0 = Math.max(1, (double) (this.theEntity.width * this.theEntity.width));
+					double d1 = Math.max(1, (double) (this.theEntity.height * this.theEntity.height));
+
+					// vanilla doesnt seem to account for the y position
+					// properly...
+					// check the x/z position and the y position separately
+					if (Math.abs(theEntity.posY - targetPosition.getY()) >= d1
+							&& /* the x/z diff */this.theEntity.getDistanceSqToCenter(new BlockPos(
+									this.targetPosition.getX(), MathHelper.floor_double(this.theEntity.posY),
+									this.targetPosition.getZ())) > d0) {
+						this.theEntity.getMoveHelper().setMoveTo((double) this.targetPosition.getX(),
+								(double) this.targetPosition.getY(), (double) this.targetPosition.getZ(), this.speed);
+					} else {
+						this.targetPosition = null;
+					}
+				}
+			}
+		}
 	}
 
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
@@ -78,6 +136,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public Map<Long, String> messages = new TreeMap<Long, String>();
 	private boolean pauseCode = false;
 
+	private EntityAIWander wanderTask;
+
+	public final int on1 = 50;
+	public final int on2 = 75;
+	public int counter = 0;
+
 	public EntityRobot(World worldIn) {
 		super(worldIn);
 		height = .9f;
@@ -92,9 +156,20 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 		}
 		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
-		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
+	}
 
+	/**
+	 * Deals damage to the entity. If its a EntityPlayer then will take damage
+	 * from the armor first and then health second with the reduced value. Args:
+	 * damageAmount
+	 */
+	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
+		if (!(damageSrc.getEntity() instanceof EntityPlayer) && (damageSrc == DamageSource.fall && damageAmount > 10)) {
+			super.damageEntity(damageSrc, damageAmount);
+		}
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
@@ -221,6 +296,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void climb(int amount) {
+		// TODO: make this better
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
@@ -549,6 +625,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setOwnerId(String ownerUuid) {
 		dataWatcher.updateObject(17, ownerUuid);
+		tasks.removeTask(wanderTask);
 		setOwner(UUID.fromString(ownerUuid));
 	}
 
