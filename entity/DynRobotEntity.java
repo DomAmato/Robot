@@ -1,18 +1,22 @@
 package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.robot.items.ItemRemote;
 
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.relauncher.Side;
 
 public class DynRobotEntity extends EntityRobot {
 
@@ -27,9 +31,9 @@ public class DynRobotEntity extends EntityRobot {
 			setOwnerId(player.getUniqueID().toString());
 		}
 
-		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
-		((PathNavigateGround) getNavigator()).setEnterDoors(true);
-
+		((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
+		((PathNavigateRobot) getNavigator()).setEnterDoors(true);
+		((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
 	}
 
 	@Override
@@ -98,15 +102,15 @@ public class DynRobotEntity extends EntityRobot {
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
+		Vec3 vec = getLookVec();
 		if ((isJumping || (isAirBorne && (motionY >= 0.2))) && ((Math.abs(motionX) + Math.abs(motionZ)) <= 0.2)) {
-			Vec3 vec = getLookVec();
 			motionX = vec.xCoord / 4;
 			motionZ = vec.zCoord / 4;
 		}
-		if ((ticksExisted % 5) == 0) {
+
+		if (((ticksExisted % 5) == 0) && (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT)) {
 			spawnAntennaParticles(EnumParticleTypes.REDSTONE);
 		}
-
 	}
 
 	public void slightMoveWhenStill() {
@@ -121,7 +125,21 @@ public class DynRobotEntity extends EntityRobot {
 		double xOffset = rand.nextGaussian() * 0.05D;
 		double yOffset = rand.nextGaussian() * 0.05D;
 		double zOffset = rand.nextGaussian() * 0.05D;
-		worldObj.spawnParticle(particles, posX + xOffset, posY + 1.2 + yOffset, posZ + zOffset, 0, 0, 0); // int[0]);
+
+		GlStateManager.pushMatrix();
+		GlStateManager.translate(posX, posY, posZ);
+		if ((rotationYawHead + renderYawOffset) != 0.0F) {
+			GlStateManager.rotate(rotationYawHead + renderYawOffset, 0.0F, 1.0F, 0.0F);
+		}
+
+		if (rotationPitch != 0.0F) {
+			GlStateManager.rotate(rotationPitch * (180F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+		}
+		// worldObj.spawnParticle(particles, posX + xOffset, posY + 1.2 +
+		// yOffset, posZ + zOffset, 0, 0, 0);
+
+		worldObj.spawnParticle(particles, xOffset, 1.2 + yOffset, zOffset, 0, 0, 0);
+		GlStateManager.popMatrix();
 	}
 
 	public void spawnParticles(EnumParticleTypes particles) {
@@ -134,4 +152,27 @@ public class DynRobotEntity extends EntityRobot {
 					var6, var8);
 		}
 	}
+
+	// coroutils pathing
+	// @Override
+	// public boolean canClimbLadders() {
+	// return true;
+	// }
+	//
+	// @Override
+	// public boolean canClimbWalls() {
+	// return false;
+	// }
+	//
+	// @Override
+	// public int getDropSize() {
+	// // TODO Auto-generated method stub
+	// return 0;
+	// }
+	//
+	// @Override
+	// public int overrideBlockPathOffset(ICoroAI arg0, Block arg1, int arg2,
+	// int arg3, int arg4, int arg5) {
+	// return -66;
+	// }
 }

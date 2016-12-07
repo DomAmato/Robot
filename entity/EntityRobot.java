@@ -10,17 +10,17 @@ import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
+import com.dyn.robot.entity.pathing.PathNavigateRobot;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
+import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,97 +28,16 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
-import net.minecraft.pathfinding.PathNavigateClimber;
-import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
-
-	static class PathNavigateRobot extends PathNavigateGround {
-		/** Current path navigation target */
-		private BlockPos targetPosition;
-
-		public PathNavigateRobot(EntityLiving entityLivingIn, World worldIn) {
-			super(entityLivingIn, worldIn);
-		}
-
-		@Override
-		/**
-		 * Returns path to given BlockPos
-		 */
-		public PathEntity getPathToPos(BlockPos pos) {
-			this.targetPosition = pos;
-			return super.getPathToPos(pos);
-		}
-
-		@Override
-		/**
-		 * Returns the path to the given EntityLiving. Args : entity
-		 */
-		public PathEntity getPathToEntityLiving(Entity entityIn) {
-			this.targetPosition = new BlockPos(entityIn);
-			return super.getPathToEntityLiving(entityIn);
-		}
-
-		@Override
-		/**
-		 * Try to find and set a path to EntityLiving. Returns true if
-		 * successful. Args : entity, speed
-		 */
-		public boolean tryMoveToEntityLiving(Entity entityIn, double speedIn) {
-			PathEntity pathentity = this.getPathToEntityLiving(entityIn);
-
-			if (pathentity != null) {
-				return this.setPath(pathentity, speedIn);
-			} else {
-				this.targetPosition = new BlockPos(entityIn);
-				this.speed = speedIn;
-				return true;
-			}
-		}
-
-		public void onUpdateNavigation() {
-			if (!this.noPath()) {
-				{
-					int i = MathHelper.floor_double(this.theEntity.getEntityBoundingBox().minY + 0.5D);
-					double d0 = targetPosition.getX() - this.theEntity.posX;
-					double d1 = targetPosition.getZ() - this.theEntity.posZ;
-					double d2 = targetPosition.getY() - (double) i;
-
-					System.out.println(d0 + ", " + d2 + ", " + d1);
-				}
-				super.onUpdateNavigation();
-			} else {
-				if (this.targetPosition != null) {
-					double d0 = Math.max(1, (double) (this.theEntity.width * this.theEntity.width));
-					double d1 = Math.max(1, (double) (this.theEntity.height * this.theEntity.height));
-
-					// vanilla doesnt seem to account for the y position
-					// properly...
-					// check the x/z position and the y position separately
-					if (Math.abs(theEntity.posY - targetPosition.getY()) >= d1
-							&& /* the x/z diff */this.theEntity.getDistanceSqToCenter(new BlockPos(
-									this.targetPosition.getX(), MathHelper.floor_double(this.theEntity.posY),
-									this.targetPosition.getZ())) > d0) {
-						this.theEntity.getMoveHelper().setMoveTo((double) this.targetPosition.getX(),
-								(double) this.targetPosition.getY(), (double) this.targetPosition.getZ(), this.speed);
-					} else {
-						this.targetPosition = null;
-					}
-				}
-			}
-		}
-	}
-
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
 				AxisAlignedBB.fromBounds(x, y, z, x + radius, y + radius, z + radius));
@@ -159,17 +78,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
-	}
-
-	/**
-	 * Deals damage to the entity. If its a EntityPlayer then will take damage
-	 * from the armor first and then health second with the reduced value. Args:
-	 * damageAmount
-	 */
-	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
-		if (!(damageSrc.getEntity() instanceof EntityPlayer) && (damageSrc == DamageSource.fall && damageAmount > 10)) {
-			super.damageEntity(damageSrc, damageAmount);
-		}
 	}
 
 	public ItemStack addItemStack(ItemStack is) {
@@ -266,7 +174,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 		getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(0.1D);
-		getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(16.0D);
+		getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(32.0D);
 		getEntityAttribute(SharedMonsterAttributes.knockbackResistance).setBaseValue(100.0D);
 		getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.2D);
 		getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
@@ -312,6 +220,20 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				addToProgramPath(dest);
 			}
 		}
+	}
+
+	/**
+	 * Deals damage to the entity. If its a EntityPlayer then will take damage
+	 * from the armor first and then health second with the reduced value. Args:
+	 * damageAmount
+	 */
+	@Override
+	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
+		if (!(damageSrc.getEntity() instanceof EntityPlayer)
+				&& ((damageSrc == DamageSource.fall) && (damageAmount > 10))) {
+			super.damageEntity(damageSrc, damageAmount);
+		}
+		performHurtAnimation();
 	}
 
 	public boolean decreaseItemStack(ItemStack is) {
@@ -378,6 +300,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public boolean getIsFollowing() {
 		return shouldFollow;
+	}
+
+	@Override
+	public int getMaxFallHeight() {
+		return 10;
 	}
 
 	public Map<Long, String> getMessages() {
@@ -648,7 +575,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void startExecutingCode() {
-		System.out.println("Start Executing");
 		executeCode = true;
 	}
 
