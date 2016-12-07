@@ -170,9 +170,11 @@ public class RobotProgrammingInterface extends Show {
 		openPanel.registerComponent(
 				new Button((int) (openPanel.getWidth() * .2), (int) (openPanel.getHeight() * .85), 45, 15, "Open")
 						.setClickListener(btn -> {
-							termText = FileUtils.readFile(selectedFile);
-							codeWindow.setText(termText);
-							openPanel.setVisible(false);
+							if (selectedFile != null) {
+								termText = FileUtils.readFile(selectedFile);
+								codeWindow.setText(termText);
+								openPanel.setVisible(false);
+							}
 						}));
 
 		openPanel.registerComponent(
@@ -291,7 +293,7 @@ public class RobotProgrammingInterface extends Show {
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
 					errorPanel.setVisible(false);
 				}));
-		
+
 		List<String> robotMembers = Lists.newArrayList();
 		robotMembers.add("forward()");
 		robotMembers.add("backward()");
@@ -303,7 +305,7 @@ public class RobotProgrammingInterface extends Show {
 		robotMembers.add("jump()");
 		robotMembers.add("say()");
 		robotMembers.add("interact()");
-		
+
 		codeWindow.addClassMembers("Robot", robotMembers);
 
 	}
