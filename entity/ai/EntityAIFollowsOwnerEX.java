@@ -92,7 +92,6 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 
 		if (--field_75343_h <= 0) {
 			field_75343_h = 10;
-
 			if (!entityPath.tryMoveToEntityLiving(follower.getOwner(), followSpeed)) {
 				if (follower.getDistanceSqToEntity(follower.getOwner()) >= 144.0D) {
 					int i = MathHelper.floor_double(follower.getOwner().posX) - 2;

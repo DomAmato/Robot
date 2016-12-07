@@ -83,7 +83,7 @@ public class RobotMod {
 		dynRobotRemote = (ItemRemote) new ItemRemote().setUnlocalizedName("dyn_robot_remote").setCreativeTab(roboTab);
 		GameRegistry.registerItem(dynRobotRemote, "dyn_robot_remote");
 		proxy.registerItem(dynRobotRemote, dynRobotRemote.getUnlocalizedName(), 0);
-		
+
 		robotSpawner = (ItemDynRobotSpawner) new ItemDynRobotSpawner().setUnlocalizedName("dyn_robot_spawn");
 		GameRegistry.registerItem(robotSpawner, "dyn_robot_spawn");
 		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName(), 0);
