@@ -17,7 +17,6 @@ import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.CheckBox;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.control.TextBox;
-import com.rabbit.gui.component.control.ToggleButton;
 import com.rabbit.gui.component.display.Panel;
 import com.rabbit.gui.component.display.Picture;
 import com.rabbit.gui.component.display.TextLabel;
@@ -145,12 +144,12 @@ public class RemoteInterface extends Show {
 					String.format("Your Current Robot:\nRobot Name: %s\nLocation:\n%s",
 							RobotMod.currentRobot.getRobotName(), RobotMod.currentRobot.getPosition().toString()))
 									.setMultilined(true));
-			panel.registerComponent(new CheckBox((int) (panel.getWidth() * .65), (int) (panel.getHeight() * .05),
-					15, 15, "is Following", RobotMod.currentRobot.getIsFollowing()).setStatusChangedListener(ckbx -> {
-								NetworkManager.sendToServer(new MessageToggleRobotFollow(
-										RobotMod.currentRobot.getEntityId(), ckbx.isChecked()));
-								RobotMod.currentRobot.setIsFollowing(ckbx.isChecked());
-							}));
+			panel.registerComponent(new CheckBox((int) (panel.getWidth() * .65), (int) (panel.getHeight() * .05), 15,
+					15, "is Following", RobotMod.currentRobot.getIsFollowing()).setStatusChangedListener(ckbx -> {
+						NetworkManager.sendToServer(
+								new MessageToggleRobotFollow(RobotMod.currentRobot.getEntityId(), ckbx.isChecked()));
+						RobotMod.currentRobot.setIsFollowing(ckbx.isChecked());
+					}));
 		} else {
 			panel.registerComponent(new TextBox((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .2),
 					(int) (panel.getWidth() * .8), 25, "Give Robot a Name")
@@ -186,14 +185,14 @@ public class RemoteInterface extends Show {
 						}));
 			}
 		} else if (RobotMod.currentRobot != null) {
-			if(DYNServerMod.accessLevel == PlayerLevel.ADMIN){
+			if (DYNServerMod.accessLevel == PlayerLevel.ADMIN) {
 				panel.registerComponent(new Button((int) (panel.getWidth() * .65), (int) (panel.getHeight() * .2),
 						(int) (panel.getWidth() * .3), 20, "Debugger").setClickListener(btn -> {
-							 panel.setVisible(false);
-							 debugPanel.setVisible(true);
+							panel.setVisible(false);
+							debugPanel.setVisible(true);
 						}));
 			}
-			
+
 			panel.registerComponent(new Button((int) (panel.getWidth() * .075), (int) (panel.getHeight() * .55),
 					(int) (panel.getWidth() * .4), 20, "Open Programmer").setClickListener(btn -> {
 						getStage().close();
@@ -218,9 +217,13 @@ public class RemoteInterface extends Show {
 			panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .75),
 					(int) (panel.getWidth() * .35), 20, "Teleport to Me").setClickListener(btn -> {
 						NetworkManager.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
-//						BlockPos pos = Minecraft.getMinecraft().thePlayer.getPosition();
-//						RobotMod.currentRobot.setLocationAndAngles(pos.getX(), pos.getY(), pos.getZ(), RobotMod.currentRobot.rotationYaw, RobotMod.currentRobot.rotationPitch);
-//						RobotMod.currentRobot.getNavigator().clearPathEntity();
+						BlockPos pos = player.getPosition().offset(player.getHorizontalFacing());
+						System.out.println(pos);
+						RobotMod.currentRobot.posX = pos.getX();
+						RobotMod.currentRobot.posY = pos.getY();
+						RobotMod.currentRobot.posZ = pos.getZ();
+						RobotMod.currentRobot.setPositionAndUpdate(pos.getX(), pos.getY(), pos.getZ());
+						RobotMod.currentRobot.setPosition(pos.getX(), pos.getY(), pos.getZ());
 					}));
 		}
 
