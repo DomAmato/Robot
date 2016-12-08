@@ -233,7 +233,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				&& ((damageSrc == DamageSource.fall) && (damageAmount > 10))) {
 			super.damageEntity(damageSrc, damageAmount);
 		}
-		performHurtAnimation();
 	}
 
 	public boolean decreaseItemStack(ItemStack is) {
