@@ -154,7 +154,7 @@ public class RobotProgrammingInterface extends Show {
 				"Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath()))));
 
 		// components
-		ArrayList<ListEntry> scriptFiles = new ArrayList<ListEntry>();
+		ArrayList<ListEntry> scriptFiles = new ArrayList<>();
 
 		scriptFiles.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist, int mouseX,
 				int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));

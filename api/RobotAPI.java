@@ -23,7 +23,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -277,7 +276,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
-			if (!robot.climb(scan.nextInt())){
+			if (!robot.climb(scan.nextInt())) {
 				fail("Could not climb block");
 			}
 		});
@@ -289,8 +288,8 @@ public class RobotAPI extends Python2MinecraftApi {
 			BlockPos loc = robot.getPosition();
 			// snap the robot to the center of the block and set its facing to
 			// the current direction
-				robot.setPositionAndRotation(loc.getX() + .5, loc.getY(), loc.getZ() + .5,
-						HelperFunctions.getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
+			robot.setPositionAndRotation(loc.getX() + .5, loc.getY(), loc.getZ() + .5,
+					HelperFunctions.getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
 			sendLine(id);
 		});
 		APIRegistry.registerCommand(ROBOTINSPECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {

@@ -105,7 +105,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	@Override
 	public void updateTask() {
 		double dist = entity.getDistanceSqToCenter(destination);
-		if (!entityPath.noPath() || dist > .35D) {
+		if (!entityPath.noPath() || (dist > .35D)) {
 			if (prevDist != dist) {
 				prevDist = dist;
 			} else {
@@ -121,12 +121,10 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				destination = entity.getProgramPath().iterator().next();
 				entity.getProgramPath().remove(destination);
 				// heres the problem... the ai isnt smart enough to climb
-				if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()),
-						(destination.getZ()), speed)) {
+				if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()), (destination.getZ()), speed)) {
 					DYNServerMod.logger.info("Could not get path to: " + destination);
 					if (entity.getPosition().getY() != destination.getY()) {
-						DYNServerMod.logger.info("Attempting to climb to: " +
-						 destination);
+						DYNServerMod.logger.info("Attempting to climb to: " + destination);
 						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, (destination.getY()) + 0.5D,
 								(destination.getZ()) + 0.5D, speed);
 

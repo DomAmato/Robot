@@ -1,7 +1,6 @@
 package com.dyn.robot.gui;
 
 import java.awt.Color;
-import java.util.Random;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;

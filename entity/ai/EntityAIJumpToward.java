@@ -28,9 +28,9 @@ public class EntityAIJumpToward extends EntityAIBase {
 	@Override
 	public boolean continueExecuting() {
 		boolean doContinue = !leaper.onGround;
-		if(!doContinue){
+		if (!doContinue) {
 			RaspberryJamMod.EVENT_BUS
-			.post(new CodeEvent.SuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
+					.post(new CodeEvent.SuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
 		}
 		return doContinue;
 	}
