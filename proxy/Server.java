@@ -46,8 +46,8 @@ public class Server implements Proxy {
 	
 	@Override
 	public void init() {
-		RaspberryJamMod.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.register(this);
+	//	RaspberryJamMod.EVENT_BUS.register(this);
+	//	MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@Override
