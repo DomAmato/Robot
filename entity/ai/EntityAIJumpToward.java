@@ -2,6 +2,8 @@ package com.dyn.robot.entity.ai;
 
 import com.dyn.robot.entity.EntityRobot;
 
+import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
+import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
@@ -17,7 +19,7 @@ public class EntityAIJumpToward extends EntityAIBase {
 	public EntityAIJumpToward(EntityRobot leapingEntity, float leapMotionYIn) {
 		leaper = leapingEntity;
 		leapMotionY = leapMotionYIn;
-		setMutexBits(5);
+		setMutexBits(8);
 	}
 
 	/**
@@ -25,7 +27,12 @@ public class EntityAIJumpToward extends EntityAIBase {
 	 */
 	@Override
 	public boolean continueExecuting() {
-		return !leaper.onGround;
+		boolean doContinue = !leaper.onGround;
+		if(!doContinue){
+			RaspberryJamMod.EVENT_BUS
+			.post(new CodeEvent.SuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
+		}
+		return doContinue;
 	}
 
 	/**
