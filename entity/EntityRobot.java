@@ -77,8 +77,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
+			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		}
-		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
