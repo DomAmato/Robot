@@ -2,10 +2,12 @@ package com.dyn.robot.entity.ai;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.utils.HelperFunctions;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.BlockPos;
 
 public class EntityAIExecuteProgrammedPath extends EntityAIBase {
@@ -13,7 +15,8 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	private double speed;
 	private boolean notifySuccess = false;
 	private double prevDist = 0;
-	private int watchDog = 1;
+	private int watchDog = 30;
+	private PathNavigate entityPath;
 
 	/** Block to move to */
 	private BlockPos destination = BlockPos.ORIGIN;
@@ -22,6 +25,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	public EntityAIExecuteProgrammedPath(EntityRobot entity, double speed) {
 		this.entity = entity;
 		this.speed = speed;
+		entityPath = entity.getNavigator();
 		setMutexBits(7);
 	}
 
@@ -41,24 +45,28 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				notifySuccess = false;
 				entity.stopExecutingCode();
 				entity.clearProgramPath();
-				entity.getNavigator().clearPathEntity();
-				entity.setPositionAndUpdate(prevDestination.getX() + .5, prevDestination.getY(),
-						prevDestination.getZ() + .5);
+				entityPath.clearPathEntity();
+				entity.setLocationAndAngles(prevDestination.getX() + .5, prevDestination.getY(),
+						prevDestination.getZ() + .5, HelperFunctions.getAngleFromFacing(entity.getHorizontalFacing()),
+						entity.rotationPitch);
 			}
 			if (notifySuccess) {
 				if (entity.getPosition().equals(destination)) {
 					RaspberryJamMod.EVENT_BUS
 							.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
+					entity.setLocationAndAngles(destination.getX() + .5, destination.getY(), destination.getZ() + .5,
+							HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()), entity.rotationPitch);
 				} else {
 					RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination",
 							entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
 					entity.stopExecutingCode();
 					entity.clearProgramPath();
-					entity.getNavigator().clearPathEntity();
-					entity.setPositionAndUpdate(prevDestination.getX() + .5, prevDestination.getY(),
-							prevDestination.getZ() + .5);
+					entityPath.clearPathEntity();
+					entity.setLocationAndAngles(prevDestination.getX() + .5, prevDestination.getY(),
+							prevDestination.getZ() + .5,
+							HelperFunctions.getAngleFromFacing(entity.getHorizontalFacing()), entity.rotationPitch);
 				}
 			}
 			DYNServerMod.logger.info("Stop AI Path Execution");
@@ -88,7 +96,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	public void startExecuting() {
 		DYNServerMod.logger.info("Start AI Path Execution");
 		prevDestination = destination = entity.getPosition();
-		watchDog = 20;
+		watchDog = 30;
 	}
 
 	/**
@@ -96,39 +104,43 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	 */
 	@Override
 	public void updateTask() {
-		if (entity.getDistanceSqToCenter(destination) > .35D) {
-			if (prevDist != entity.getDistanceSqToCenter(destination)) {
-				prevDist = entity.getDistanceSqToCenter(destination);
+		double dist = entity.getDistanceSqToCenter(destination);
+		if (!entityPath.noPath() || dist > .35D) {
+			if (prevDist != dist) {
+				prevDist = dist;
 			} else {
 				// the entity made no progress is it stuck?
 				watchDog--;
 			}
-			// DYNServerMod.logger.info(entity.getDistanceSqToCenter(destination));
 		} else if (!entity.isCodePaused()) {
 			// only update when execution is not paused
 			if (!entity.getProgramPath().isEmpty()) {
 				notifySuccess = true;
-				watchDog = 20;
+				watchDog = 30;
 				prevDestination = destination;
 				destination = entity.getProgramPath().iterator().next();
 				entity.getProgramPath().remove(destination);
 				// heres the problem... the ai isnt smart enough to climb
-				if (!entity.getNavigator().tryMoveToXYZ((destination.getX()) + 0.5D, (destination.getY()),
-						(destination.getZ()) + 0.5D, speed)) {
-					// we are moving up or down
+				if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()),
+						(destination.getZ()), speed)) {
+					DYNServerMod.logger.info("Could not get path to: " + destination);
 					if (entity.getPosition().getY() != destination.getY()) {
+						DYNServerMod.logger.info("Attempting to climb to: " +
+						 destination);
 						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, (destination.getY()) + 0.5D,
 								(destination.getZ()) + 0.5D, speed);
+
 					} else {
 						RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
 								entity.getEntityId(), entity.getOwner()));
 						notifySuccess = false;
-						entity.setPositionAndUpdate(prevDestination.getX() + .5, prevDestination.getY(),
-								prevDestination.getZ() + .5);
+						entity.setLocationAndAngles(prevDestination.getX() + .5, prevDestination.getY(),
+								prevDestination.getZ() + .5,
+								HelperFunctions.getAngleFromFacing(entity.getHorizontalFacing()), entity.rotationPitch);
 						DYNServerMod.logger.info("Stopping Code from path");
 						entity.stopExecutingCode();
 						entity.clearProgramPath();
-						entity.getNavigator().clearPathEntity();
+						entityPath.clearPathEntity();
 					}
 				}
 			} else if (notifySuccess) {
