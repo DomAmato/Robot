@@ -3,18 +3,16 @@ package com.dyn.robot.entity;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
-import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraft.pathfinding.PathNavigateGround;
 
 public class DynRobotEntity extends EntityRobot {
 
@@ -29,12 +27,12 @@ public class DynRobotEntity extends EntityRobot {
 			setOwnerId(player.getUniqueID().toString());
 		}
 
-		 ((PathNavigateGround) getNavigator()).setAvoidsWater(true);
+		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
 		((PathNavigateGround) getNavigator()).setEnterDoors(true);
-		
-//		((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
-//		((PathNavigateRobot) getNavigator()).setEnterDoors(true);
-//		((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
+
+		// ((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
+		// ((PathNavigateRobot) getNavigator()).setEnterDoors(true);
+		// ((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
 	}
 
 	@Override
@@ -91,10 +89,6 @@ public class DynRobotEntity extends EntityRobot {
 							new EntityItem(worldObj, posX, posY + 0.3, posZ, m_inventory.getStackInSlot(a)));
 				}
 			}
-			if(shouldExecuteCode()){
-				RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Robot was Destroyed",
-						getEntityId(), getOwner()));
-			}
 		} else {
 			for (int a = 0; a < (rand.nextInt(10) + 10); a++) {
 				worldObj.spawnParticle(EnumParticleTypes.FLAME, posX + (width / 2), posY + (height / 2),
@@ -137,8 +131,8 @@ public class DynRobotEntity extends EntityRobot {
 	public void spawnParticles(EnumParticleTypes particles) {
 		for (int var3 = 0; var3 < 30; ++var3) {
 			worldObj.spawnParticle(particles, (posX + (rand.nextFloat() * width * 2.0F)) - width,
-					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, 0,
-					0, 0);
+					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, 0, 0,
+					0);
 		}
 	}
 
