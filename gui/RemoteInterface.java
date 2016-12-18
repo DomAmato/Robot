@@ -1,10 +1,12 @@
 package com.dyn.robot.gui;
 
 import java.awt.Color;
+import java.util.Random;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.BlockDynRobot;
+import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageActivateRobot;
@@ -25,6 +27,7 @@ import com.rabbit.gui.show.Show;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 
 public class RemoteInterface extends Show {
@@ -217,13 +220,7 @@ public class RemoteInterface extends Show {
 			panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .75),
 					(int) (panel.getWidth() * .35), 20, "Teleport to Me").setClickListener(btn -> {
 						NetworkManager.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
-						BlockPos pos = player.getPosition().offset(player.getHorizontalFacing());
-						System.out.println(pos);
-						RobotMod.currentRobot.posX = pos.getX();
-						RobotMod.currentRobot.posY = pos.getY();
-						RobotMod.currentRobot.posZ = pos.getZ();
-						RobotMod.currentRobot.setPositionAndUpdate(pos.getX(), pos.getY(), pos.getZ());
-						RobotMod.currentRobot.setPosition(pos.getX(), pos.getY(), pos.getZ());
+						((DynRobotEntity) RobotMod.currentRobot).spawnParticles(EnumParticleTypes.REDSTONE);
 					}));
 		}
 
