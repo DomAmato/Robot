@@ -6,6 +6,7 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.packets.client.RobotSpeakMessage;
+import com.dyn.utils.HelperFunctions;
 
 import mobi.omegacentauri.raspberryjammod.actions.SetBlockNBT;
 import mobi.omegacentauri.raspberryjammod.actions.SetBlockState;
@@ -38,6 +39,7 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTINTERACT = "robot.interact";
 	private static final String ROBOTTURN = "robot.turn";
 	private static final String ROBOTFORWARD = "robot.forward";
+	private static final String ROBOTCLIMB = "robot.climb";
 	private static final String ROBOTBACKWARD = "robot.backward";
 	private static final String ROBOTINSPECT = "robot.inspect";
 	private static final String ROBOTJUMP = "robot.jump";
@@ -47,21 +49,6 @@ public class RobotAPI extends Python2MinecraftApi {
 	// its likely that we might get some concurrency issues with this if
 	// players simultaneously run code where the robot id is not set
 	// to the correct robot... we
-
-	private static float getAngleFromFacing(EnumFacing dir) {
-		switch (dir) {
-		case SOUTH:
-			return 0;
-		case NORTH:
-			return 180;
-		case EAST:
-			return 270;
-		case WEST:
-			return 90;
-		default:
-			return 0;
-		}
-	}
 
 	public static int getRobotId() {
 		return robotId;
@@ -252,10 +239,9 @@ public class RobotAPI extends Python2MinecraftApi {
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
-			float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + scan.nextFloat());
-			robot.rotationYaw = newYaw;
-			robot.setRotationYawHead(newYaw);
-			robot.setRenderYawOffset(newYaw);
+			float rotate = scan.nextFloat();
+			float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + rotate);
+			robot.rotate(newYaw);
 		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
@@ -281,6 +267,20 @@ public class RobotAPI extends Python2MinecraftApi {
 			}
 			robot.moveBackward(scan.nextInt());
 		});
+		APIRegistry.registerCommand(ROBOTCLIMB, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			int id = scan.nextInt();
+			if (RobotMod.robotEcho.get(id)) {
+				EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
+				NetworkManager.sendTo(new RobotSpeakMessage("Climb", id), player);
+			}
+			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			if (!robot.shouldExecuteCode()) {
+				fail("Robot is not executing code, it might be out of sync");
+			}
+			if (!robot.climb(scan.nextInt())){
+				fail("Could not climb block");
+			}
+		});
 		APIRegistry.registerCommand(GETROBOTID, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = havePlayer ? RobotMod.robotid2player.inverse().get(playerMP) : robotId;
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
@@ -289,10 +289,8 @@ public class RobotAPI extends Python2MinecraftApi {
 			BlockPos loc = robot.getPosition();
 			// snap the robot to the center of the block and set its facing to
 			// the current direction
-			if ((robot.rotationYaw % 90) != 0) {
 				robot.setPositionAndRotation(loc.getX() + .5, loc.getY(), loc.getZ() + .5,
-						getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
-			}
+						HelperFunctions.getAngleFromFacing(robot.getHorizontalFacing()), robot.rotationPitch);
 			sendLine(id);
 		});
 		APIRegistry.registerCommand(ROBOTINSPECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
@@ -330,7 +328,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			int id = scan.nextInt();
 			if (RobotMod.robotEcho.get(id)) {
 				EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-				NetworkManager.sendTo(new RobotSpeakMessage("Inspect", id), player);
+				NetworkManager.sendTo(new RobotSpeakMessage("Jumping", id), player);
 			}
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
 			if (!robot.shouldExecuteCode()) {
