@@ -10,8 +10,9 @@ import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
-import com.dyn.robot.entity.pathing.PathNavigateRobot;
+import com.dyn.utils.HelperFunctions;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
@@ -33,6 +34,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
@@ -60,6 +62,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public final int on1 = 50;
 	public final int on2 = 75;
 	public int counter = 0;
+
+	private EnumFacing programDir;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
@@ -203,22 +207,30 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		programPath.clear();
 	}
 
-	public void climb(int amount) {
-		// TODO: make this better
+	public boolean climb(int amount) {
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
 		}
 		if (isOnLadder() || worldObj.getBlockState(getPosition()).getBlock().isLadder(worldObj, getPosition(), this)) {
+			// TODO better ladder climbing check
 			for (int i = 0; i < amount; i++) {
 				dest = dest.up();
 				addToProgramPath(dest);
 			}
+			return true;
 		} else {
 			for (int i = 0; i < amount; i++) {
 				dest = dest.up().offset(getHorizontalFacing());
-				addToProgramPath(dest);
+				Block block = worldObj.getBlockState(dest).getBlock();
+				Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
+				if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+					addToProgramPath(dest);
+				} else {
+					return false;
+				}
 			}
+			return true;
 		}
 	}
 
@@ -230,7 +242,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
 		if (!(damageSrc.getEntity() instanceof EntityPlayer)
-				&& ((damageSrc == DamageSource.fall) && (damageAmount > 10))) {
+				&& !((damageSrc == DamageSource.fall) && (damageAmount > 10))) {
 			super.damageEntity(damageSrc, damageAmount);
 		}
 	}
@@ -316,11 +328,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			messages.put(entry.getKey(), entry.getValue());
 		}
 		return this.messages = messages;
-	}
-
-	@Override
-	protected PathNavigate getNewNavigator(World worldIn) {
-		return new PathNavigateRobot(this, worldIn);
 	}
 
 	@Override
@@ -575,10 +582,15 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void startExecutingCode() {
 		executeCode = true;
+		programDir = getHorizontalFacing();
 	}
 
 	public void stopExecutingCode() {
 		executeCode = false;
+	}
+	
+	public EnumFacing getProgrammedDirection(){
+		return programDir;
 	}
 
 	@Override
@@ -603,5 +615,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		} else {
 			nbttagcompound.setString("OwnerUUID", getOwnerId());
 		}
+	}
+
+	public void rotate(float yaw) {
+		rotationYaw = yaw;
+		setRotationYawHead(yaw);
+		setRenderYawOffset(yaw);
+		programDir = EnumFacing.fromAngle(yaw);
 	}
 }
