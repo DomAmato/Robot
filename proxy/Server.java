@@ -2,19 +2,13 @@ package com.dyn.robot.proxy;
 
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.BlockDynRobot;
-import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 
-import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class Server implements Proxy {
 
@@ -36,18 +30,10 @@ public class Server implements Proxy {
 
 	}
 
-/*	@SubscribeEvent
-	public void deathEvent(LivingDeathEvent event) {
-	if (event.entity instanceof DynRobotEntity && ((EntityRobot) event.entity).shouldExecuteCode()) {
-		RaspberryJamMod.EVENT_BUS
-				.post(new CodeEvent.FailEvent("Robot was Destroyed", event.entity.getEntityId(), ((EntityRobot) event.entity).getOwner()));
-	}
-	}*/
 	
 	@Override
 	public void init() {
-	//	RaspberryJamMod.EVENT_BUS.register(this);
-	//	MinecraftForge.EVENT_BUS.register(this);
+		
 	}
 
 	@Override
