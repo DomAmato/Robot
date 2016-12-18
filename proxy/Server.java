@@ -36,13 +36,13 @@ public class Server implements Proxy {
 
 	}
 
-	@SubscribeEvent
+/*	@SubscribeEvent
 	public void deathEvent(LivingDeathEvent event) {
 	if (event.entity instanceof DynRobotEntity && ((EntityRobot) event.entity).shouldExecuteCode()) {
 		RaspberryJamMod.EVENT_BUS
 				.post(new CodeEvent.FailEvent("Robot was Destroyed", event.entity.getEntityId(), ((EntityRobot) event.entity).getOwner()));
 	}
-	}
+	}*/
 	
 	@Override
 	public void init() {
