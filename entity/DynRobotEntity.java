@@ -1,10 +1,10 @@
 package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.robot.items.ItemRemote;
 
-import net.minecraft.client.renderer.GlStateManager;
+import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
+import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,10 +13,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.pathfinding.PathNavigateGround;
 
 public class DynRobotEntity extends EntityRobot {
 
@@ -31,9 +29,12 @@ public class DynRobotEntity extends EntityRobot {
 			setOwnerId(player.getUniqueID().toString());
 		}
 
-		((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
-		((PathNavigateRobot) getNavigator()).setEnterDoors(true);
-		((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
+		 ((PathNavigateGround) getNavigator()).setAvoidsWater(true);
+		((PathNavigateGround) getNavigator()).setEnterDoors(true);
+		
+//		((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
+//		((PathNavigateRobot) getNavigator()).setEnterDoors(true);
+//		((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
 	}
 
 	@Override
@@ -90,6 +91,10 @@ public class DynRobotEntity extends EntityRobot {
 							new EntityItem(worldObj, posX, posY + 0.3, posZ, m_inventory.getStackInSlot(a)));
 				}
 			}
+			if(shouldExecuteCode()){
+				RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Robot was Destroyed",
+						getEntityId(), getOwner()));
+			}
 		} else {
 			for (int a = 0; a < (rand.nextInt(10) + 10); a++) {
 				worldObj.spawnParticle(EnumParticleTypes.FLAME, posX + (width / 2), posY + (height / 2),
@@ -108,7 +113,7 @@ public class DynRobotEntity extends EntityRobot {
 			motionZ = vec.zCoord / 4;
 		}
 
-		if (((ticksExisted % 5) == 0) && (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT)) {
+		if (((ticksExisted % 5) == 0)) {
 			spawnAntennaParticles(EnumParticleTypes.REDSTONE);
 		}
 	}
@@ -126,30 +131,14 @@ public class DynRobotEntity extends EntityRobot {
 		double yOffset = rand.nextGaussian() * 0.05D;
 		double zOffset = rand.nextGaussian() * 0.05D;
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(posX, posY, posZ);
-		if ((rotationYawHead + renderYawOffset) != 0.0F) {
-			GlStateManager.rotate(rotationYawHead + renderYawOffset, 0.0F, 1.0F, 0.0F);
-		}
-
-		if (rotationPitch != 0.0F) {
-			GlStateManager.rotate(rotationPitch * (180F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
-		}
-		// worldObj.spawnParticle(particles, posX + xOffset, posY + 1.2 +
-		// yOffset, posZ + zOffset, 0, 0, 0);
-
-		worldObj.spawnParticle(particles, xOffset, 1.2 + yOffset, zOffset, 0, 0, 0);
-		GlStateManager.popMatrix();
+		worldObj.spawnParticle(particles, posX + xOffset, posY + 1.2 + yOffset, posZ + zOffset, 0, 0, 0);
 	}
 
 	public void spawnParticles(EnumParticleTypes particles) {
-		for (int var3 = 0; var3 < 7; ++var3) {
-			double var4 = rand.nextGaussian() * 0.02D;
-			double var6 = rand.nextGaussian() * 0.02D;
-			double var8 = rand.nextGaussian() * 0.02D;
+		for (int var3 = 0; var3 < 30; ++var3) {
 			worldObj.spawnParticle(particles, (posX + (rand.nextFloat() * width * 2.0F)) - width,
-					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, var4,
-					var6, var8);
+					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, 0,
+					0, 0);
 		}
 	}
 
