@@ -7,10 +7,10 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import com.dyn.DYNServerMod;
+//import com.dyn.render.hud.path.EntityPathRenderer;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
-import com.dyn.utils.HelperFunctions;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -29,7 +29,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -54,7 +53,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	private boolean executeCode = false;
 	public List<BlockPos> markedChests = new ArrayList();
 	private boolean shouldJump;
-	public Map<Long, String> messages = new TreeMap<Long, String>();
+	public Map<Long, String> messages = new TreeMap<>();
 	private boolean pauseCode = false;
 
 	private EntityAIWander wanderTask;
@@ -79,6 +78,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 		}
+		
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
@@ -319,7 +319,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public Map<Long, String> getMessages() {
-		Map<Long, String> messages = new TreeMap<Long, String>();
+		Map<Long, String> messages = new TreeMap<>();
 		long time = System.currentTimeMillis();
 		for (Map.Entry<Long, String> entry : this.messages.entrySet()) {
 			if (time > (entry.getKey() + 10000L)) {
@@ -329,6 +329,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 		return this.messages = messages;
 	}
+
+	// @Override
+	// protected PathNavigate getNewNavigator(World worldIn) {
+	// return new PathNavigateRobot(this, worldIn);
+	// }
 
 	@Override
 	public EntityPlayer getOwner() {
@@ -347,6 +352,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	public String getOwnerId() {
 		return dataWatcher.getWatchableObjectString(17);
+	}
+
+	public EnumFacing getProgrammedDirection() {
+		return programDir;
 	}
 
 	public List<BlockPos> getProgramPath() {
@@ -518,6 +527,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (ownerID.length() > 0) {
 			setOwnerId(ownerID);
 		}
+
+//		if (worldObj.isRemote && (owner == null)) {
+//			EntityPathRenderer.addEntityForPathRendering(this);
+//		}
 	}
 
 	public void reinitNonEssentialAI() {
@@ -541,6 +554,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		pauseCode = false;
 	}
 
+	public void rotate(float yaw) {
+		rotationYaw = yaw;
+		setRotationYawHead(yaw);
+		setRenderYawOffset(yaw);
+		programDir = EnumFacing.fromAngle(yaw);
+	}
+
 	public void setIsFollowing(boolean shouldFollow) {
 		this.shouldFollow = shouldFollow;
 	}
@@ -560,6 +580,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.updateObject(17, ownerUuid);
 		tasks.removeTask(wanderTask);
 		setOwner(UUID.fromString(ownerUuid));
+//		EntityPathRenderer.removeEntityForPathRendering(this);
 	}
 
 	public void setRobotName(String robotName) {
@@ -588,10 +609,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void stopExecutingCode() {
 		executeCode = false;
 	}
-	
-	public EnumFacing getProgrammedDirection(){
-		return programDir;
-	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
@@ -615,12 +632,5 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		} else {
 			nbttagcompound.setString("OwnerUUID", getOwnerId());
 		}
-	}
-
-	public void rotate(float yaw) {
-		rotationYaw = yaw;
-		setRotationYawHead(yaw);
-		setRenderYawOffset(yaw);
-		programDir = EnumFacing.fromAngle(yaw);
 	}
 }
