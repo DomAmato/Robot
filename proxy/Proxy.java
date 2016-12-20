@@ -12,7 +12,9 @@ import net.minecraft.world.World;
 public interface Proxy {
 	public void createNewProgrammingInterface(EntityRobot robot);
 
-	public RobotProgrammingInterface getProgrammingInterface();
+//	public RobotProgrammingInterface getProgrammingInterface();
+	
+	public String getProgrammingInterfaceText();
 
 	public void handleErrorMessage(String error, String code, int line);
 

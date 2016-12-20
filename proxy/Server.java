@@ -24,11 +24,19 @@ public class Server implements Proxy {
 
 	}
 
-	@Override
-	public RobotProgrammingInterface getProgrammingInterface() {
-		// TODO Auto-generated method stub
-		return null;
+	@SubscribeEvent
+	public void deathEvent(LivingDeathEvent event) {
+		if ((event.entity instanceof DynRobotEntity) && ((EntityRobot) event.entity).shouldExecuteCode()) {
+			RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Robot was Destroyed", event.entity.getEntityId(),
+					((EntityRobot) event.entity).getOwner()));
+		}
 	}
+
+//	@Override
+//	public RobotProgrammingInterface getProgrammingInterface() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
@@ -36,18 +44,10 @@ public class Server implements Proxy {
 
 	}
 
-/*	@SubscribeEvent
-	public void deathEvent(LivingDeathEvent event) {
-	if (event.entity instanceof DynRobotEntity && ((EntityRobot) event.entity).shouldExecuteCode()) {
-		RaspberryJamMod.EVENT_BUS
-				.post(new CodeEvent.FailEvent("Robot was Destroyed", event.entity.getEntityId(), ((EntityRobot) event.entity).getOwner()));
-	}
-	}*/
-	
 	@Override
 	public void init() {
-	//	RaspberryJamMod.EVENT_BUS.register(this);
-	//	MinecraftForge.EVENT_BUS.register(this);
+//		RaspberryJamMod.EVENT_BUS.register(this);
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@Override
@@ -100,6 +100,12 @@ public class Server implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public String getProgrammingInterfaceText() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

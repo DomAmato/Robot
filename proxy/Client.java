@@ -42,10 +42,10 @@ public class Client implements Proxy {
 		robotProgramInterface = new RobotProgrammingInterface(robot);
 	}
 
-	@Override
-	public RobotProgrammingInterface getProgrammingInterface() {
-		return robotProgramInterface;
-	}
+//	@Override
+//	public RobotProgrammingInterface getProgrammingInterface() {
+//		return robotProgramInterface;
+//	}
 
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
@@ -120,7 +120,7 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRobotProgrammingWindow(EntityRobot robot) {
-		if (getProgrammingInterface().getRobot() != robot) {
+		if (robotProgramInterface.getRobot() != robot) {
 			createNewProgrammingInterface(robot);
 		}
 
@@ -157,5 +157,13 @@ public class Client implements Proxy {
 		} else {
 			showRobotProgrammer = false;
 		}
+	}
+
+	@Override
+	public String getProgrammingInterfaceText() {
+		if(robotProgramInterface != null){
+			return robotProgramInterface.getConsoleText();
+		}
+		return null;
 	}
 }
