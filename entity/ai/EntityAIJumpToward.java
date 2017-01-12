@@ -52,7 +52,7 @@ public class EntityAIJumpToward extends EntityAIBase {
 	 */
 	@Override
 	public void startExecuting() {
-		leapTarget = leaper.getPosition().offset(leaper.getHorizontalFacing(), 2);
+		leapTarget = leaper.getPosition().offset(leaper.getProgrammedDirection(), 2);
 		double d0 = (leapTarget.getX() + .5) - leaper.posX;
 		double d1 = (leapTarget.getZ() + .5) - leaper.posZ;
 		float f = MathHelper.sqrt_double((d0 * d0) + (d1 * d1));
