@@ -8,6 +8,7 @@ import com.dyn.robot.entity.EntityRobot;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
@@ -23,6 +24,15 @@ public class ItemRemote extends Item {
 		List<EntityRobot> list = world.getEntitiesWithinAABB(EntityRobot.class,
 				AxisAlignedBB.fromBounds(x, y, z, x + radius, y + radius, z + radius));
 		return list;
+	}
+
+	/**
+	 * returns the action that specifies what animation to play when the items
+	 * is being used
+	 */
+	@Override
+	public EnumAction getItemUseAction(ItemStack stack) {
+		return EnumAction.BOW;
 	}
 
 	/**
