@@ -1,10 +1,9 @@
 package com.dyn.robot.proxy;
 
 import com.dyn.robot.api.RobotAPI;
-import com.dyn.robot.entity.BlockDynRobot;
+import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.gui.RobotProgrammingInterface;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
@@ -32,11 +31,11 @@ public class Server implements Proxy {
 		}
 	}
 
-//	@Override
-//	public RobotProgrammingInterface getProgrammingInterface() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	@Override
+	public String getProgrammingInterfaceText() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
@@ -46,7 +45,6 @@ public class Server implements Proxy {
 
 	@Override
 	public void init() {
-//		RaspberryJamMod.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
@@ -69,7 +67,7 @@ public class Server implements Proxy {
 	}
 
 	@Override
-	public void openRobotInterface() {
+	public void openRobotProgrammingWindow() {
 		// TODO Auto-generated method stub
 
 	}
@@ -100,12 +98,6 @@ public class Server implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public String getProgrammingInterfaceText() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

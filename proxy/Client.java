@@ -3,7 +3,7 @@ package com.dyn.robot.proxy;
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.DYNServerMod;
-import com.dyn.robot.entity.BlockDynRobot;
+import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.render.DynRobotRenderer;
@@ -14,11 +14,14 @@ import com.rabbit.gui.RabbitGui;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -42,10 +45,13 @@ public class Client implements Proxy {
 		robotProgramInterface = new RobotProgrammingInterface(robot);
 	}
 
-//	@Override
-//	public RobotProgrammingInterface getProgrammingInterface() {
-//		return robotProgramInterface;
-//	}
+	@Override
+	public String getProgrammingInterfaceText() {
+		if (robotProgramInterface != null) {
+			return robotProgramInterface.getConsoleText();
+		}
+		return null;
+	}
 
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
@@ -76,19 +82,18 @@ public class Client implements Proxy {
 			showRobotProgrammer = false;
 			RabbitGui.proxy.display(robotProgramInterface);
 		}
-
-		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
-			showRobotProgrammer = false;
-		}
 	}
 
 	@SubscribeEvent
 	public void onRenderTick(TickEvent.RenderTickEvent event) {
 		if (Minecraft.getMinecraft().inGameHasFocus || ((RabbitGui.proxy.getCurrentStage() != null)
 				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
-			if (Minecraft.getMinecraft().inGameHasFocus && showRobotProgrammer
-					&& !robotProgramInterface.getRobot().isDead) {
-				robotProgramInterface.onDraw(0, 0, event.renderTickTime);
+			if (Minecraft.getMinecraft().inGameHasFocus) {
+				if (showRobotProgrammer && !robotProgramInterface.getRobot().isDead) {
+					robotProgramInterface.onDraw(0, 0, event.renderTickTime);
+				}
+			} else if (robotProgramInterface.getRobot().isDead) {
+				RabbitGui.proxy.getCurrentStage().close();
 			}
 		}
 	}
@@ -96,7 +101,11 @@ public class Client implements Proxy {
 	@Override
 	public void openRemoteInterface(EntityRobot robot) {
 		if ((robot != null) && !robot.isDead) {
-			RabbitGui.proxy.display(new RemoteInterface(robot, Minecraft.getMinecraft().thePlayer));
+			EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+			Minecraft.getMinecraft().getSoundHandler()
+					.playSound(PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
+							(float) player.posX, (float) player.posY, (float) player.posZ));
+			RabbitGui.proxy.display(new RemoteInterface(robot, player));
 		}
 	}
 
@@ -112,7 +121,7 @@ public class Client implements Proxy {
 	}
 
 	@Override
-	public void openRobotInterface() {
+	public void openRobotProgrammingWindow() {
 		if (!robotProgramInterface.getRobot().isDead) {
 			RabbitGui.proxy.display(robotProgramInterface);
 		}
@@ -124,7 +133,7 @@ public class Client implements Proxy {
 			createNewProgrammingInterface(robot);
 		}
 
-		openRobotInterface();
+		openRobotProgrammingWindow();
 	}
 
 	@Override
@@ -157,13 +166,5 @@ public class Client implements Proxy {
 		} else {
 			showRobotProgrammer = false;
 		}
-	}
-
-	@Override
-	public String getProgrammingInterfaceText() {
-		if(robotProgramInterface != null){
-			return robotProgramInterface.getConsoleText();
-		}
-		return null;
 	}
 }

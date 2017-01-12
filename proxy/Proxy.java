@@ -1,8 +1,7 @@
 package com.dyn.robot.proxy;
 
-import com.dyn.robot.entity.BlockDynRobot;
+import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.gui.RobotProgrammingInterface;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -12,8 +11,6 @@ import net.minecraft.world.World;
 public interface Proxy {
 	public void createNewProgrammingInterface(EntityRobot robot);
 
-//	public RobotProgrammingInterface getProgrammingInterface();
-	
 	public String getProgrammingInterfaceText();
 
 	public void handleErrorMessage(String error, String code, int line);
@@ -26,7 +23,7 @@ public interface Proxy {
 
 	public void openRobotGui();
 
-	public void openRobotInterface();
+	public void openRobotProgrammingWindow();
 
 	public void openRobotProgrammingWindow(EntityRobot robot);
 
