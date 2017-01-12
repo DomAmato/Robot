@@ -7,11 +7,13 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import com.dyn.DYNServerMod;
-//import com.dyn.render.hud.path.EntityPathRenderer;
+import com.dyn.render.hud.path.EntityPathRenderer;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
+import com.dyn.robot.entity.pathing.PathNavigateRobot;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
@@ -29,16 +31,16 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
-public abstract class EntityRobot extends EntityCreature implements IEntityOwnable {
+public abstract class EntityRobot extends EntityCreature implements IEntityOwnable, IEntityAdditionalSpawnData {
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
 				AxisAlignedBB.fromBounds(x, y, z, x + radius, y + radius, z + radius));
@@ -46,6 +48,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	protected boolean shouldFollow;
+	protected boolean isTamable;
 	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
 	private List<BlockPos> programPath = new ArrayList();
@@ -70,15 +73,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		width = 0.5f;
 		shouldFollow = false;
 		executeCode = false;
+		isTamable = false;
 		m_inventory = new RobotInventory(this);
 		dataWatcher.addObject(17, "");// owner uuid
 		dataWatcher.addObject(18, "");// robot name
 
-		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+		try {
+			Class.forName("mobi.omegacentauri.raspberryjammod.RaspberryJamMod");
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
+		} catch (ClassNotFoundException er) {
+			// this is just to make sure rjm exists
 		}
-		
+
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
@@ -180,7 +187,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(0.1D);
 		getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(32.0D);
 		getEntityAttribute(SharedMonsterAttributes.knockbackResistance).setBaseValue(100.0D);
-		getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.2D);
+		getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.18D);
 		getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 		getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(1.0D);
 	}
@@ -212,16 +219,31 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
 		}
-		if (isOnLadder() || worldObj.getBlockState(getPosition()).getBlock().isLadder(worldObj, getPosition(), this)) {
-			// TODO better ladder climbing check
-			for (int i = 0; i < amount; i++) {
+
+		for (int i = 0; i < amount; i++) {
+			if (worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
 				dest = dest.up();
+
+				if (!worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
+					dest = dest.offset(getProgrammedDirection());
+					// PathPoint newTarget =
+					// nodeProcessor.getSafePoint(theEntity, (int)
+					// targetPosition.xCoord,
+					// (int) targetPosition.yCoord, (int) targetPosition.zCoord,
+					// 1);
+					// Block block = worldObj.getBlockState(dest).getBlock();
+					// Block blockdn =
+					// worldObj.getBlockState(dest.down()).getBlock();
+					// if (blockdn.getMaterial().blocksMovement() &&
+					// !block.getMaterial().blocksMovement()) {
+					// addToProgramPath(dest);
+					// } else {
+					// return false;
+					// }
+				}
 				addToProgramPath(dest);
-			}
-			return true;
-		} else {
-			for (int i = 0; i < amount; i++) {
-				dest = dest.up().offset(getHorizontalFacing());
+			} else {
+				dest = dest.up().offset(getProgrammedDirection());
 				Block block = worldObj.getBlockState(dest).getBlock();
 				Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
 				if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
@@ -230,8 +252,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 					return false;
 				}
 			}
-			return true;
 		}
+		return true;
 	}
 
 	/**
@@ -271,6 +293,48 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 		return is.stackSize > 0;
+	}
+
+	public boolean descend(int amount) {
+		BlockPos dest = getPosition();
+		if (!programPath.isEmpty()) {
+			dest = programPath.get(programPath.size() - 1);
+		}
+
+		for (int i = 0; i < amount; i++) {
+			if (worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
+				dest = dest.down();
+
+				if (!worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
+					dest = dest.offset(getProgrammedDirection());
+					// PathPoint newTarget =
+					// nodeProcessor.getSafePoint(theEntity, (int)
+					// targetPosition.xCoord,
+					// (int) targetPosition.yCoord, (int) targetPosition.zCoord,
+					// 1);
+					// Block block = worldObj.getBlockState(dest).getBlock();
+					// Block blockdn =
+					// worldObj.getBlockState(dest.down()).getBlock();
+					// if (blockdn.getMaterial().blocksMovement() &&
+					// !block.getMaterial().blocksMovement()) {
+					// addToProgramPath(dest);
+					// } else {
+					// return false;
+					// }
+				}
+				addToProgramPath(dest);
+			} else {
+				dest = dest.down().offset(getProgrammedDirection());
+				Block block = worldObj.getBlockState(dest).getBlock();
+				Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
+				if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+					addToProgramPath(dest);
+				} else {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	public boolean doesInventoryHas(Class<? extends Item> c) {
@@ -314,6 +378,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	@Override
+	protected float getJumpUpwardsMotion() {
+		return 0.41F;
+	}
+
+	@Override
 	public int getMaxFallHeight() {
 		return 10;
 	}
@@ -330,10 +399,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return this.messages = messages;
 	}
 
-	// @Override
-	// protected PathNavigate getNewNavigator(World worldIn) {
-	// return new PathNavigateRobot(this, worldIn);
-	// }
+	@Override
+	protected PathNavigate getNewNavigator(World worldIn) {
+		return new PathNavigateRobot(this, worldIn);
+	}
 
 	@Override
 	public EntityPlayer getOwner() {
@@ -418,6 +487,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID().toString());
 	}
 
+	public boolean isTamable() {
+		return isTamable;
+	}
+
 	public void moveBackward(int num) {
 		if (getIsFollowing()) {
 			setIsFollowing(false);
@@ -427,7 +500,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
 		}
-		switch (getHorizontalFacing()) {
+		switch (getProgrammedDirection()) {
 		case NORTH:
 			for (int i = 0; i < num; i++) {
 				dest = dest.south();
@@ -468,7 +541,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
 		}
-		switch (getHorizontalFacing()) {
+		switch (getProgrammedDirection()) {
 		case NORTH:
 			for (int i = 0; i < num; i++) {
 				dest = dest.north();
@@ -519,6 +592,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 
 		shouldFollow = nbttagcompound.getBoolean("follow");
+		isTamable = nbttagcompound.getBoolean("tame");
+
 		String robotName = nbttagcompound.getString("robotName");
 		if (robotName.length() > 0) {
 			setRobotName(robotName);
@@ -527,10 +602,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (ownerID.length() > 0) {
 			setOwnerId(ownerID);
 		}
+	}
 
-//		if (worldObj.isRemote && (owner == null)) {
-//			EntityPathRenderer.addEntityForPathRendering(this);
-//		}
+	/**
+	 * Called by the client when it receives a Entity spawn packet. Data should
+	 * be read out of the stream in the same way as it was written.
+	 *
+	 * @param data
+	 *            The packet data stream
+	 */
+	@Override
+	public void readSpawnData(ByteBuf additionalData) {
+		isTamable = additionalData.readBoolean();
+		shouldFollow = additionalData.readBoolean();
 	}
 
 	public void reinitNonEssentialAI() {
@@ -580,7 +664,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataWatcher.updateObject(17, ownerUuid);
 		tasks.removeTask(wanderTask);
 		setOwner(UUID.fromString(ownerUuid));
-//		EntityPathRenderer.removeEntityForPathRendering(this);
+		EntityPathRenderer.removeEntityForPathRendering(this);
 	}
 
 	public void setRobotName(String robotName) {
@@ -591,6 +675,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setShouldJump(boolean state) {
 		shouldJump = state;
+	}
+
+	public void setTamable(boolean isTamable) {
+		this.isTamable = isTamable;
 	}
 
 	public boolean shouldExecuteCode() {
@@ -626,11 +714,25 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		nbttagcompound.setTag("Items", nbttaglist);
 		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
 		nbttagcompound.setBoolean("follow", shouldFollow);
+		nbttagcompound.setBoolean("tame", isTamable);
 
 		if (getOwnerId() == null) {
 			nbttagcompound.setString("OwnerUUID", "");
 		} else {
 			nbttagcompound.setString("OwnerUUID", getOwnerId());
 		}
+	}
+
+	/**
+	 * Called by the server when constructing the spawn packet. Data should be
+	 * added to the provided stream.
+	 *
+	 * @param buffer
+	 *            The packet data stream
+	 */
+	@Override
+	public void writeSpawnData(ByteBuf buffer) {
+		buffer.writeBoolean(isTamable);
+		buffer.writeBoolean(shouldFollow);
 	}
 }

@@ -2,6 +2,7 @@ package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
+import com.dyn.robot.items.ItemWrench;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
@@ -29,10 +30,6 @@ public class DynRobotEntity extends EntityRobot {
 
 		((PathNavigateGround) getNavigator()).setAvoidsWater(true);
 		((PathNavigateGround) getNavigator()).setEnterDoors(true);
-
-		// ((PathNavigateRobot) getNavigator()).setAvoidsWater(true);
-		// ((PathNavigateRobot) getNavigator()).setEnterDoors(true);
-		// ((PathNavigateRobot) getNavigator()).setCanUseLadders(true);
 	}
 
 	@Override
@@ -64,16 +61,22 @@ public class DynRobotEntity extends EntityRobot {
 		if (worldObj.isRemote) {
 			ItemStack itemstack = player.inventory.getCurrentItem();
 
-			if ((itemstack != null) && (itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
-				if (isOwner(player)) {
-					// maybe allow kids to toggle the programming environment
-					// from the remote?
-					RobotMod.proxy.openRemoteInterface(this);
-					// RobotMod.proxy.openRobotProgrammingWindow(this);
-				} else {
-					player.addChatComponentMessage(new ChatComponentText("Robot has different owner"));
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
+					if (isOwner(player) || ((owner == null) && isTamable)) {
+						RobotMod.proxy.openRemoteInterface(this);
+					} else {
+						if (owner != null) {
+							player.addChatComponentMessage(new ChatComponentText("Robot belongs to someone else"));
+						} else {
+							player.addChatComponentMessage(
+									new ChatComponentText("Robot is not compatible with remote"));
+						}
+					}
+					return true;
+				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
 				}
-				return true;
 			}
 		}
 		return super.interact(player);
@@ -135,27 +138,4 @@ public class DynRobotEntity extends EntityRobot {
 					0);
 		}
 	}
-
-	// coroutils pathing
-	// @Override
-	// public boolean canClimbLadders() {
-	// return true;
-	// }
-	//
-	// @Override
-	// public boolean canClimbWalls() {
-	// return false;
-	// }
-	//
-	// @Override
-	// public int getDropSize() {
-	// // TODO Auto-generated method stub
-	// return 0;
-	// }
-	//
-	// @Override
-	// public int overrideBlockPathOffset(ICoroAI arg0, Block arg1, int arg2,
-	// int arg3, int arg4, int arg5) {
-	// return -66;
-	// }
 }
