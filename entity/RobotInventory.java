@@ -1,5 +1,7 @@
 package com.dyn.robot.entity;
 
+import java.util.Arrays;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -17,41 +19,41 @@ public class RobotInventory implements IInventory {
 
 	@Override
 	public void clear() {
-		for (int i = 0; i < theInventory.length; ++i) {
-			theInventory[i] = null;
-		}
+		Arrays.fill(theInventory, null);
 	}
 
 	@Override
 	public void closeInventory(EntityPlayer player) {
-		// TODO Auto-generated method stub
-
 	}
 
+	/**
+	 * Removes some of the units from itemstack in the given slot, and returns
+	 * as a separate itemstack
+	 * 
+	 * @param slotIndex
+	 *            the slot number to remove the items from
+	 * @param count
+	 *            the number of units to remove
+	 * @return a new itemstack containing the units removed from the slot
+	 */
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
-		if (theInventory[index] != null) {
-			if (index == 2) {
-				ItemStack itemstack2 = theInventory[index];
-				theInventory[index] = null;
-				return itemstack2;
-			} else if (theInventory[index].stackSize <= count) {
-				ItemStack itemstack1 = theInventory[index];
-				theInventory[index] = null;
-
-				return itemstack1;
-			} else {
-				ItemStack itemstack = theInventory[index].splitStack(count);
-
-				if (theInventory[index].stackSize == 0) {
-					theInventory[index] = null;
-				}
-
-				return itemstack;
-			}
-		} else {
+	public ItemStack decrStackSize(int slotIndex, int count) {
+		ItemStack itemStackInSlot = getStackInSlot(slotIndex);
+		if (itemStackInSlot == null) {
 			return null;
 		}
+
+		ItemStack itemStackRemoved;
+		if (itemStackInSlot.stackSize <= count) {
+			itemStackRemoved = itemStackInSlot;
+			setInventorySlotContents(slotIndex, null);
+		} else {
+			itemStackRemoved = itemStackInSlot.splitStack(count);
+			if (itemStackInSlot.stackSize == 0) {
+				setInventorySlotContents(slotIndex, null);
+			}
+		}
+		return itemStackRemoved;
 	}
 
 	@Override
@@ -104,7 +106,7 @@ public class RobotInventory implements IInventory {
 
 	@Override
 	public boolean isUseableByPlayer(EntityPlayer player) {
-		return robot.isOwner(player);
+		return !robot.isDead && robot.isOwner(player);
 	}
 
 	@Override
@@ -125,9 +127,8 @@ public class RobotInventory implements IInventory {
 			ItemStack itemstack = theInventory[index];
 			theInventory[index] = null;
 			return itemstack;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	@Override
