@@ -11,9 +11,12 @@ import java.util.regex.Pattern;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
+import com.dyn.server.network.messages.MessageOpenRobotInventory;
 import com.dyn.server.network.messages.MessageRunRobotScript;
+import com.dyn.server.network.messages.MessageTeleportRobot;
 import com.dyn.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.rabbit.gui.component.code.CodeInterface;
@@ -23,6 +26,9 @@ import com.rabbit.gui.component.control.TextBox;
 import com.rabbit.gui.component.display.Panel;
 import com.rabbit.gui.component.display.Picture;
 import com.rabbit.gui.component.display.TextLabel;
+import com.rabbit.gui.component.display.tabs.CompassTab;
+import com.rabbit.gui.component.display.tabs.ItemTab;
+import com.rabbit.gui.component.display.tabs.PictureTab;
 import com.rabbit.gui.component.list.DisplayList;
 import com.rabbit.gui.component.list.ScrollableDisplayList;
 import com.rabbit.gui.component.list.entries.ListEntry;
@@ -32,6 +38,8 @@ import com.rabbit.gui.component.list.entries.SelectStringEntry;
 import com.rabbit.gui.show.Show;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import scala.actors.threadpool.Arrays;
 
@@ -78,11 +86,14 @@ public class RobotProgrammingInterface extends Show {
 		if (entry.getTitle().equals("..")) {
 			dlist.clear();
 			((ScrollableDisplayList) dlist).setScrollAmount(0);
-			currentDir = currentDir.getParentFile();
+			if (currentDir.getParentFile() != null) {
+				currentDir = currentDir.getParentFile();
+			}
 			openPath.setText("Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath())));
 			files = currentDir.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py")
 					|| new File(file, name).isDirectory());
-			if (!pathBase.relativize(Paths.get(currentDir.getAbsolutePath())).equals(".")) {
+			if (!pathBase.relativize(Paths.get(currentDir.getAbsolutePath())).equals(".")
+					&& (currentDir.getParentFile() != null)) {
 				// dont leave the minecraft directory
 				dlist.add(new SelectStringEntry("..", (SelectStringEntry sentry, DisplayList sdlist, int smouseX,
 						int smouseY) -> entrySelected(sentry, sdlist, smouseX, smouseY)));
@@ -128,6 +139,7 @@ public class RobotProgrammingInterface extends Show {
 		// we have to subtract 2 since lines start at 0 and the error produces
 		// an extra space
 		errorPanel.setVisible(true);
+		errorPanel.setFocused(true);
 		errorLabel.setText(error);
 		if (error.contains("NameError") || error.contains("RequestError")) {
 			// name errors dont seem to have the same offset as other errors
@@ -135,22 +147,22 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
-
 	}
 
 	@Override
 	public void setup() {
 		super.setup();
+		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true);
 
 		Panel openPanel = new Panel((int) (width * .25), (int) (height * .23), (int) (width * .5), (int) (height * .55))
-				.setVisible(false);
+				.setVisible(false).setFocused(false).setZ(1000);
 
 		registerComponent(openPanel);
 
 		openPanel.registerComponent(new Picture(0, 0, (openPanel.getWidth()), (openPanel.getHeight()),
 				new ResourceLocation("dyn", "textures/gui/background.png")));
 
-		openPanel.registerComponent(openPath = new TextLabel(10, 10, 100, 15, Color.black,
+		openPanel.registerComponent(openPath = new TextLabel(10, 10, openPanel.getWidth() - 20, 15, Color.black,
 				"Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath()))));
 
 		// components
@@ -174,6 +186,7 @@ public class RobotProgrammingInterface extends Show {
 								termText = FileUtils.readFile(selectedFile);
 								codeWindow.setText(termText);
 								openPanel.setVisible(false);
+								mainPanel.setFocused(true);
 							}
 						}));
 
@@ -181,10 +194,11 @@ public class RobotProgrammingInterface extends Show {
 				new Button((int) (openPanel.getWidth() * .7), (int) (openPanel.getHeight() * .85), 45, 15, "Cancel")
 						.setClickListener(btn -> {
 							openPanel.setVisible(false);
+							mainPanel.setFocused(true);
 						}));
 
 		Panel savePanel = new Panel((int) (width * .33), (int) (height * .33), (int) (width * .45),
-				(int) (height * .33)).setVisible(false);
+				(int) (height * .33)).setVisible(false).setFocused(false).setZ(1000);
 
 		registerComponent(savePanel);
 
@@ -214,6 +228,7 @@ public class RobotProgrammingInterface extends Show {
 							fileNameEntry.setText("");
 							fileName = "";
 							savePanel.setVisible(false);
+							mainPanel.setFocused(true);
 						}));
 
 		savePanel.registerComponent(
@@ -222,63 +237,96 @@ public class RobotProgrammingInterface extends Show {
 							fileNameEntry.setText("");
 							fileName = "";
 							savePanel.setVisible(false);
+							mainPanel.setFocused(true);
 						}));
 
-		Panel panel = new Panel((int) (width * .55), 0, (int) (width * .45), height);
+		registerComponent(mainPanel);
 
-		registerComponent(panel);
-		// The Panel background
-		panel.registerComponent(new Picture(0, 0, (panel.getWidth()), (panel.getHeight()),
-				new ResourceLocation("dyn", "textures/gui/background2.png")));
-
-		panel.registerComponent((codeWindow = new CodeInterface(10, 15, panel.getWidth() - 20, panel.getHeight() - 35))
-				.setText(termText).setBackgroundVisibility(false).setDrawUnicode(true)
-				.setTextChangedListener((TextBox textbox, String previousText) -> {
-					termText = previousText;
-				}));
-
-		// menu panel
-		panel.registerComponent(new Button(0, 0, (panel.getWidth() - 15) / 4, 15, "<<Game").setClickListener(btn -> {
-			RobotMod.proxy.toggleRenderRobotProgramInterface(true);
-			Minecraft.getMinecraft().setIngameFocus();
+		mainPanel.registerComponent(new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
+			tab.setHidden(!tab.isHidden());
 		}));
 
-		panel.registerComponent(new Button((panel.getWidth() - 15) / 4, 0, (panel.getWidth() - 15) / 4, 15, "Open")
-				.setClickListener(btn -> {
-					files = DYNServerMod.scriptsLoc
-							.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
-
-					fileList.clear();
-					fileList.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist, int mouseX,
-							int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
-					for (File file : files) {
-						fileList.add(new SelectElementEntry(file, file.getName(),
-								(SelectElementEntry entry, DisplayList dlist, int mouseX,
-										int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
-					}
-					openPanel.setVisible(true);
+		mainPanel.registerComponent(new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
+				.setClickListener(tab -> {
+					tab.setHidden(!tab.isHidden());
 				}));
 
-		panel.registerComponent(new Button((panel.getWidth() - 15) / 2, 0, (panel.getWidth() - 15) / 4, 15, "Save")
-				.setClickListener(btn -> {
-					savePanel.setVisible(true);
+		mainPanel.registerComponent(new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
+				.setHoverText(Lists.newArrayList("Open", "Robot", "Inventory")).setDrawHoverText(true)
+				.setClickListener(tab -> {
+					NetworkManager.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobot.getEntityId()));
+					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 				}));
 
-		panel.registerComponent(new Button(((panel.getWidth() - 15) / 4) * 3, 0, (panel.getWidth() - 15) / 4, 15, "Run")
-				.setClickListener(btn -> {
-					codeWindow.clearError();
-					errorPanel.setVisible(false);
-					NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+		mainPanel.registerComponent(
+				new PictureTab(0, 140, 40, 40, "", 90, new ResourceLocation("dyn", "textures/gui/teleporter.png"))
+						.setHoverText(Lists.newArrayList("Teleport", "Robot to", "Me")).setDrawHoverText(true)
+						.setClickListener(tab -> {
+							NetworkManager.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
+							((DynRobotEntity) RobotMod.currentRobot).spawnParticles(EnumParticleTypes.REDSTONE);
+						}));
+
+		// The Panel background
+		mainPanel.registerComponent(new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()),
+				new ResourceLocation("dyn", "textures/gui/background2.png")));
+
+		mainPanel.registerComponent(
+				(codeWindow = new CodeInterface(10, 15, mainPanel.getWidth() - 20, mainPanel.getHeight() - 35))
+						.setText(termText).setBackgroundVisibility(false).setDrawUnicode(true)
+						.setTextChangedListener((TextBox textbox, String previousText) -> {
+							termText = previousText;
+						}));
+
+		// menu panel
+		mainPanel.registerComponent(
+				new Button(0, 0, (mainPanel.getWidth() - 15) / 4, 15, "<<Game").setClickListener(btn -> {
+					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
+					Minecraft.getMinecraft().setIngameFocus();
 				}));
 
-		panel.registerComponent(new PictureButton(panel.getWidth() - 15, 0, 15, 15,
+		mainPanel.registerComponent(
+				new Button((mainPanel.getWidth() - 15) / 4, 0, (mainPanel.getWidth() - 15) / 4, 15, "Open")
+						.setClickListener(btn -> {
+							files = DYNServerMod.scriptsLoc
+									.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
+
+							fileList.clear();
+							fileList.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist,
+									int mouseX, int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
+							for (File file : files) {
+								fileList.add(new SelectElementEntry(file, file.getName(),
+										(SelectElementEntry entry, DisplayList dlist, int mouseX,
+												int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
+							}
+							openPanel.setVisible(true);
+							openPanel.setFocused(true);
+							mainPanel.setFocused(false);
+						}));
+
+		mainPanel.registerComponent(
+				new Button((mainPanel.getWidth() - 15) / 2, 0, (mainPanel.getWidth() - 15) / 4, 15, "Save")
+						.setClickListener(btn -> {
+							savePanel.setVisible(true);
+							savePanel.setFocused(true);
+							mainPanel.setFocused(false);
+						}));
+
+		mainPanel.registerComponent(
+				new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0, (mainPanel.getWidth() - 15) / 4, 15, "Run")
+						.setClickListener(btn -> {
+							codeWindow.clearError();
+							errorPanel.setVisible(false);
+							NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+						}));
+
+		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
 					RobotMod.proxy.toggleRenderRobotProgramInterface(false);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));
 
-		panel.registerComponent(errorPanel = new Panel(0, (int) (panel.getHeight() * .8), panel.getWidth(),
-				(int) (panel.getHeight() * .2)).setVisible(false));
+		mainPanel.registerComponent(errorPanel = new Panel(0, (int) (mainPanel.getHeight() * .8), mainPanel.getWidth(),
+				(int) (mainPanel.getHeight() * .2)).setVisible(false));
 
 		errorPanel.registerComponent(new Picture(0, 0, (errorPanel.getWidth()), (errorPanel.getHeight()),
 				new ResourceLocation("dyn", "textures/gui/background2.png")));
@@ -289,7 +337,7 @@ public class RobotProgrammingInterface extends Show {
 
 		errorPanel.registerComponent(new TextLabel(10, 5, errorPanel.getWidth() - 20, 10, "Error Description:"));
 
-		errorPanel.registerComponent(new PictureButton(panel.getWidth() - 10, 0, 10, 10,
+		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
 					errorPanel.setVisible(false);
 				}));

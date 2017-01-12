@@ -4,7 +4,7 @@ import java.awt.Color;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.entity.BlockDynRobot;
+import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
@@ -66,13 +66,13 @@ public class RemoteInterface extends Show {
 
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 2) - 15, 30, 30, "L")
-						.doesDrawHoverText(true).addHoverText("Turn Left").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Turn Left").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.LEFT, 90));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 4) - 15, 30, 30, "C")
-						.doesDrawHoverText(true).addHoverText("Climb").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Climb").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.CLIMB, 1));
 						}));
@@ -87,49 +87,49 @@ public class RemoteInterface extends Show {
 		// }));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (debugPanel.getHeight() / 4) - 15, 30, 30, "I")
-						.doesDrawHoverText(true).addHoverText("Interact With").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Interact With").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.INTERACT, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (debugPanel.getHeight() / 4) - 15, 30, 30, "F")
-						.doesDrawHoverText(true).addHoverText("Move Forward").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Move Forward").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.FORWARD, 1));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (debugPanel.getHeight() / 2) - 15, 30, 30, "E")
-						.doesDrawHoverText(true).addHoverText("Execute Program").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Execute Program").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.RUN, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (debugPanel.getHeight() / 2) - 15, 30, 30, "R")
-						.doesDrawHoverText(true).addHoverText("Turn Right").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Turn Right").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.RIGHT, 90));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 4) - 15, (int) (debugPanel.getHeight() * .75) - 15, 30, 30, "P")
-						.doesDrawHoverText(true).addHoverText("Place").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Place").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.PLACE, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((int) ((debugPanel.getWidth() * .75) - 15), (int) (debugPanel.getHeight() * .75) - 15, 30,
-						30, "Br").doesDrawHoverText(true).addHoverText("Break").setClickListener(btn -> {
+						30, "Br").setDoesDrawHoverText(true).addHoverText("Break").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.BREAK, 0));
 						}));
 		debugPanel.registerComponent(
 				new Button((debugPanel.getWidth() / 2) - 15, (int) ((debugPanel.getHeight() * .75) - 15), 30, 30, "B")
-						.doesDrawHoverText(true).addHoverText("Move Back").setClickListener(btn -> {
+						.setDoesDrawHoverText(true).addHoverText("Move Back").setClickListener(btn -> {
 							NetworkManager.sendToServer(new MessageDebugRobot(RobotMod.currentRobot.getEntityId(),
 									MessageDebugRobot.CommandType.BACK, 1));
 						}));
 
 		Panel panel = new Panel((int) (width * .2), (int) (height * .2), (int) (width * .6), (int) (height * .6))
-				.setVisible(true);
+				.setVisible(true).setFocused(true);
 
 		debugPanel.registerComponent(new PictureButton(debugPanel.getWidth() - 15, 0, 15, 15,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
