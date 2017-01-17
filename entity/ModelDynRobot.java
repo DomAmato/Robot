@@ -51,15 +51,17 @@ public class ModelDynRobot extends ModelBase {
 		super.render(entityIn, p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale);
 		setRotationAngles(p_78088_2_, p_78088_3_, p_78088_4_, p_78088_5_, p_78088_6_, scale, entityIn);
 		GlStateManager.pushMatrix();
-		GlStateManager.translate(0.0F, 1.0F, 0.0F);
-		antenna.render(scale);
-		bipedHead.render(scale);
-		bipedBody.render(scale);
-		bipedRightArm.render(scale);
-		bipedLeftArm.render(scale);
-		bipedRightLeg.render(scale);
-		bipedLeftLeg.render(scale);
+		{
+			GlStateManager.translate(0.0F, 1.0F, 0.0F);
+			antenna.render(scale);
+			bipedHead.render(scale);
+			bipedBody.render(scale);
+			bipedRightArm.render(scale);
+			bipedLeftArm.render(scale);
+			bipedRightLeg.render(scale);
+			bipedLeftLeg.render(scale);
 
+		}
 		GlStateManager.popMatrix();
 	}
 
