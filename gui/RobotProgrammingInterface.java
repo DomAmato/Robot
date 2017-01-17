@@ -66,7 +66,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
-		termText = "#Welcome to the progamming interface!\n\nfrom robot import *\n\nrobo = Robot()";
+		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
 
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
@@ -75,7 +75,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!\n\nfrom robot import *\n\nrobo = Robot()";
+		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
 
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
