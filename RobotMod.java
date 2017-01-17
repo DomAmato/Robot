@@ -15,7 +15,7 @@ import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
-import com.dyn.utils.PlayerLevel;
+import com.dyn.utils.PlayerAccessLevel;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
@@ -100,7 +100,7 @@ public class RobotMod {
 		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName() + "_plus", 0);
 		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName(), 1);
 
-		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerLevel.STUDENT)) {
+		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerAccessLevel.STUDENT)) {
 			dynRobotWrench.setCreativeTab(roboTab);
 			robotSpawner.setCreativeTab(roboTab);
 		}

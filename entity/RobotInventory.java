@@ -29,7 +29,7 @@ public class RobotInventory implements IInventory {
 	/**
 	 * Removes some of the units from itemstack in the given slot, and returns
 	 * as a separate itemstack
-	 * 
+	 *
 	 * @param slotIndex
 	 *            the slot number to remove the items from
 	 * @param count

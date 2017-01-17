@@ -13,7 +13,7 @@ import com.dyn.server.network.messages.MessageDebugRobot;
 import com.dyn.server.network.messages.MessageOpenRobotInventory;
 import com.dyn.server.network.messages.MessageTeleportRobot;
 import com.dyn.server.network.messages.MessageToggleRobotFollow;
-import com.dyn.utils.PlayerLevel;
+import com.dyn.utils.PlayerAccessLevel;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.CheckBox;
 import com.rabbit.gui.component.control.PictureButton;
@@ -187,7 +187,7 @@ public class RemoteInterface extends Show {
 						}));
 			}
 		} else if (RobotMod.currentRobot != null) {
-			if (DYNServerMod.accessLevel == PlayerLevel.ADMIN) {
+			if (DYNServerMod.accessLevel == PlayerAccessLevel.ADMIN) {
 				panel.registerComponent(new Button((int) (panel.getWidth() * .65), (int) (panel.getHeight() * .2),
 						(int) (panel.getWidth() * .3), 20, "Debugger").setClickListener(btn -> {
 							panel.setVisible(false);
