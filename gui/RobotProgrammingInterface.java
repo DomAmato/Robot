@@ -141,7 +141,7 @@ public class RobotProgrammingInterface extends Show {
 		errorPanel.setVisible(true);
 		errorPanel.setFocused(true);
 		errorLabel.setText(error);
-		if (error.contains("NameError") || error.contains("RequestError")) {
+		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")) {
 			// name errors dont seem to have the same offset as other errors
 			codeWindow.notifyError(line - 1, code, error);
 		} else {
