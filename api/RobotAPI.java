@@ -386,13 +386,9 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos temp = rotateVector(getBlockPos(scan),
 						HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 
-				if ((sqVectorLength(temp) == 0) || (sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
+				if ((sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
 						|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
-					if (sqVectorLength(temp) == 0) {
-						fail("Coordinates cannot equal 0");
-					} else {
-						fail("Distance is greater than robots reach");
-					}
+						fail("Distance is greater than robots sensor");
 				}
 				inspectBlock = curLoc.add(temp);
 			}
