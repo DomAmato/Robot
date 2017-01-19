@@ -304,33 +304,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		for (int i = 0; i < amount; i++) {
 			if (worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
 				dest = dest.down();
-
-				if (!worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
-					dest = dest.offset(getProgrammedDirection());
-					// PathPoint newTarget =
-					// nodeProcessor.getSafePoint(theEntity, (int)
-					// targetPosition.xCoord,
-					// (int) targetPosition.yCoord, (int) targetPosition.zCoord,
-					// 1);
-					// Block block = worldObj.getBlockState(dest).getBlock();
-					// Block blockdn =
-					// worldObj.getBlockState(dest.down()).getBlock();
-					// if (blockdn.getMaterial().blocksMovement() &&
-					// !block.getMaterial().blocksMovement()) {
-					// addToProgramPath(dest);
-					// } else {
-					// return false;
-					// }
-				}
 				addToProgramPath(dest);
 			} else {
 				dest = dest.down().offset(getProgrammedDirection());
-				Block block = worldObj.getBlockState(dest).getBlock();
-				Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
-				if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+				if (worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
 					addToProgramPath(dest);
 				} else {
-					return false;
+					Block block = worldObj.getBlockState(dest).getBlock();
+					Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
+					if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+						addToProgramPath(dest);
+					} else {
+						return false;
+					}
 				}
 			}
 		}
