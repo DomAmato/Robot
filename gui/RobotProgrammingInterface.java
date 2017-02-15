@@ -18,6 +18,7 @@ import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageOpenRobotInventory;
 import com.dyn.server.network.messages.MessageRunRobotScript;
 import com.dyn.server.network.messages.MessageTeleportRobot;
+import com.dyn.server.network.messages.MessageToggleRobotFollow;
 import com.dyn.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.rabbit.gui.component.code.CodeInterface;
@@ -30,6 +31,7 @@ import com.rabbit.gui.component.display.TextLabel;
 import com.rabbit.gui.component.display.tabs.CompassTab;
 import com.rabbit.gui.component.display.tabs.ItemTab;
 import com.rabbit.gui.component.display.tabs.PictureTab;
+import com.rabbit.gui.component.display.tabs.Tab;
 import com.rabbit.gui.component.list.DisplayList;
 import com.rabbit.gui.component.list.ScrollableDisplayList;
 import com.rabbit.gui.component.list.entries.ListEntry;
@@ -63,6 +65,7 @@ public class RobotProgrammingInterface extends Show {
 	private TextBox fileNameEntry;
 
 	private Path pathBase = Paths.get(Minecraft.getMinecraft().mcDataDir.getAbsolutePath());
+	private Tab followTab;
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
@@ -80,6 +83,9 @@ public class RobotProgrammingInterface extends Show {
 		currentDir = DYNServerMod.scriptsLoc;
 		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
 		this.robot = robot;
+		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
+			RobotMod.currentRobot = robot;
+		}
 	}
 
 	public void entrySelected(SelectListEntry entry, DisplayList dlist, int mouseX, int mouseY) {
@@ -258,13 +264,32 @@ public class RobotProgrammingInterface extends Show {
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 				}));
 
-		mainPanel.registerComponent(
-				new PictureTab(0, 140, 40, 40, "", 90, new ResourceLocation("dyn", "textures/gui/teleporter.png"))
-						.setHoverText(Lists.newArrayList("Teleport", "Robot to", "Me")).setDrawHoverText(true)
-						.setClickListener(tab -> {
-							NetworkManager.sendToServer(new MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
-							((DynRobotEntity) RobotMod.currentRobot).spawnParticles(EnumParticleTypes.REDSTONE);
-						}));
+		mainPanel.registerComponent(followTab = new PictureTab(0, 140, 40, 40, "", 90,
+				robot.getIsFollowing() ? new ResourceLocation("dyn", "textures/gui/robot_stand.png")
+						: new ResourceLocation("dyn", "textures/gui/robot_follow.png"))
+								.setHoverText(robot.getIsFollowing() ? Lists.newArrayList("Make Robot", "Stand still")
+										: Lists.newArrayList("Make Robot", "Follow Me"))
+								.setDrawHoverText(true).setClickListener(tab -> {
+									if (!robot.getIsFollowing()) {
+										NetworkManager.sendToServer(new MessageToggleRobotFollow(
+												RobotMod.currentRobot.getEntityId(), true));
+										((PictureTab) tab).setPicture(
+												new ResourceLocation("dyn", "textures/gui/robot_stand.png"));
+										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
+										robot.setIsFollowing(true);
+									} else {
+										NetworkManager.sendToServer(new MessageToggleRobotFollow(
+												RobotMod.currentRobot.getEntityId(), false));
+										((PictureTab) tab).setPicture(
+												new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
+										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
+										robot.setIsFollowing(false);
+									}
+									// NetworkManager.sendToServer(new
+									// MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
+									// ((DynRobotEntity)
+									// RobotMod.currentRobot).spawnParticles(EnumParticleTypes.REDSTONE);
+								}));
 
 		// The Panel background
 		mainPanel.registerComponent(new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()),
@@ -317,6 +342,10 @@ public class RobotProgrammingInterface extends Show {
 							codeWindow.clearError();
 							errorPanel.setVisible(false);
 							NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+							((PictureTab) followTab).setPicture(
+									new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
+							followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
+							robot.setIsFollowing(false);
 						}));
 
 		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15,
