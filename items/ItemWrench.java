@@ -64,8 +64,10 @@ public class ItemWrench extends Item {
 									robot.m_inventory.getStackInSlot(a)));
 						}
 					}
+					ItemStack robotStack = new ItemStack(RobotMod.dynRobot, 1);
+					robotStack.setStackDisplayName(robot.getName());
 					worldIn.spawnEntityInWorld(new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ,
-							new ItemStack(RobotMod.dynRobot, 1)));
+							robotStack));
 				}
 			}
 		}
@@ -103,6 +105,8 @@ public class ItemWrench extends Item {
 	}
 
 	public void setEntity(Entity entity) {
-		this.entity = entity;
+		if (entity != null && !entity.isDead) {
+			this.entity = entity;
+		}
 	}
 }

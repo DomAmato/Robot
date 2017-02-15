@@ -58,13 +58,12 @@ public class DynRobotEntity extends EntityRobot {
 	 */
 	@Override
 	public boolean interact(EntityPlayer player) {
+		ItemStack itemstack = player.inventory.getCurrentItem();
 		if (worldObj.isRemote) {
-			ItemStack itemstack = player.inventory.getCurrentItem();
-
 			if (itemstack != null) {
 				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
 					if (isOwner(player) || ((owner == null) && isTamable)) {
-						RobotMod.proxy.openRemoteInterface(this);
+						RobotMod.proxy.openRobotProgrammingWindow(this);//.openRemoteInterface(this);
 					} else {
 						if (owner != null) {
 							player.addChatComponentMessage(new ChatComponentText("Robot belongs to someone else"));
@@ -77,6 +76,10 @@ public class DynRobotEntity extends EntityRobot {
 				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
 					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
 				}
+			}
+		} else {
+			if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+				((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
 			}
 		}
 		return super.interact(player);
