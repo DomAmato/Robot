@@ -172,11 +172,14 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 								(destination.getZ()) + 0.5D, speed);
 						isVertical = true;
 						if (DYNServerMod.developmentEnvironment) {
-							NetworkManager.sendToDimension(new RobotPathMessage(new PathEntity(new PathPoint[] {
-									new PathPoint(entity.getPosition().getX(), entity.getPosition().getY(),
-											entity.getPosition().getZ()),
-									new PathPoint(destination.getX(), destination.getY(), destination.getZ()) }),
-									entity.getEntityId()), entity.dimension);
+							NetworkManager.sendToDimension(
+									new RobotPathMessage(new PathEntity(new PathPoint[] {
+											new PathPoint(entity.getPosition().getX(), entity.getPosition().getY(),
+													entity.getPosition().getZ()),
+											new PathPoint(destination.getX(), destination.getY(),
+													destination.getZ()) }),
+											entity.getEntityId()),
+									entity.dimension);
 						}
 					} else {
 						RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
