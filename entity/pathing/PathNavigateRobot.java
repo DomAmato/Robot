@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.dyn.DYNServerMod;
+import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.packets.client.RobotPathMessage;
 import com.google.common.collect.Maps;
@@ -116,7 +117,11 @@ public class PathNavigateRobot extends PathNavigateGround {
 
 	@Override
 	protected boolean isDirectPathBetweenPoints(Vec3 posVec31, Vec3 posVec32, int sizeX, int sizeY, int sizeZ) {
-		return false;
+		if (!((EntityRobot) super.theEntity).getIsFollowing()) {
+			return false;
+		} else {
+			return super.isDirectPathBetweenPoints(posVec31, posVec32, sizeX, sizeY, sizeZ);
+		}
 	}
 
 	@Override
