@@ -6,6 +6,7 @@ import com.dyn.DYNServerMod;
 import com.dyn.fixins.tab.RoboTab;
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockDynRobot;
+import com.dyn.robot.blocks.BlockRobotMagnet;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.items.ItemDynRobotBlock;
@@ -22,6 +23,7 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemBlock;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -41,6 +43,7 @@ public class RobotMod {
 	public static Proxy proxy;
 
 	public static BlockDynRobot dynRobot;
+	public static BlockRobotMagnet dynRobotMagnet;
 	public static ItemRemote dynRobotRemote;
 	public static ItemWrench dynRobotWrench;
 	public static ItemDynRobotSpawner robotSpawner;
@@ -62,6 +65,7 @@ public class RobotMod {
 	public void init(FMLInitializationEvent event) {
 		proxy.init();
 		proxy.registerBlockItem(dynRobot);
+		proxy.registerBlockItem(dynRobotMagnet);
 	}
 
 	@Mod.EventHandler
@@ -84,6 +88,9 @@ public class RobotMod {
 	private void registerBlocks() {
 		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot").setCreativeTab(roboTab);
 		GameRegistry.registerBlock(dynRobot, ItemDynRobotBlock.class, "dyn_robot");
+		
+		dynRobotMagnet = (BlockRobotMagnet) new BlockRobotMagnet().setUnlocalizedName("dyn_robot_magnet").setCreativeTab(roboTab);
+		GameRegistry.registerBlock(dynRobotMagnet, ItemBlock.class, "dyn_robot_magnet");
 	}
 
 	private void registerItems() {
