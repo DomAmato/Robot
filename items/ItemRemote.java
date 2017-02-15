@@ -22,7 +22,7 @@ public class ItemRemote extends Item {
 
 	public List<EntityRobot> getEntitiesInRadius(World world, double x, double y, double z, int radius) {
 		List<EntityRobot> list = world.getEntitiesWithinAABB(EntityRobot.class,
-				AxisAlignedBB.fromBounds(x, y, z, x + radius, y + radius, z + radius));
+				AxisAlignedBB.fromBounds(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
 		return list;
 	}
 
@@ -54,7 +54,7 @@ public class ItemRemote extends Item {
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
 		if (worldIn.isRemote) {
-			RobotMod.proxy.openRemoteInterface(RobotMod.currentRobot);
+			RobotMod.proxy.openRobotProgrammingWindow(RobotMod.currentRobot);
 		} else {
 
 		}

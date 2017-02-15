@@ -2,6 +2,7 @@ package com.dyn.robot.api;
 
 import java.util.Scanner;
 
+import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
@@ -132,6 +133,10 @@ public class RobotAPI extends Python2MinecraftApi {
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
+//			if((robot.getRobotLevel() & 4) == 0){
+//				//bitwise and to see if the flag is set
+//				fail("Robot does not know the placeBlock command");
+//			}
 			BlockPos curLoc = robot.getPosition();
 			BlockPos placeBlock = curLoc.offset(robot.getProgrammedDirection());
 
@@ -217,6 +222,10 @@ public class RobotAPI extends Python2MinecraftApi {
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 			}
+//			if((robot.getRobotLevel() & 2) == 0){
+//				//bitwise and to see if the flag is set
+//				fail("Robot does not know the breakBlock command");
+//			}
 			BlockPos curLoc = robot.getPosition();
 			BlockPos breakBlock = curLoc.offset(robot.getProgrammedDirection());
 			if (scan.hasNext()) {
@@ -429,6 +438,7 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	public static void setRobotId(int id, EntityPlayer player) {
 		robotId = id;
+		DYNServerMod.logger.info("Attaching robot " + id + " to player " + player.getName());
 		if (RobotMod.robotid2player.containsKey(id) || RobotMod.robotid2player.containsValue(player)) {
 			RobotMod.robotid2player.inverse().replace(player, id);
 		} else {
