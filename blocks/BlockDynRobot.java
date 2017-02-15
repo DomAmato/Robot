@@ -1,5 +1,8 @@
 package com.dyn.robot.blocks;
 
+import java.util.Random;
+
+import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
@@ -12,6 +15,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -22,6 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class BlockDynRobot extends BlockFalling {
 
 	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
+	private String robotName;
 
 	public BlockDynRobot() {
 		super(Material.iron);
@@ -81,6 +86,12 @@ public class BlockDynRobot extends BlockFalling {
 		return false;
 	}
 
+	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
+    {
+        super.updateTick(worldIn, pos, state, rand);
+        
+    }
+	
 	// this is called twice, once from
 	// net.minecraft.client.multiplayer.PlayerControllerMP.onPlayerRightClick(PlayerControllerMP.java:416)
 	// and again from
@@ -99,9 +110,33 @@ public class BlockDynRobot extends BlockFalling {
 		return true;
 	}
 
+	/**
+     * Called by ItemBlocks just before a block is actually set in the world, to allow for adjustments to the
+     * IBlockstate
+     */
 	@Override
 	public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ,
 			int meta, EntityLivingBase placer) {
 		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+	}
+	
+	 /**
+     * Called by ItemBlocks after a block is set in the world, to allow post-place logic
+     */
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
+    {
+    	this.robotName = stack.getDisplayName().trim();
+    }
+
+	public String getRobotName() {
+		return robotName;
+	}
+
+	public void setRobotName(String robotName) {
+		this.robotName = robotName;
+	}
+
+	public boolean hasName() {
+		return robotName != null && !robotName.equals("Robot");
 	}
 }

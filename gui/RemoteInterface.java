@@ -39,7 +39,11 @@ public class RemoteInterface extends Show {
 		robotBlock = robot;
 		robotBlockPos = pos;
 		this.player = player;
-		robotName = "";
+		if (robot.hasName()) {
+			robotName = robot.getRobotName();
+		} else {
+			robotName = "";
+		}
 		if ((RobotMod.currentRobot != null) && RobotMod.currentRobot.isDead) {
 			RobotMod.currentRobot = null;
 		}
