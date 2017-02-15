@@ -43,7 +43,7 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable, IEntityAdditionalSpawnData {
 	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List list = world.getEntitiesWithinAABB(EntityItem.class,
-				AxisAlignedBB.fromBounds(x, y, z, x + radius, y + radius, z + radius));
+				AxisAlignedBB.fromBounds(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
 		return list;
 	}
 
@@ -52,9 +52,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected EntityPlayer owner;
 	public RobotInventory m_inventory;
 	private List<BlockPos> programPath = new ArrayList();
+	private int robotLevel;
 
 	private boolean executeCode = false;
-	public List<BlockPos> markedChests = new ArrayList();
 	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<>();
 	private boolean pauseCode = false;
@@ -601,6 +601,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void readSpawnData(ByteBuf additionalData) {
 		isTamable = additionalData.readBoolean();
 		shouldFollow = additionalData.readBoolean();
+		robotLevel = additionalData.readInt();
 	}
 
 	public void reinitNonEssentialAI() {
@@ -720,5 +721,18 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void writeSpawnData(ByteBuf buffer) {
 		buffer.writeBoolean(isTamable);
 		buffer.writeBoolean(shouldFollow);
+		buffer.writeInt(1);
+	}
+
+	public int getTotalRobotLevels() {
+	     return Integer.bitCount(robotLevel);
+	}
+	
+	public int getRobotLevel() {
+		return robotLevel;
+	}
+
+	public void setRobotLevel(int robotLevel) {
+		this.robotLevel = robotLevel;
 	}
 }
