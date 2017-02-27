@@ -1,5 +1,6 @@
 package com.dyn.robot;
 
+import java.util.List;
 import java.util.Map;
 
 import com.dyn.DYNServerMod;
@@ -11,6 +12,9 @@ import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.items.ItemDynRobotBlock;
 import com.dyn.robot.items.ItemDynRobotSpawner;
+import com.dyn.robot.items.ItemExpansionChip;
+import com.dyn.robot.items.ItemMemoryCard;
+import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.proxy.Proxy;
@@ -19,11 +23,13 @@ import com.dyn.robot.reference.Reference;
 import com.dyn.utils.PlayerAccessLevel;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -44,14 +50,17 @@ public class RobotMod {
 
 	public static BlockDynRobot dynRobot;
 	public static BlockRobotMagnet dynRobotMagnet;
+
 	public static ItemRemote dynRobotRemote;
 	public static ItemWrench dynRobotWrench;
 	public static ItemDynRobotSpawner robotSpawner;
+	public static ItemExpansionChip expChip;
+	public static ItemMemoryCard card;
+	public static ItemMemoryStick ram;
 
 	public static CreativeTabs roboTab = new RoboTab();
 
 	// server
-	public static Map<Integer, Boolean> robotEcho = Maps.newHashMap();
 	public static BiMap<Integer, EntityPlayer> robotid2player = HashBiMap.create();
 
 	// client
@@ -88,8 +97,9 @@ public class RobotMod {
 	private void registerBlocks() {
 		dynRobot = (BlockDynRobot) new BlockDynRobot().setUnlocalizedName("dyn_robot").setCreativeTab(roboTab);
 		GameRegistry.registerBlock(dynRobot, ItemDynRobotBlock.class, "dyn_robot");
-		
-		dynRobotMagnet = (BlockRobotMagnet) new BlockRobotMagnet().setUnlocalizedName("dyn_robot_magnet").setCreativeTab(roboTab);
+
+		dynRobotMagnet = (BlockRobotMagnet) new BlockRobotMagnet().setUnlocalizedName("dyn_robot_magnet")
+				.setCreativeTab(roboTab);
 		GameRegistry.registerBlock(dynRobotMagnet, ItemBlock.class, "dyn_robot_magnet");
 	}
 
@@ -107,9 +117,32 @@ public class RobotMod {
 		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName() + "_plus", 0);
 		proxy.registerItem(robotSpawner, robotSpawner.getUnlocalizedName(), 1);
 
+		expChip = (ItemExpansionChip) new ItemExpansionChip().setUnlocalizedName("expansion_chip");
+		GameRegistry.registerItem(expChip, "expansion_chip");
+		List<ItemStack> subItems = Lists.newArrayList();
+		expChip.getSubItems(expChip, roboTab, subItems);
+		for (ItemStack item : subItems) {
+				proxy.registerItem(expChip, item.getUnlocalizedName(), item.getMetadata());
+		}
+
+		card = (ItemMemoryCard) new ItemMemoryCard().setUnlocalizedName("dyn_robot_card");
+		GameRegistry.registerItem(card, "dyn_robot_card");
+		proxy.registerItem(card, card.getUnlocalizedName(), 0);
+		
+		ram = (ItemMemoryStick) new ItemMemoryStick().setUnlocalizedName("dyn_robot_memory");
+		GameRegistry.registerItem(ram, "dyn_robot_memory");
+		subItems.clear();
+		ram.getSubItems(ram, roboTab, subItems);
+		for (ItemStack item : subItems) {
+				proxy.registerItem(ram, item.getUnlocalizedName(), item.getMetadata());
+		}
+		
 		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerAccessLevel.STUDENT)) {
 			dynRobotWrench.setCreativeTab(roboTab);
 			robotSpawner.setCreativeTab(roboTab);
+			expChip.setCreativeTab(roboTab);
+			card.setCreativeTab(roboTab);
+			ram.setCreativeTab(roboTab);
 		}
 	}
 
