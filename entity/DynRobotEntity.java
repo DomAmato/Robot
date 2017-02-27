@@ -63,7 +63,7 @@ public class DynRobotEntity extends EntityRobot {
 			if (itemstack != null) {
 				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
 					if (isOwner(player) || ((owner == null) && isTamable)) {
-						RobotMod.proxy.openRobotProgrammingWindow(this);//.openRemoteInterface(this);
+						RobotMod.proxy.openRobotProgrammingWindow(this);
 					} else {
 						if (owner != null) {
 							player.addChatComponentMessage(new ChatComponentText("Robot belongs to someone else"));
@@ -78,8 +78,10 @@ public class DynRobotEntity extends EntityRobot {
 				}
 			}
 		} else {
-			if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-				((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				}
 			}
 		}
 		return super.interact(player);
@@ -89,10 +91,10 @@ public class DynRobotEntity extends EntityRobot {
 	public void onDeath(DamageSource d) {
 		super.onDeath(d);
 		if (!worldObj.isRemote) {
-			for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-				if (m_inventory.getStackInSlot(a) != null) {
+			for (int a = 0; a < robot_inventory.getSizeInventory(); a++) {
+				if (robot_inventory.getStackInSlot(a) != null) {
 					worldObj.spawnEntityInWorld(
-							new EntityItem(worldObj, posX, posY + 0.3, posZ, m_inventory.getStackInSlot(a)));
+							new EntityItem(worldObj, posX, posY + 0.3, posZ, robot_inventory.getStackInSlot(a)));
 				}
 			}
 		} else {
@@ -116,6 +118,11 @@ public class DynRobotEntity extends EntityRobot {
 		if (((ticksExisted % 5) == 0)) {
 			spawnAntennaParticles(EnumParticleTypes.REDSTONE);
 		}
+	}
+
+	public void onLivingUpdate() {
+		super.onLivingUpdate();
+		updateArmSwingProgress();
 	}
 
 	public void slightMoveWhenStill() {

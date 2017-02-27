@@ -8,10 +8,14 @@ import java.util.UUID;
 
 import com.dyn.DYNServerMod;
 import com.dyn.render.hud.path.EntityPathRenderer;
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
+import com.dyn.robot.entity.inventory.RobotInventory;
+import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
+import com.dyn.utils.HelperFunctions;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
@@ -27,6 +31,7 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -50,9 +55,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected boolean shouldFollow;
 	protected boolean isTamable;
 	protected EntityPlayer owner;
-	public RobotInventory m_inventory;
+	public RobotInventory robot_inventory;
 	private List<BlockPos> programPath = new ArrayList();
-	private int robotLevel;
 
 	private boolean executeCode = false;
 	private boolean shouldJump;
@@ -74,7 +78,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		shouldFollow = false;
 		executeCode = false;
 		isTamable = false;
-		m_inventory = new RobotInventory(this);
+		robot_inventory = new RobotInventory("Robot Inventory", 30, this);
 		dataWatcher.addObject(17, "");// owner uuid
 		dataWatcher.addObject(18, "");// robot name
 
@@ -91,81 +95,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		tasks.addTask(4, new EntityAILookIdle(this));
 	}
 
-	public ItemStack addItemStack(ItemStack is) {
-		if ((is == null) || (is.stackSize <= 0)) {
-			return null;
-		}
-
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if ((m_inventory.getStackInSlot(a) == null) || (m_inventory.getStackInSlot(a).stackSize <= 0)) {
-				m_inventory.setInventorySlotContents(a, is);
-				return null;
-			}
-			ItemStack is2 = m_inventory.getStackInSlot(a);
-			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
-				int amount = Math.min(is.stackSize, is2.getMaxStackSize() - is2.stackSize);
-				is.stackSize -= amount;
-				is2.stackSize += amount;
-				m_inventory.setInventorySlotContents(a, is2);
-			}
-			if (is.stackSize <= 0) {
-				return null;
-			}
-		}
-		return is;
-	}
-
-	public ItemStack addItemStackToInventory(ItemStack is) {
-		if ((is == null) || (is.stackSize <= 0)) {
-			return null;
-		}
-
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if ((m_inventory.getStackInSlot(a) == null) || (m_inventory.getStackInSlot(a).stackSize <= 0)) {
-				m_inventory.setInventorySlotContents(a, is);
-				return null;
-			}
-			ItemStack is2 = m_inventory.getStackInSlot(a);
-			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
-				int amount = Math.min(is.stackSize, is2.getMaxStackSize() - is2.stackSize);
-				is.stackSize -= amount;
-				is2.stackSize += amount;
-				m_inventory.setInventorySlotContents(a, is2);
-			}
-			if (is.stackSize <= 0) {
-				return null;
-			}
-		}
-		return is;
-	}
-
-	public void addItemToChest(ItemStack is, TileEntityChest chest) {
-		if ((is == null) || (is.stackSize <= 0) || (chest == null)) {
-			return;
-		}
-
-		for (int a = 0; a < chest.getSizeInventory(); a++) {
-			ItemStack is2 = chest.getStackInSlot(a);
-			if ((is2 == null) || (is2.stackSize <= 0)) {
-				chest.setInventorySlotContents(a, is.copy());
-				decreaseItemStack(is);
-				return;
-			}
-			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
-				int amount = Math.min(is.stackSize, is2.getMaxStackSize() - is2.stackSize);
-				ItemStack is3 = is.copy();
-				is3.stackSize = amount;
-				decreaseItemStack(is3);
-				is.stackSize -= amount;
-				is2.stackSize += amount;
-				chest.setInventorySlotContents(a, is2);
-			}
-			if (is.stackSize <= 0) {
-				return;
-			}
-		}
-	}
-
 	public void addMessage(String message) {
 		long time = System.currentTimeMillis();
 
@@ -175,6 +104,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
+	
+	public void InsertToProgramPath(int loc, BlockPos pos) {
+		// block pos is integer based but we want to move to the center of the
+		// block
+		programPath.add(loc, pos);
+	}
+	
 	public void addToProgramPath(BlockPos pos) {
 		// block pos is integer based but we want to move to the center of the
 		// block
@@ -269,32 +205,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
-	public boolean decreaseItemStack(ItemStack is) {
-		if ((is == null) || (is.stackSize <= 0)) {
-			return true;
-		}
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			ItemStack is2 = m_inventory.getStackInSlot(a);
-			if (is2 == null) {
-				continue;
-			}
-			if ((is2.getItem() == is.getItem())
-					&& ((is2.getItemDamage() == is.getItemDamage()) || !is.getItem().getHasSubtypes())) {
-				int amount = Math.min(is.stackSize, is2.stackSize);
-				is.stackSize -= amount;
-				is2.stackSize -= amount;
-				if (is2.stackSize <= 0) {
-					is2 = null;
-				}
-				m_inventory.setInventorySlotContents(a, is2);
-			}
-			if (is.stackSize <= 0) {
-				return true;
-			}
-		}
-		return is.stackSize > 0;
-	}
-
 	public boolean descend(int amount) {
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
@@ -321,28 +231,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 		return true;
-	}
-
-	public boolean doesInventoryHas(Class<? extends Item> c) {
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if ((m_inventory.getStackInSlot(a) != null) && c.isInstance(m_inventory.getStackInSlot(a).getItem())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean doesInventoryHas(ItemStack is) {
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if (m_inventory.getStackInSlot(a) != null) {
-				ItemStack is2 = m_inventory.getStackInSlot(a);
-				if ((is2.getItem() == is.getItem())
-						&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	public boolean filterItemToGet(ItemStack is) {
@@ -436,28 +324,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public boolean isCodePaused() {
 		return pauseCode;
-	}
-
-	public boolean isInventoryEmpty() {
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if (m_inventory.getStackInSlot(a) != null) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public boolean isInventoryFull() {
-		for (int a = 0; a < m_inventory.getSizeInventory(); a++) {
-			if ((m_inventory.getStackInSlot(a) != null) && (m_inventory.getStackInSlot(a).stackSize == 0)) {
-				m_inventory.removeStackFromSlot(a);
-			}
-			if ((m_inventory.getStackInSlot(a) == null) || (m_inventory.getStackInSlot(a).stackSize == 0)) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	public boolean isOwner(EntityPlayer entityIn) {
@@ -568,12 +434,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		super.readEntityFromNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", 10);
-		// m_inventory = new ItemStack[32];
+		// robot_inventory = new ItemStack[32];
 		for (int i = 0; i < nbttaglist.tagCount(); i++) {
 			NBTTagCompound itemtag = nbttaglist.getCompoundTagAt(i);
 			int slot = itemtag.getByte("Slot") & 0xFF;
 			if ((slot >= 0) && (slot < 32)) {
-				m_inventory.setInventorySlotContents(slot, ItemStack.loadItemStackFromNBT(itemtag));
+				robot_inventory.setInventorySlotContents(slot, ItemStack.loadItemStackFromNBT(itemtag));
 			}
 		}
 
@@ -601,7 +467,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void readSpawnData(ByteBuf additionalData) {
 		isTamable = additionalData.readBoolean();
 		shouldFollow = additionalData.readBoolean();
-		robotLevel = additionalData.readInt();
 	}
 
 	public void reinitNonEssentialAI() {
@@ -672,13 +537,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return executeCode;
 	}
 
-	public boolean shouldStoreItems(int a) {
-		return true;
-	}
-
 	public void startExecutingCode() {
 		executeCode = true;
 		programDir = getHorizontalFacing();
+
+		setPosition(getPosition().getX() + .5, getPosition().getY(), getPosition().getZ() + .5);
+		rotate(HelperFunctions.getAngleFromFacing(programDir));
 	}
 
 	public void stopExecutingCode() {
@@ -690,15 +554,16 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		super.writeEntityToNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = new NBTTagList();
-		for (int i = 0; i < 16; i++) {
-			if (m_inventory.getStackInSlot(i) != null) {
+		for (int i = 0; i < robot_inventory.getSizeInventory(); i++) {
+			if (robot_inventory.getStackInSlot(i) != null) {
 				NBTTagCompound itemtag = new NBTTagCompound();
 				itemtag.setByte("Slot", (byte) i);
-				m_inventory.getStackInSlot(i).writeToNBT(itemtag);
+				robot_inventory.getStackInSlot(i).writeToNBT(itemtag);
 				nbttaglist.appendTag(itemtag);
 			}
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
+		
 		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
 		nbttagcompound.setBoolean("follow", shouldFollow);
 		nbttagcompound.setBoolean("tame", isTamable);
@@ -724,15 +589,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		buffer.writeInt(1);
 	}
 
-	public int getTotalRobotLevels() {
-	     return Integer.bitCount(robotLevel);
-	}
-	
-	public int getRobotLevel() {
-		return robotLevel;
-	}
-
-	public void setRobotLevel(int robotLevel) {
-		this.robotLevel = robotLevel;
+	public int getMemorySize() {
+		return (int) (this.robot_inventory.getStackInSlot(1) != null ? Math.pow(2, (4 + this.robot_inventory.getStackInSlot(1).getItemDamage())) : 8);
 	}
 }
