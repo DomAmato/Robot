@@ -1,6 +1,8 @@
 package com.dyn.robot.entity.ai;
 
+import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.utils.HelperFunctions;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
@@ -9,6 +11,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 
 public class EntityAIJumpToward extends EntityAIBase {
+
 	/** The entity that is leaping. */
 	EntityRobot leaper;
 	/** The entity that the leaper is leaping towards. */
@@ -31,6 +34,14 @@ public class EntityAIJumpToward extends EntityAIBase {
 		if (!doContinue) {
 			RaspberryJamMod.EVENT_BUS
 					.post(new CodeEvent.SuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
+			if (leaper.getProgramPath().iterator().hasNext()) {
+				BlockPos prevLoc = leaper.getProgramPath().iterator().next();
+				leaper.getProgramPath().remove(prevLoc);
+			}
+			leaper.setPosition(leaper.getPosition().getX() + .5, leaper.getPosition().getY(),
+					leaper.getPosition().getZ() + .5);
+			leaper.rotate(HelperFunctions.getAngleFromFacing(leaper.getProgrammedDirection()));
+			leaper.InsertToProgramPath(0, leaper.getPosition());
 		}
 		return doContinue;
 	}
@@ -59,5 +70,6 @@ public class EntityAIJumpToward extends EntityAIBase {
 		leaper.motionX += ((d0 / f) * 0.5D * 0.800000011920929D) + (leaper.motionX * 0.20000000298023224D);
 		leaper.motionZ += ((d1 / f) * 0.5D * 0.800000011920929D) + (leaper.motionZ * 0.20000000298023224D);
 		leaper.motionY = leapMotionY;
+		leaper.InsertToProgramPath(0, leapTarget);
 	}
 }
