@@ -59,13 +59,14 @@ public class ItemRemote extends Item {
 		if (!worldIn.isRemote) {
 			playerIn.openGui(RobotMod.instance, RobotGuiHandler.getGuiID(), playerIn.worldObj, (int) playerIn.posX,
 					(int) playerIn.posY, (int) playerIn.posZ);
-		} else {
-			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead) {
-				net.minecraft.client.Minecraft.getMinecraft().getSoundHandler()
-						.playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
-								(float) playerIn.posX, (float) playerIn.posY, (float) playerIn.posZ));
-			}
-		}
+		} 
+//		else {
+//			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead) {
+//				net.minecraft.client.Minecraft.getMinecraft().getSoundHandler()
+//						.playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
+//								(float) playerIn.posX, (float) playerIn.posY, (float) playerIn.posZ));
+//			}
+//		}
 		return itemStackIn;
 	}
 
