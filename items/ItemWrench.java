@@ -17,6 +17,7 @@ public class ItemWrench extends Item {
 
 	public ItemWrench() {
 		super();
+		setMaxStackSize(1);
 	}
 
 	public Entity getEntity() {
@@ -58,10 +59,10 @@ public class ItemWrench extends Item {
 				EntityRobot robot = (EntityRobot) worldIn.getEntityByID(entity.getEntityId());
 				if (robot != null) {
 					robot.setDead();
-					for (int a = 0; a < robot.m_inventory.getSizeInventory(); a++) {
-						if (robot.m_inventory.getStackInSlot(a) != null) {
+					for (int a = 0; a < robot.robot_inventory.getSizeInventory(); a++) {
+						if (robot.robot_inventory.getStackInSlot(a) != null) {
 							worldIn.spawnEntityInWorld(new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ,
-									robot.m_inventory.getStackInSlot(a)));
+									robot.robot_inventory.getStackInSlot(a)));
 						}
 					}
 					ItemStack robotStack = new ItemStack(RobotMod.dynRobot, 1);
@@ -93,6 +94,19 @@ public class ItemWrench extends Item {
 		return true;
 	}
 
+	 /**
+     * Allow or forbid the specific book/item combination as an anvil enchant
+     *
+     * @param stack The item
+     * @param book The book
+     * @return if the enchantment is allowed
+     */
+	@Override
+	public boolean isBookEnchantable(ItemStack stack, ItemStack book)
+    {
+        return false;
+    }
+	
 	/**
 	 * Called when the player stops using an Item (stops holding the right mouse
 	 * button).
