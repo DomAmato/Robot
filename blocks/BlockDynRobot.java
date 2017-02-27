@@ -85,12 +85,6 @@ public class BlockDynRobot extends BlockFalling {
 	public boolean isOpaqueCube() {
 		return false;
 	}
-
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
-    {
-        super.updateTick(worldIn, pos, state, rand);
-        
-    }
 	
 	// this is called twice, once from
 	// net.minecraft.client.multiplayer.PlayerControllerMP.onPlayerRightClick(PlayerControllerMP.java:416)
@@ -103,7 +97,7 @@ public class BlockDynRobot extends BlockFalling {
 		if (worldIn.isRemote) {
 			if ((playerIn.getCurrentEquippedItem() != null)
 					&& (playerIn.getCurrentEquippedItem().getItem() instanceof ItemRemote)) {
-				RobotMod.proxy.openRemoteInterface(worldIn, this, pos);
+				RobotMod.proxy.openActivationInterface(worldIn, this, pos);
 			}
 			return true;
 		}
