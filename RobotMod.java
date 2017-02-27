@@ -119,24 +119,20 @@ public class RobotMod {
 
 		expChip = (ItemExpansionChip) new ItemExpansionChip().setUnlocalizedName("expansion_chip");
 		GameRegistry.registerItem(expChip, "expansion_chip");
-		List<ItemStack> subItems = Lists.newArrayList();
-		expChip.getSubItems(expChip, roboTab, subItems);
-		for (ItemStack item : subItems) {
-				proxy.registerItem(expChip, item.getUnlocalizedName(), item.getMetadata());
+		for (int i = 0; i < 16; i++) {
+			proxy.registerItem(expChip, expChip.getUnlocalizedName() + "_" + i, i);
 		}
 
 		card = (ItemMemoryCard) new ItemMemoryCard().setUnlocalizedName("dyn_robot_card");
 		GameRegistry.registerItem(card, "dyn_robot_card");
 		proxy.registerItem(card, card.getUnlocalizedName(), 0);
-		
+
 		ram = (ItemMemoryStick) new ItemMemoryStick().setUnlocalizedName("dyn_robot_memory");
 		GameRegistry.registerItem(ram, "dyn_robot_memory");
-		subItems.clear();
-		ram.getSubItems(ram, roboTab, subItems);
-		for (ItemStack item : subItems) {
-				proxy.registerItem(ram, item.getUnlocalizedName(), item.getMetadata());
+		for (int i = 0; i < 8; i++) {
+			proxy.registerItem(ram, ram.getUnlocalizedName() + "_" + i, i);
 		}
-		
+
 		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerAccessLevel.STUDENT)) {
 			dynRobotWrench.setCreativeTab(roboTab);
 			robotSpawner.setCreativeTab(roboTab);
