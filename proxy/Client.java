@@ -3,33 +3,36 @@ package com.dyn.robot.proxy;
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.DYNServerMod;
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.entity.render.DynRobotRenderer;
-import com.dyn.robot.gui.RemoteInterface;
+import com.dyn.robot.entity.render.ModelDynRobot;
+import com.dyn.robot.entity.render.RenderDynRobot;
+import com.dyn.robot.gui.ActivationScreen;
+import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Client implements Proxy {
@@ -99,19 +102,8 @@ public class Client implements Proxy {
 	}
 
 	@Override
-	public void openRemoteInterface(EntityRobot robot) {
-		if ((robot != null) && !robot.isDead) {
-			EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
-			Minecraft.getMinecraft().getSoundHandler()
-					.playSound(PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
-							(float) player.posX, (float) player.posY, (float) player.posZ));
-			RabbitGui.proxy.display(new RemoteInterface(robot, player));
-		}
-	}
-
-	@Override
-	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos) {
-		RabbitGui.proxy.display(new RemoteInterface(robot, Minecraft.getMinecraft().thePlayer, pos));
+	public void openActivationInterface(World world, BlockDynRobot robot, BlockPos pos) {
+		RabbitGui.proxy.display(new ActivationScreen(robot, Minecraft.getMinecraft().thePlayer, pos));
 	}
 
 	@Override
@@ -138,7 +130,14 @@ public class Client implements Proxy {
 
 	@Override
 	public void preInit() {
-		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new DynRobotRenderer());
+		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new IRenderFactory<DynRobotEntity>() {
+			@Override
+			public Render<? super DynRobotEntity> createRenderFor(RenderManager manager) {
+				return new RenderDynRobot(manager, new ModelDynRobot(), 0.3F);
+			}
+		});
+		
+		NetworkRegistry.INSTANCE.registerGuiHandler(RobotMod.instance, new RobotGuiHandler());
 	}
 
 	@Override

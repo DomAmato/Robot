@@ -4,7 +4,11 @@ import java.util.List;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.gui.RobotGuiHandler;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,12 +16,14 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 public class ItemRemote extends Item {
 
 	public ItemRemote() {
 		super();
+		setMaxStackSize(1);
 	}
 
 	public List<EntityRobot> getEntitiesInRadius(World world, double x, double y, double z, int radius) {
@@ -53,10 +59,14 @@ public class ItemRemote extends Item {
 	 */
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
-		if (worldIn.isRemote) {
-			RobotMod.proxy.openRobotProgrammingWindow(RobotMod.currentRobot);
+		if (!worldIn.isRemote) {
+			playerIn.openGui(RobotMod.instance, RobotGuiHandler.getGuiID(), playerIn.worldObj, (int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
 		} else {
-
+		if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead) {
+			Minecraft.getMinecraft().getSoundHandler()
+					.playSound(PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
+							(float) playerIn.posX, (float) playerIn.posY, (float) playerIn.posZ));
+		}
 		}
 		return itemStackIn;
 	}

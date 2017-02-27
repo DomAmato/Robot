@@ -17,9 +17,7 @@ public interface Proxy {
 
 	public void init();
 
-	public void openRemoteInterface(EntityRobot robot);
-
-	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos);
+	public void openActivationInterface(World world, BlockDynRobot robot, BlockPos pos);
 
 	public void openRobotGui();
 

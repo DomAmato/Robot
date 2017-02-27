@@ -1,9 +1,11 @@
 package com.dyn.robot.proxy;
 
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.gui.RobotGuiHandler;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
@@ -14,6 +16,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 public class Server implements Proxy {
 
@@ -49,13 +52,7 @@ public class Server implements Proxy {
 	}
 
 	@Override
-	public void openRemoteInterface(EntityRobot robot) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void openRemoteInterface(World world, BlockDynRobot robot, BlockPos pos) {
+	public void openActivationInterface(World world, BlockDynRobot robot, BlockPos pos) {
 		// TODO Auto-generated method stub
 
 	}
@@ -80,6 +77,7 @@ public class Server implements Proxy {
 	@Override
 	public void preInit() {
 		RobotAPI.registerCommands();
+		NetworkRegistry.INSTANCE.registerGuiHandler(RobotMod.instance, new RobotGuiHandler());
 	}
 
 	@Override

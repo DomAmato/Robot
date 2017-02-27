@@ -12,12 +12,10 @@ import java.util.regex.Pattern;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
-import com.dyn.server.network.messages.MessageOpenRobotInventory;
+import com.dyn.server.network.messages.MessageOpenRobotInterface;
 import com.dyn.server.network.messages.MessageRunRobotScript;
-import com.dyn.server.network.messages.MessageTeleportRobot;
 import com.dyn.server.network.messages.MessageToggleRobotFollow;
 import com.dyn.utils.FileUtils;
 import com.google.common.collect.Lists;
@@ -42,7 +40,7 @@ import com.rabbit.gui.show.Show;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 public class RobotProgrammingInterface extends Show {
@@ -247,7 +245,7 @@ public class RobotProgrammingInterface extends Show {
 						}));
 
 		registerComponent(mainPanel);
-
+		
 		mainPanel.registerComponent(new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
 			tab.setHidden(!tab.isHidden());
 		}));
@@ -260,7 +258,7 @@ public class RobotProgrammingInterface extends Show {
 		mainPanel.registerComponent(new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
 				.setHoverText(Lists.newArrayList("Open", "Robot", "Inventory")).setDrawHoverText(true)
 				.setClickListener(tab -> {
-					NetworkManager.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobot.getEntityId()));
+					NetworkManager.sendToServer(new MessageOpenRobotInterface(RobotMod.currentRobot.getEntityId()));
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 				}));
 
@@ -299,7 +297,21 @@ public class RobotProgrammingInterface extends Show {
 				(codeWindow = new CodeInterface(10, 15, mainPanel.getWidth() - 20, mainPanel.getHeight() - 35))
 						.setText(termText).setBackgroundVisibility(false).setDrawUnicode(true)
 						.setTextChangedListener((TextBox textbox, String previousText) -> {
-							termText = previousText;
+							List<String> codeLines = Lists.newArrayList();
+							for (String line : previousText.split(Pattern.quote("\n"))) {
+								line.trim();
+								if (line.isEmpty() || line.charAt(0) == '#' || line.contains("import"))
+									continue;
+								codeLines.add(line);
+							}
+							if (codeLines.size() > robot.getMemorySize()) {
+								handleErrorMessage("Robot out of memory, can only process " + robot.getMemorySize() + " lines but program contains " + codeLines.size(),
+										previousText.split(Pattern.quote("\n"))[previousText.split(Pattern.quote("\n")).length-1],
+										previousText.split(Pattern.quote("\n")).length);
+								textbox.setText(termText);
+							} else {
+								termText = previousText;
+							}
 						}));
 
 		// menu panel
@@ -314,7 +326,6 @@ public class RobotProgrammingInterface extends Show {
 						.setClickListener(btn -> {
 							files = DYNServerMod.scriptsLoc
 									.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
-
 							fileList.clear();
 							fileList.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist,
 									int mouseX, int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
@@ -326,7 +337,7 @@ public class RobotProgrammingInterface extends Show {
 							openPanel.setVisible(true);
 							openPanel.setFocused(true);
 							mainPanel.setFocused(false);
-						}));
+						}).setIsEnabled(robot.robot_inventory.containsItem(new ItemStack(RobotMod.card, 1))));
 
 		mainPanel.registerComponent(
 				new Button((mainPanel.getWidth() - 15) / 2, 0, (mainPanel.getWidth() - 15) / 4, 15, "Save")
@@ -334,18 +345,33 @@ public class RobotProgrammingInterface extends Show {
 							savePanel.setVisible(true);
 							savePanel.setFocused(true);
 							mainPanel.setFocused(false);
-						}));
+						}).setIsEnabled(robot.robot_inventory.containsItem(new ItemStack(RobotMod.card, 1))));
 
 		mainPanel.registerComponent(
 				new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0, (mainPanel.getWidth() - 15) / 4, 15, "Run")
 						.setClickListener(btn -> {
+							List<String> codeLines = Lists.newArrayList();
+							for (String line : termText.split(Pattern.quote("\n"))) {
+								line.trim();
+								if (line.isEmpty() || line.charAt(0) == '#' || line.contains("import"))
+									continue;
+								codeLines.add(line);
+							}
+							if (codeLines.size() > robot.getMemorySize()) {
+								handleErrorMessage(
+										"Robot out of memory, can only process " + robot.getMemorySize()
+												+ " lines but program contains " + codeLines.size(),
+										termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length-1],
+										termText.split(Pattern.quote("\n")).length);
+							} else {
 							codeWindow.clearError();
 							errorPanel.setVisible(false);
 							NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
-							((PictureTab) followTab).setPicture(
-									new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
+							((PictureTab) followTab)
+									.setPicture(new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
 							followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 							robot.setIsFollowing(false);
+							}
 						}));
 
 		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15,
