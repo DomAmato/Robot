@@ -1,5 +1,6 @@
 package com.dyn.robot.api;
 
+import java.util.List;
 import java.util.Scanner;
 
 import com.dyn.DYNServerMod;
@@ -7,6 +8,7 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.packets.client.RobotSpeakMessage;
+import com.dyn.utils.EnchantmentUtils;
 import com.dyn.utils.HelperFunctions;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
@@ -20,7 +22,10 @@ import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import mobi.omegacentauri.raspberryjammod.util.Location;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -51,6 +56,8 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTSAY = "robot.say";
 	private static final String ROBOTNAME = "robot.name";
 	private static final String ROBOTFACE = "robot.face";
+	private static final String ROBOTDETECT = "robot.detect";
+	private static final String ROBOTATTACK = "robot.attack";
 
 	public static int robotId = 0;
 
@@ -60,6 +67,14 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	public static int getRobotId() {
 		return robotId;
+	}
+
+	protected static Entity getServerEntityByID(int id) {
+		EntityRobot robot = (EntityRobot) Python2MinecraftApi.getServerEntityByID(id);
+		if ((robot == null) || robot.isDead) {
+			fail("Robot is dead or no longer exists");
+		}
+		return robot;
 	}
 
 	public static void notifyFailure(String failMessage) {
@@ -348,6 +363,55 @@ public class RobotAPI extends Python2MinecraftApi {
 				robot.rotate(HelperFunctions.getAngleFromFacing(EnumFacing.getFront(scan.nextInt())));
 			}
 		});
+		APIRegistry.registerCommand(ROBOTDETECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			// TODO: Need to be able to expand the area and determine the mob
+			// type
+			int id = scan.nextInt();
+			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			if (robot != null) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))) {
+					fail("Robot does not know the detect command");
+					return;
+				}
+				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
+					NetworkManager.sendTo(new RobotSpeakMessage("Detecting", id), player);
+				}
+				int level = EnchantmentUtils.getLevel(Enchantment.power,
+						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 7)));
+				// Can map the entity this way
+				// EntityList.stringToClassMapping.get("");
+				List<EntityMob> list = robot.worldObj.getEntitiesWithinAABB(EntityMob.class,
+						robot.getEntityBoundingBox().expand(5 + (10 * level), 5 + (10 * level), 5 + (10 * level)));
+
+				String entityList = "";
+				for (EntityMob entity : list) {
+					entityList += entity.getName() + "|" + entity.getEntityId() + "%";
+				}
+				if (!entityList.isEmpty()) {
+					entityList = entityList.substring(0, entityList.length() - 1);
+				}
+				sendLine(entityList);
+			}
+		});
+		APIRegistry.registerCommand(ROBOTATTACK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			// TODO:
+			int id = scan.nextInt();
+			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			if (robot != null) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 8))) {
+					fail("Robot does not know the attack command");
+					return;
+				}
+				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
+					NetworkManager.sendTo(new RobotSpeakMessage("Attacking", id), player);
+				}
+				id = scan.nextInt();
+				Entity target = getServerEntityByID(id);
+				robot.setAttackTarget((EntityLivingBase) target);
+			}
+		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
 			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
@@ -493,20 +557,16 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 	}
 
-	protected static Entity getServerEntityByID(int id) {
-		EntityRobot robot = (EntityRobot) Python2MinecraftApi.getServerEntityByID(id);
-		if (robot == null || robot.isDead) {
-			fail("Robot is dead or no longer exists");
-		}
-		return robot;
-	}
-
 	public static void setRobotId(int id, EntityPlayer player) {
 		robotId = id;
-		DYNServerMod.logger.info("Attaching robot " + id + " to player " + player.getName());
-		if (RobotMod.robotid2player.containsKey(id) || RobotMod.robotid2player.containsValue(player)) {
-			RobotMod.robotid2player.inverse().replace(player, id);
+		if (RobotMod.robotid2player.inverse().containsKey(player)
+				&& (RobotMod.robotid2player.inverse().get(player) != id)) {
+			int oldId = RobotMod.robotid2player.inverse().remove(player);
+			DYNServerMod.logger
+					.info("Replacing robot id " + oldId + " with new id " + id + " to player " + player.getName());
+			RobotMod.robotid2player.put(id, player);
 		} else {
+			DYNServerMod.logger.info("Attaching robot " + id + " to player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
 		}
 	}
