@@ -48,6 +48,10 @@ public class ModelDynRobot extends ModelBase {
 		antenna.setRotationPoint(0.0F, 16.0F, 0.0F);
 	}
 
+	public void postRenderArm(float scale) {
+		robotRightArm.postRender(scale);
+	}
+
 	/**
 	 * Sets the models various rotation angles then renders the model.
 	 */
@@ -96,49 +100,46 @@ public class ModelDynRobot extends ModelBase {
 		robotRightArm.rotateAngleY = 0.0F;
 		robotLeftArm.rotateAngleY = 0.0F;
 
-		switch (this.heldItemRight) {
+		switch (heldItemRight) {
 		case 0:
 		case 2:
 		default:
 			break;
 		case 1:
-			this.robotRightArm.rotateAngleX = this.robotRightArm.rotateAngleX * 0.5F
-					- ((float) Math.PI / 10F) * (float) this.heldItemRight;
+			robotRightArm.rotateAngleX = (robotRightArm.rotateAngleX * 0.5F)
+					- (((float) Math.PI / 10F) * heldItemRight);
 			break;
 		case 3:
-			this.robotRightArm.rotateAngleX = this.robotRightArm.rotateAngleX * 0.5F
-					- ((float) Math.PI / 10F) * (float) this.heldItemRight;
-			this.robotRightArm.rotateAngleY = -0.5235988F;
+			robotRightArm.rotateAngleX = (robotRightArm.rotateAngleX * 0.5F)
+					- (((float) Math.PI / 10F) * heldItemRight);
+			robotRightArm.rotateAngleY = -0.5235988F;
 		}
 
-		if (this.swingProgress > -9990.0F) {
-			float f = this.swingProgress;
-			this.robotBody.rotateAngleY = MathHelper.sin(MathHelper.sqrt_float(f) * (float) Math.PI * 2.0F) * 0.2F;
-			this.robotRightArm.rotateAngleY += this.robotBody.rotateAngleY;
-			this.robotLeftArm.rotateAngleY += this.robotBody.rotateAngleY;
-			this.robotLeftArm.rotateAngleX += this.robotBody.rotateAngleY;
-			f = 1.0F - this.swingProgress;
+		if (swingProgress > -9990.0F) {
+			float f = swingProgress;
+			robotBody.rotateAngleY = MathHelper.sin(MathHelper.sqrt_float(f) * (float) Math.PI * 2.0F) * 0.2F;
+			robotRightArm.rotateAngleY += robotBody.rotateAngleY;
+			robotLeftArm.rotateAngleY += robotBody.rotateAngleY;
+			robotLeftArm.rotateAngleX += robotBody.rotateAngleY;
+			f = 1.0F - swingProgress;
 			f = f * f;
 			f = f * f;
 			f = 1.0F - f;
 			float f1 = MathHelper.sin(f * (float) Math.PI);
-			float f2 = MathHelper.sin(this.swingProgress * (float) Math.PI) * -(this.robotHead.rotateAngleX - 0.7F)
-					* 0.75F;
-			this.robotRightArm.rotateAngleX = (float) ((double) this.robotRightArm.rotateAngleX
-					- ((double) f1 * 1.2D + (double) f2));
-			this.robotRightArm.rotateAngleY += this.robotBody.rotateAngleY * 2.0F;
-//			this.robotRightArm.rotateAngleZ += MathHelper.sin(this.swingProgress * (float) Math.PI) * -0.4F;
+			float f2 = MathHelper.sin(swingProgress * (float) Math.PI) * -(robotHead.rotateAngleX - 0.7F) * 0.75F;
+			robotRightArm.rotateAngleX = (float) (robotRightArm.rotateAngleX - ((f1 * 1.2D) + f2));
+			robotRightArm.rotateAngleY += robotBody.rotateAngleY * 2.0F;
+			// this.robotRightArm.rotateAngleZ +=
+			// MathHelper.sin(this.swingProgress * (float) Math.PI) * -0.4F;
 		}
 
-//		this.robotRightArm.rotateAngleZ += MathHelper.cos(ageInTicks * 0.09F) * 0.05F + 0.05F;
-//		this.robotLeftArm.rotateAngleZ -= MathHelper.cos(ageInTicks * 0.09F) * 0.05F + 0.05F;
-		this.robotRightArm.rotateAngleX += MathHelper.sin(ageInTicks * 0.067F) * 0.05F;
-		this.robotLeftArm.rotateAngleX -= MathHelper.sin(ageInTicks * 0.067F) * 0.05F;
+		// this.robotRightArm.rotateAngleZ += MathHelper.cos(ageInTicks * 0.09F)
+		// * 0.05F + 0.05F;
+		// this.robotLeftArm.rotateAngleZ -= MathHelper.cos(ageInTicks * 0.09F)
+		// * 0.05F + 0.05F;
+		robotRightArm.rotateAngleX += MathHelper.sin(ageInTicks * 0.067F) * 0.05F;
+		robotLeftArm.rotateAngleX -= MathHelper.sin(ageInTicks * 0.067F) * 0.05F;
 
 		ModelBase.copyModelAngles(robotHead, antenna);
-	}
-
-	public void postRenderArm(float scale) {
-		this.robotRightArm.postRender(scale);
 	}
 }
