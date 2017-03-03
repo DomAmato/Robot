@@ -1,8 +1,5 @@
 package com.dyn.robot.blocks;
 
-import java.util.Random;
-
-import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.items.ItemRemote;
 
@@ -58,6 +55,10 @@ public class BlockDynRobot extends BlockFalling {
 		return state.getValue(FACING).getIndex();
 	}
 
+	public String getRobotName() {
+		return robotName;
+	}
+
 	/**
 	 * Convert the given metadata into a BlockState for this Block
 	 */
@@ -70,6 +71,10 @@ public class BlockDynRobot extends BlockFalling {
 		}
 
 		return getDefaultState().withProperty(FACING, enumfacing);
+	}
+
+	public boolean hasName() {
+		return (robotName != null) && !robotName.equals("Robot");
 	}
 
 	@Override
@@ -85,7 +90,7 @@ public class BlockDynRobot extends BlockFalling {
 	public boolean isOpaqueCube() {
 		return false;
 	}
-	
+
 	// this is called twice, once from
 	// net.minecraft.client.multiplayer.PlayerControllerMP.onPlayerRightClick(PlayerControllerMP.java:416)
 	// and again from
@@ -105,32 +110,26 @@ public class BlockDynRobot extends BlockFalling {
 	}
 
 	/**
-     * Called by ItemBlocks just before a block is actually set in the world, to allow for adjustments to the
-     * IBlockstate
-     */
+	 * Called by ItemBlocks just before a block is actually set in the world, to
+	 * allow for adjustments to the IBlockstate
+	 */
 	@Override
 	public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ,
 			int meta, EntityLivingBase placer) {
 		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
 	}
-	
-	 /**
-     * Called by ItemBlocks after a block is set in the world, to allow post-place logic
-     */
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
-    {
-    	this.robotName = stack.getDisplayName().trim();
-    }
 
-	public String getRobotName() {
-		return robotName;
+	/**
+	 * Called by ItemBlocks after a block is set in the world, to allow
+	 * post-place logic
+	 */
+	@Override
+	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+			ItemStack stack) {
+		robotName = stack.getDisplayName().trim();
 	}
 
 	public void setRobotName(String robotName) {
 		this.robotName = robotName;
-	}
-
-	public boolean hasName() {
-		return robotName != null && !robotName.equals("Robot");
 	}
 }

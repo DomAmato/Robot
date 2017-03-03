@@ -44,39 +44,37 @@ public class ActivationScreen extends Show {
 		panel.registerComponent(new TextLabel((int) (panel.getWidth() * .05), (int) (panel.getHeight() * .05),
 				(int) (panel.getWidth() * .8), 20, Color.black, "Robot Remote"));
 
-		
-			panel.registerComponent(new TextBox((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .2),
-					(int) (panel.getWidth() * .8), 25, "Give Robot a Name")
-							.setTextChangedListener((TextBox textbox, String previousText) -> {
-								robotName = previousText;
-							}));
-			
-			panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .6),
-					(int) (panel.getWidth() * .25), 20, "Activate").setClickListener(btn -> {
-						if (RobotMod.currentRobot != null) {
-							BlockPos pos = RobotMod.currentRobot.getPosition();
-							NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
-									RobotMod.currentRobot.dimension, false));
-							RobotMod.currentRobot.setDead();
-							RobotMod.currentRobot = null;
-						}
-						NetworkManager.sendToServer(new MessageActivateRobot(
-								(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName),
-								robotBlockPos, player.dimension, true));
-						getStage().close();
-					}));
-			if (RobotMod.currentRobot != null) {
-				panel.registerComponent(new Button((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .6),
-						(int) (panel.getWidth() * .25), 20, "Deactivate").setClickListener(btn -> {
-							BlockPos pos = RobotMod.currentRobot.getPosition();
-							NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
-									RobotMod.currentRobot.dimension, false));
-							RobotMod.currentRobot.setDead();
-							RobotMod.currentRobot = null;
-							Minecraft.getMinecraft().setIngameFocus();
+		panel.registerComponent(new TextBox((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .2),
+				(int) (panel.getWidth() * .8), 25, "Give Robot a Name")
+						.setTextChangedListener((TextBox textbox, String previousText) -> {
+							robotName = previousText;
 						}));
-			}
-		
+
+		panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .6),
+				(int) (panel.getWidth() * .25), 20, "Activate").setClickListener(btn -> {
+					if (RobotMod.currentRobot != null) {
+						BlockPos pos = RobotMod.currentRobot.getPosition();
+						NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
+								RobotMod.currentRobot.dimension, false));
+						RobotMod.currentRobot.setDead();
+						RobotMod.currentRobot = null;
+					}
+					NetworkManager.sendToServer(new MessageActivateRobot(
+							(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName), robotBlockPos,
+							player.dimension, true));
+					getStage().close();
+				}));
+		if (RobotMod.currentRobot != null) {
+			panel.registerComponent(new Button((int) (panel.getWidth() * .55), (int) (panel.getHeight() * .6),
+					(int) (panel.getWidth() * .25), 20, "Deactivate").setClickListener(btn -> {
+						BlockPos pos = RobotMod.currentRobot.getPosition();
+						NetworkManager.sendToServer(new MessageActivateRobot(player.getName(), pos,
+								RobotMod.currentRobot.dimension, false));
+						RobotMod.currentRobot.setDead();
+						RobotMod.currentRobot = null;
+						Minecraft.getMinecraft().setIngameFocus();
+					}));
+		}
 
 		panel.registerComponent(new Picture(0, 0, panel.getWidth(), panel.getHeight(),
 				new ResourceLocation("dyn", "textures/gui/background.png")));

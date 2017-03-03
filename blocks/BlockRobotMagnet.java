@@ -6,7 +6,6 @@ import com.dyn.robot.entity.EntityRobot;
 import com.dyn.utils.HelperFunctions;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFalling;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -24,19 +23,31 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockRobotMagnet extends Block {
-	
+
 	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
 
 	public BlockRobotMagnet() {
 		super(Material.iron);
 		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
 	}
-	
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer) {
+		return false;
+	}
+
 	@Override
 	protected BlockState createBlockState() {
 		return new BlockState(this, new IProperty[] { FACING });
 	}
-	
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public EnumWorldBlockLayer getBlockLayer() {
+		return EnumWorldBlockLayer.CUTOUT;
+	}
+
 	/**
 	 * Convert the BlockState into the correct metadata value
 	 */
@@ -60,18 +71,6 @@ public class BlockRobotMagnet extends Block {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer) {
-		return false;
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public EnumWorldBlockLayer getBlockLayer() {
-		return EnumWorldBlockLayer.CUTOUT;
-	}
-
-	@Override
 	public boolean isFullCube() {
 		return false;
 	}
@@ -92,17 +91,17 @@ public class BlockRobotMagnet extends Block {
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
 			EnumFacing side, float hitX, float hitY, float hitZ) {
-		List<EntityRobot> list = worldIn.getEntitiesWithinAABB(EntityRobot.class,
-				AxisAlignedBB.fromBounds(pos.getX()-5, pos.getY()-5, pos.getZ()-5, pos.getX() + 5, pos.getY() + 5, pos.getZ() + 5));
-		for(EntityRobot robot : list){
-			if (robot.getOwner() == playerIn){
-				robot.setPosition(pos.getX()+.5, pos.getY()+1, pos.getZ()+.5);
+		List<EntityRobot> list = worldIn.getEntitiesWithinAABB(EntityRobot.class, AxisAlignedBB.fromBounds(
+				pos.getX() - 5, pos.getY() - 5, pos.getZ() - 5, pos.getX() + 5, pos.getY() + 5, pos.getZ() + 5));
+		for (EntityRobot robot : list) {
+			if (robot.getOwner() == playerIn) {
+				robot.setPosition(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);
 				robot.rotate(HelperFunctions.getAngleFromFacing(state.getValue(FACING)));
 			}
 		}
 		return true;
 	}
-	
+
 	@Override
 	public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ,
 			int meta, EntityLivingBase placer) {

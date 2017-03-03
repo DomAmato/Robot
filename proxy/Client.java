@@ -14,11 +14,10 @@ import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
@@ -27,7 +26,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -130,13 +128,9 @@ public class Client implements Proxy {
 
 	@Override
 	public void preInit() {
-		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class, new IRenderFactory<DynRobotEntity>() {
-			@Override
-			public Render<? super DynRobotEntity> createRenderFor(RenderManager manager) {
-				return new RenderDynRobot(manager, new ModelDynRobot(), 0.3F);
-			}
-		});
-		
+		RenderingRegistry.registerEntityRenderingHandler(DynRobotEntity.class,
+				manager -> new RenderDynRobot(manager, new ModelDynRobot(), 0.3F));
+
 		NetworkRegistry.INSTANCE.registerGuiHandler(RobotMod.instance, new RobotGuiHandler());
 	}
 

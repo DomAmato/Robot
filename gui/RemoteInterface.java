@@ -34,81 +34,9 @@ public class RemoteInterface extends GuiContainer {
 
 	public RemoteInterface(IInventory playerInv, EntityRobot robot) {
 		super(new RobotChipContainer(playerInv, robot.robot_inventory, robot, Minecraft.getMinecraft().thePlayer));
-		this.playerInventory = playerInv;
+		playerInventory = playerInv;
 		this.robot = robot;
-		this.allowUserInput = false;
-	}
-
-	@Override
-	public void initGui() {
-		super.initGui();
-		this.ySize = (int) (this.height *.85);
-		this.guiTop = (int) (this.height *.075);
-		this.guiLeft = (this.width - this.xSize) / 5;
-		// this.buttonList.add(new GuiButton(1, (this.width + this.xSize) / 2 -
-		// 150, ySize +46, 150, 20, "Open Programmer"));
-		this.buttonList.add(new GuiButton(1, guiLeft + this.xSize + 20, ySize-20, 150, 20, "Open Programmer"));
-	}
-
-	/**
-	 * Draw the foreground layer for the GuiContainer (everything in front of
-	 * the items). Args : mouseX, mouseY
-	 */
-	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		this.fontRendererObj.drawString(this.robot.robot_inventory.getDisplayName().getUnformattedText(), 8, 6, 4210752);
-		this.fontRendererObj.drawString(this.playerInventory.getDisplayName().getUnformattedText(), 8,
-				112, 4210752);
-	}
-
-	/**
-	 * Args : renderPartialTicks, mouseX, mouseY
-	 */
-	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-		this.mc.getTextureManager().bindTexture(guiTex);
-
-		this.drawTexturedModalRect(guiLeft, guiTop, 0, 0, this.xSize, this.ySize);
-
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Name: " + EnumChatFormatting.WHITE + robot.getRobotName(),
-				guiLeft + this.xSize + 30, 40, ColourHelper.AWTColor2RGBInt(Color.white));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Location: " + EnumChatFormatting.WHITE
-						+ String.format("X: %d Y: %d Z: %d", robot.getPosition().getX(), robot.getPosition().getY(),
-								robot.getPosition().getZ()),
-				guiLeft + this.xSize + 30, 50, ColourHelper.AWTColor2RGBInt(Color.white));
-		if (robot.getOwner() != null) {
-			this.fontRendererObj.drawString(
-					EnumChatFormatting.GRAY + "Owner Name: " + EnumChatFormatting.WHITE
-							+ robot.getOwner().getDisplayNameString(),
-					guiLeft + this.xSize + 30, 60, ColourHelper.AWTColor2RGBInt(Color.gray));
-		}
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Current Memory: " + EnumChatFormatting.WHITE
-						+ robot.getMemorySize(),
-				guiLeft + this.xSize + 30, 70, ColourHelper.AWTColor2RGBInt(Color.gray));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Climb: " + (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 0)) ? EnumChatFormatting.GREEN + "Yes" :  EnumChatFormatting.RED + "No"),
-				guiLeft + this.xSize + 30, 80, ColourHelper.AWTColor2RGBInt(Color.white));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Jump: " + (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 1)) ? EnumChatFormatting.GREEN + "Yes" :  EnumChatFormatting.RED + "No"),
-				guiLeft + this.xSize + 30, 90, ColourHelper.AWTColor2RGBInt(Color.white));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Mine: " + (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2)) ? EnumChatFormatting.GREEN + "Yes" :  EnumChatFormatting.RED + "No"),
-				guiLeft + this.xSize + 30, 100, ColourHelper.AWTColor2RGBInt(Color.white));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Build: " + (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3)) ? EnumChatFormatting.GREEN + "Yes" :  EnumChatFormatting.RED + "No"),
-				guiLeft + this.xSize + 30, 110, ColourHelper.AWTColor2RGBInt(Color.white));
-		this.fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Inspect: " + (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 4)) ? EnumChatFormatting.GREEN + "Yes" :  EnumChatFormatting.RED + "No") + EnumChatFormatting.RESET,
-				guiLeft + this.xSize + 30, 120, ColourHelper.AWTColor2RGBInt(Color.white));
-		int i = (this.width - this.xSize) / 5;
-		int j = (this.height - this.ySize) / 2;
-		GuiInventory.drawEntityOnScreen(i + 34, j + 69, 47, (float) (i + 51) - this.mousePosx,
-				(float) (j + 75 - 50) - this.mousePosY, this.robot);
-
+		allowUserInput = false;
 	}
 
 	/**
@@ -125,13 +53,92 @@ public class RemoteInterface extends GuiContainer {
 	}
 
 	/**
+	 * Args : renderPartialTicks, mouseX, mouseY
+	 */
+	@Override
+	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+		mc.getTextureManager().bindTexture(guiTex);
+
+		this.drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
+
+		fontRendererObj.drawString(EnumChatFormatting.GRAY + "Name: " + EnumChatFormatting.WHITE + robot.getRobotName(),
+				guiLeft + xSize + 30, 40, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Location: " + EnumChatFormatting.WHITE
+						+ String.format("X: %d Y: %d Z: %d", robot.getPosition().getX(), robot.getPosition().getY(),
+								robot.getPosition().getZ()),
+				guiLeft + xSize + 30, 50, ColourHelper.AWTColor2RGBInt(Color.white));
+		if (robot.getOwner() != null) {
+			fontRendererObj.drawString(
+					EnumChatFormatting.GRAY + "Owner Name: " + EnumChatFormatting.WHITE
+							+ robot.getOwner().getDisplayNameString(),
+					guiLeft + xSize + 30, 60, ColourHelper.AWTColor2RGBInt(Color.gray));
+		}
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Current Memory: " + EnumChatFormatting.WHITE + robot.getMemorySize(),
+				guiLeft + xSize + 30, 70, ColourHelper.AWTColor2RGBInt(Color.gray));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Climb: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 0))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
+				guiLeft + xSize + 30, 80, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Jump: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 1))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
+				guiLeft + xSize + 30, 90, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Mine: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
+				guiLeft + xSize + 30, 100, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Build: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
+				guiLeft + xSize + 30, 110, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Inspect: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 4))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
+						+ EnumChatFormatting.RESET,
+				guiLeft + xSize + 30, 120, ColourHelper.AWTColor2RGBInt(Color.white));
+		int i = (width - xSize) / 5;
+		int j = (height - ySize) / 2;
+		GuiInventory.drawEntityOnScreen(i + 34, j + 69, 47, i + 51 - mousePosx, (j + 75) - 50 - mousePosY, robot);
+
+	}
+
+	/**
+	 * Draw the foreground layer for the GuiContainer (everything in front of
+	 * the items). Args : mouseX, mouseY
+	 */
+	@Override
+	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+		fontRendererObj.drawString(robot.robot_inventory.getDisplayName().getUnformattedText(), 8, 6, 4210752);
+		fontRendererObj.drawString(playerInventory.getDisplayName().getUnformattedText(), 8, 112, 4210752);
+	}
+
+	/**
 	 * Draws the screen and all the components in it. Args : mouseX, mouseY,
 	 * renderPartialTicks
 	 */
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-		this.mousePosx = (float) mouseX;
-		this.mousePosY = (float) mouseY;
+		mousePosx = mouseX;
+		mousePosY = mouseY;
 		super.drawScreen(mouseX, mouseY, partialTicks);
+	}
+
+	@Override
+	public void initGui() {
+		super.initGui();
+		ySize = (int) (height * .85);
+		guiTop = (int) (height * .075);
+		guiLeft = (width - xSize) / 5;
+		// this.buttonList.add(new GuiButton(1, (this.width + this.xSize) / 2 -
+		// 150, ySize +46, 150, 20, "Open Programmer"));
+		buttonList.add(new GuiButton(1, guiLeft + xSize + 20, ySize - 20, 150, 20, "Open Programmer"));
 	}
 }

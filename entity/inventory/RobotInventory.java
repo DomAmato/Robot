@@ -7,26 +7,8 @@ import net.minecraft.item.ItemStack;
 
 public class RobotInventory extends InventoryBasic {
 
-	private EntityRobot robot;
-
 	public RobotInventory(String name, int slots, EntityRobot robot) {
 		super(name, true, slots);
-		this.robot = robot;
-	}
-
-	public boolean containsItem(ItemStack is) {
-		if (is != null) {
-			for (int i = 0; i < this.getSizeInventory(); i++) {
-				ItemStack is2 = getStackInSlot(i);
-				if (is2 != null) {
-					if ((is2.getItem() == is.getItem())
-							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
 	}
 
 	public ItemStack addItemStackToInventory(ItemStack is) {
@@ -52,8 +34,23 @@ public class RobotInventory extends InventoryBasic {
 		}
 		return is;
 	}
-	
-	public int getOpenExpansionSlot(){
+
+	public boolean containsItem(ItemStack is) {
+		if (is != null) {
+			for (int i = 0; i < getSizeInventory(); i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (is2 != null) {
+					if ((is2.getItem() == is.getItem())
+							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public int getOpenExpansionSlot() {
 		for (int a = 3; a < 12; a++) {
 			if ((getStackInSlot(a) == null) || (getStackInSlot(a).stackSize == 0)) {
 				return a;
@@ -61,7 +58,22 @@ public class RobotInventory extends InventoryBasic {
 		}
 		return 11;
 	}
-	
+
+	public ItemStack getStackOfItem(ItemStack is) {
+		if (is != null) {
+			for (int i = 0; i < getSizeInventory(); i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (is2 != null) {
+					if ((is2.getItem() == is.getItem())
+							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
+						return is2;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public boolean isInventoryEmpty() {
 		for (int a = 12; a < getSizeInventory(); a++) {
 			if (getStackInSlot(a) != null) {

@@ -1,8 +1,5 @@
 package com.dyn.robot;
 
-import java.util.List;
-import java.util.Map;
-
 import com.dyn.DYNServerMod;
 import com.dyn.fixins.tab.RoboTab;
 import com.dyn.robot.api.RobotAPI;
@@ -23,13 +20,10 @@ import com.dyn.robot.reference.Reference;
 import com.dyn.utils.PlayerAccessLevel;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;

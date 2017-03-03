@@ -245,7 +245,7 @@ public class RobotProgrammingInterface extends Show {
 						}));
 
 		registerComponent(mainPanel);
-		
+
 		mainPanel.registerComponent(new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
 			tab.setHidden(!tab.isHidden());
 		}));
@@ -300,13 +300,18 @@ public class RobotProgrammingInterface extends Show {
 							List<String> codeLines = Lists.newArrayList();
 							for (String line : previousText.split(Pattern.quote("\n"))) {
 								line.trim();
-								if (line.isEmpty() || line.charAt(0) == '#' || line.contains("import"))
+								if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
 									continue;
+								}
 								codeLines.add(line);
 							}
 							if (codeLines.size() > robot.getMemorySize()) {
-								handleErrorMessage("Robot out of memory, can only process " + robot.getMemorySize() + " lines but program contains " + codeLines.size(),
-										previousText.split(Pattern.quote("\n"))[previousText.split(Pattern.quote("\n")).length-1],
+								handleErrorMessage(
+										"Robot out of memory, can only process " + robot.getMemorySize()
+												+ " lines but program contains " + codeLines.size(),
+										previousText.split(
+												Pattern.quote("\n"))[previousText.split(Pattern.quote("\n")).length
+														- 1],
 										previousText.split(Pattern.quote("\n")).length);
 								textbox.setText(termText);
 							} else {
@@ -353,24 +358,27 @@ public class RobotProgrammingInterface extends Show {
 							List<String> codeLines = Lists.newArrayList();
 							for (String line : termText.split(Pattern.quote("\n"))) {
 								line.trim();
-								if (line.isEmpty() || line.charAt(0) == '#' || line.contains("import"))
+								if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
 									continue;
+								}
 								codeLines.add(line);
 							}
 							if (codeLines.size() > robot.getMemorySize()) {
 								handleErrorMessage(
 										"Robot out of memory, can only process " + robot.getMemorySize()
 												+ " lines but program contains " + codeLines.size(),
-										termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length-1],
+										termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length
+												- 1],
 										termText.split(Pattern.quote("\n")).length);
 							} else {
-							codeWindow.clearError();
-							errorPanel.setVisible(false);
-							NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
-							((PictureTab) followTab)
-									.setPicture(new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
-							followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
-							robot.setIsFollowing(false);
+								codeWindow.clearError();
+								errorPanel.setVisible(false);
+								NetworkManager
+										.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+								((PictureTab) followTab)
+										.setPicture(new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
+								followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
+								robot.setIsFollowing(false);
 							}
 						}));
 

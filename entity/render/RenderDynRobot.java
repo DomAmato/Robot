@@ -6,26 +6,16 @@ import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.layers.LayerHeldItem;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
-import net.minecraft.client.resources.model.IBakedModel;
-import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderDynRobot extends RenderLiving<EntityRobot> {
@@ -36,40 +26,38 @@ public class RenderDynRobot extends RenderLiving<EntityRobot> {
 		super(rendermanagerIn, modelDynRobot, shadowSize);
 		this.addLayer(new LayerHeldItem(this) {
 			@Override
-			 public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale)
-			    {
-			        ItemStack itemstack = entitylivingbaseIn.getHeldItem();
+			public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_,
+					float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale) {
+				ItemStack itemstack = entitylivingbaseIn.getHeldItem();
 
-			        if (itemstack != null)
-			        {
-			            GlStateManager.pushMatrix();
+				if (itemstack != null) {
+					GlStateManager.pushMatrix();
 
-			            ((ModelDynRobot) getMainModel()).postRenderArm(0.0625F);
-			            GlStateManager.translate(0F, 0.22F, 0.0625F);
-			            
-			            Item item = itemstack.getItem();
-			            Minecraft minecraft = Minecraft.getMinecraft();
+					((ModelDynRobot) getMainModel()).postRenderArm(0.0625F);
+					GlStateManager.translate(0F, 0.22F, 0.0625F);
 
-			            if (item instanceof ItemBlock && Block.getBlockFromItem(item).getRenderType() == 2)
-			            {
-			                GlStateManager.translate(0.0F, 0.1875F, -0.3125F);
-			                GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F);
-			                GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
-			                float f1 = 0.375F;
-			                GlStateManager.scale(-f1, -f1, f1);
-			            }
-			             else {
-			            	 GlStateManager.scale(-.5, -.5, .5);
-			            }
-			            
-			            minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON);
+					Item item = itemstack.getItem();
+					Minecraft minecraft = Minecraft.getMinecraft();
 
-			            GlStateManager.popMatrix();
-			        }
-			    }
+					if ((item instanceof ItemBlock) && (Block.getBlockFromItem(item).getRenderType() == 2)) {
+						GlStateManager.translate(0.0F, 0.1875F, -0.3125F);
+						GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F);
+						GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
+						float f1 = 0.375F;
+						GlStateManager.scale(-f1, -f1, f1);
+					} else {
+						GlStateManager.scale(-.5, -.5, .5);
+					}
+
+					minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack,
+							ItemCameraTransforms.TransformType.THIRD_PERSON);
+
+					GlStateManager.popMatrix();
+				}
+			}
 		});
 	}
-	    
+
 	@Override
 	protected ResourceLocation getEntityTexture(EntityRobot entity) {
 		entity.counter++;

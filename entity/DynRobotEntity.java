@@ -107,6 +107,12 @@ public class DynRobotEntity extends EntityRobot {
 	}
 
 	@Override
+	public void onLivingUpdate() {
+		super.onLivingUpdate();
+		updateArmSwingProgress();
+	}
+
+	@Override
 	public void onUpdate() {
 		super.onUpdate();
 		Vec3 vec = getLookVec();
@@ -118,11 +124,6 @@ public class DynRobotEntity extends EntityRobot {
 		if (((ticksExisted % 5) == 0)) {
 			spawnAntennaParticles(EnumParticleTypes.REDSTONE);
 		}
-	}
-
-	public void onLivingUpdate() {
-		super.onLivingUpdate();
-		updateArmSwingProgress();
 	}
 
 	public void slightMoveWhenStill() {
