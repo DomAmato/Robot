@@ -12,20 +12,20 @@ public class ItemMemoryCard extends Item {
 		setMaxStackSize(1);
 	}
 
-
-    /**
-     * Allow or forbid the specific book/item combination as an anvil enchant
-     *
-     * @param stack The item
-     * @param book The book
-     * @return if the enchantment is allowed
-     */
+	/**
+	 * Allow or forbid the specific book/item combination as an anvil enchant
+	 *
+	 * @param stack
+	 *            The item
+	 * @param book
+	 *            The book
+	 * @return if the enchantment is allowed
+	 */
 	@Override
-	public boolean isBookEnchantable(ItemStack stack, ItemStack book)
-    {
-        return false;
-    }
-	
+	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+		return false;
+	}
+
 	/**
 	 * Called when the player Left Clicks (attacks) an entity. Processed before
 	 * damage is done, if return value is true further processing is canceled

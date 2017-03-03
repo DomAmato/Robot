@@ -38,6 +38,20 @@ public class ItemWrench extends Item {
 		return 15;
 	}
 
+	/**
+	 * Allow or forbid the specific book/item combination as an anvil enchant
+	 *
+	 * @param stack
+	 *            The item
+	 * @param book
+	 *            The book
+	 * @return if the enchantment is allowed
+	 */
+	@Override
+	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+		return false;
+	}
+
 	// called when the player starts holding right click;
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
@@ -67,8 +81,8 @@ public class ItemWrench extends Item {
 					}
 					ItemStack robotStack = new ItemStack(RobotMod.dynRobot, 1);
 					robotStack.setStackDisplayName(robot.getName());
-					worldIn.spawnEntityInWorld(new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ,
-							robotStack));
+					worldIn.spawnEntityInWorld(
+							new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ, robotStack));
 				}
 			}
 		}
@@ -94,19 +108,6 @@ public class ItemWrench extends Item {
 		return true;
 	}
 
-	 /**
-     * Allow or forbid the specific book/item combination as an anvil enchant
-     *
-     * @param stack The item
-     * @param book The book
-     * @return if the enchantment is allowed
-     */
-	@Override
-	public boolean isBookEnchantable(ItemStack stack, ItemStack book)
-    {
-        return false;
-    }
-	
 	/**
 	 * Called when the player stops using an Item (stops holding the right mouse
 	 * button).
@@ -119,7 +120,7 @@ public class ItemWrench extends Item {
 	}
 
 	public void setEntity(Entity entity) {
-		if (entity != null && !entity.isDead) {
+		if ((entity != null) && !entity.isDead) {
 			this.entity = entity;
 		}
 	}

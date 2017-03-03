@@ -2,9 +2,13 @@ package com.dyn.robot.items;
 
 import java.util.List;
 
+import com.dyn.utils.EnchantmentUtils;
+
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
@@ -34,7 +38,6 @@ public class ItemExpansionChip extends Item {
 		}
 	}
 
-	
 	// Make a unique name for each contents type (lime, orange, etc) so we can
 	// name them individually
 	// The fullness information is added separately in getItemStackDisplayName()
@@ -43,20 +46,24 @@ public class ItemExpansionChip extends Item {
 		return super.getUnlocalizedName() + "_" + stack.getMetadata();
 	}
 
-
-    /**
-     * Allow or forbid the specific book/item combination as an anvil enchant
-     *
-     * @param stack The item
-     * @param book The book
-     * @return if the enchantment is allowed
-     */
+	/**
+	 * Allow or forbid the specific book/item combination as an anvil enchant
+	 *
+	 * @param stack
+	 *            The item
+	 * @param book
+	 *            The book
+	 * @return if the enchantment is allowed
+	 */
 	@Override
-	public boolean isBookEnchantable(ItemStack stack, ItemStack book)
-    {
-        return false;
-    }
-	
+	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+		if ((stack.getItemDamage() == 7)
+				&& EnchantmentUtils.hasEnchant(Enchantment.power, Items.enchanted_book.getEnchantments(book))) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Called when the player Left Clicks (attacks) an entity. Processed before
 	 * damage is done, if return value is true further processing is canceled

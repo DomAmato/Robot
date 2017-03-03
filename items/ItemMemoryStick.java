@@ -34,7 +34,6 @@ public class ItemMemoryStick extends Item {
 		}
 	}
 
-	
 	// Make a unique name for each contents type (lime, orange, etc) so we can
 	// name them individually
 	// The fullness information is added separately in getItemStackDisplayName()
@@ -43,20 +42,20 @@ public class ItemMemoryStick extends Item {
 		return super.getUnlocalizedName() + "_" + stack.getMetadata();
 	}
 
-
-    /**
-     * Allow or forbid the specific book/item combination as an anvil enchant
-     *
-     * @param stack The item
-     * @param book The book
-     * @return if the enchantment is allowed
-     */
+	/**
+	 * Allow or forbid the specific book/item combination as an anvil enchant
+	 *
+	 * @param stack
+	 *            The item
+	 * @param book
+	 *            The book
+	 * @return if the enchantment is allowed
+	 */
 	@Override
-	public boolean isBookEnchantable(ItemStack stack, ItemStack book)
-    {
-        return false;
-    }
-	
+	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+		return false;
+	}
+
 	/**
 	 * Called when the player Left Clicks (attacks) an entity. Processed before
 	 * damage is done, if return value is true further processing is canceled
