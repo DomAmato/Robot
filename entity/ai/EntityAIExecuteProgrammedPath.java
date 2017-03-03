@@ -110,99 +110,109 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	 */
 	@Override
 	public void updateTask() {
-		double dist = entity.getDistanceSqToCenter(destination);
-		// double dist = getClampedDistance();
-		if (!entityPath.noPath() || (dist > .365D)) {
-			// DYNServerMod.logger.info("Current Distance: " + dist + ", " +
-			// entityPath.noPath() + ", " + destination
-			// + ", " + new Vec3(entity.posX, entity.posY, entity.posZ));
-			// right now the generic walk up and down stairs/blocks is really
-			// bad...
-			if (clampX) {
-				// moving in the Z or Y plane
-				entity.motionX = 0;
+		if (!entity.isCodePaused()) {
+			if (!entityPath.noPath()) {
+				if (!destination.equals(new BlockPos(entityPath.getPath().getFinalPathPoint().xCoord,
+						entityPath.getPath().getFinalPathPoint().yCoord,
+						entityPath.getPath().getFinalPathPoint().zCoord))) {
+					destination = new BlockPos(entityPath.getPath().getFinalPathPoint().xCoord,
+							entityPath.getPath().getFinalPathPoint().yCoord,
+							entityPath.getPath().getFinalPathPoint().zCoord);
+				}
 			}
-			if (clampZ) {
-				// moving in the X or Y plane
-				entity.motionZ = 0;
-			}
-			if (isVertical) {
-				entity.motionY = entity.posY < destination.getY() ? .3 : -.3;
-				if (!clampX || !clampZ) {
+			double dist = entity.getDistanceSqToCenter(destination);
+			// double dist = getClampedDistance();
+			if (!entityPath.noPath() || (dist > .365D)) {
+				if (clampX) {
+					// moving in the Z or Y plane
+					entity.motionX = 0;
+				}
+				if (clampZ) {
+					// moving in the X or Y plane
+					entity.motionZ = 0;
+				}
+				if (isVertical) {
+					entity.motionY = entity.posY < destination.getY() ? .3 : -.3;
+					if (!clampX || !clampZ) {
+						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
+								(destination.getZ()) + 0.5D, speed);
+					}
+				}
+				if (entityPath.noPath()) {
 					entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
 							(destination.getZ()) + 0.5D, speed);
 				}
-			}
-			if (entityPath.noPath()) {
-				entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
-						(destination.getZ()) + 0.5D, speed);
-			}
-			if (prevDist != dist) {
-				prevDist = dist;
+				if (prevDist != dist) {
+					prevDist = dist;
+				} else {
+					// the entity made no progress is it stuck?
+					watchDog--;
+				}
 			} else {
-				// the entity made no progress is it stuck?
-				watchDog--;
-			}
-		} else if (!entity.isCodePaused()) {
-			// only update when execution is not paused
-			if (!entity.getProgramPath().isEmpty()) {
-				DYNServerMod.logger.info("Executing next part of Program Path");
-				clampX = clampZ = isVertical = false;
-				notifySuccess = true;
-				watchDog = 30;
-				prevDestination = destination;
+				// only update when execution is not paused
+				if (!entity.getProgramPath().isEmpty()) {
+					DYNServerMod.logger.info("Executing next part of Program Path");
+					clampX = clampZ = isVertical = false;
+					notifySuccess = true;
+					watchDog = 30;
+					prevDestination = destination;
 
-				destination = entity.getProgramPath().iterator().next();
-				entity.getProgramPath().remove(destination);
-				// heres the problem... the ai isnt smart enough to climb
-				if (entity.getPosition().getX() == destination.getX()) {
-					clampX = true;
-				}
-				if (entity.getPosition().getZ() == destination.getZ()) {
-					clampZ = true;
-				}
-				if (clampX && clampZ) {
-					isVertical = true;
-				}
-
-				if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()), (destination.getZ()), speed)) {
-					DYNServerMod.logger.info("Could not get path to: " + destination);
-					if (entity.getPosition().getY() != destination.getY()) {
-						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY() + 0.5D,
-								(destination.getZ()) + 0.5D, speed);
-						isVertical = true;
-						if (DYNServerMod.developmentEnvironment) {
-							NetworkManager.sendToDimension(
-									new RobotPathMessage(new PathEntity(new PathPoint[] {
-											new PathPoint(entity.getPosition().getX(), entity.getPosition().getY(),
-													entity.getPosition().getZ()),
-											new PathPoint(destination.getX(), destination.getY(),
-													destination.getZ()) }),
-											entity.getEntityId()),
-									entity.dimension);
-						}
-					} else {
-						RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
-								entity.getEntityId(), entity.getOwner()));
-						notifySuccess = false;
-						entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
-								prevDestination.getZ() + .5);
-						entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
-						DYNServerMod.logger.info("Stopping Code from path");
-						entity.stopExecutingCode();
-						entity.clearProgramPath();
-						entityPath.clearPathEntity();
+					destination = entity.getProgramPath().iterator().next();
+					entity.getProgramPath().remove(destination);
+					// heres the problem... the ai isnt smart enough to climb
+					if (entity.getPosition().getX() == destination.getX()) {
+						clampX = true;
 					}
-				}
-			} else if (notifySuccess) {
-				DYNServerMod.logger.info("Notifying Success");
-				// the program path is empty lets send a 1 time event
-				RaspberryJamMod.EVENT_BUS
-						.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
-				entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+					if (entity.getPosition().getZ() == destination.getZ()) {
+						clampZ = true;
+					}
+					if (clampX && clampZ) {
+						isVertical = true;
+					}
 
-				entityPath.clearPathEntity();
-				notifySuccess = false;
+					if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()), (destination.getZ()),
+							speed)) {
+						DYNServerMod.logger.info("Could not get path to: " + destination);
+						if (entity.getPosition().getY() != destination.getY()) {
+							entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY() + 0.5D,
+									(destination.getZ()) + 0.5D, speed);
+							isVertical = true;
+							if (DYNServerMod.developmentEnvironment) {
+								NetworkManager
+										.sendToDimension(
+												new RobotPathMessage(
+														new PathEntity(new PathPoint[] {
+																new PathPoint(entity.getPosition().getX(),
+																		entity.getPosition().getY(),
+																		entity.getPosition().getZ()),
+																new PathPoint(destination.getX(), destination.getY(),
+																		destination.getZ()) }),
+														entity.getEntityId()),
+												entity.dimension);
+							}
+						} else {
+							RaspberryJamMod.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
+									entity.getEntityId(), entity.getOwner()));
+							notifySuccess = false;
+							entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
+									prevDestination.getZ() + .5);
+							entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+							DYNServerMod.logger.info("Stopping Code from path");
+							entity.stopExecutingCode();
+							entity.clearProgramPath();
+							entityPath.clearPathEntity();
+						}
+					}
+				} else if (notifySuccess) {
+					DYNServerMod.logger.info("Notifying Success");
+					// the program path is empty lets send a 1 time event
+					RaspberryJamMod.EVENT_BUS
+							.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
+					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+
+					entityPath.clearPathEntity();
+					notifySuccess = false;
+				}
 			}
 		}
 	}
