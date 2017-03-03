@@ -8,11 +8,9 @@ import java.util.UUID;
 
 import com.dyn.DYNServerMod;
 import com.dyn.render.hud.path.EntityPathRenderer;
-import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
-import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.utils.HelperFunctions;
@@ -31,13 +29,10 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.InventoryBasic;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.pathfinding.PathNavigate;
-import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
@@ -93,6 +88,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
+
+		// targetTasks.addTask(5, new EntityAIMoveTowardsTarget(this, 1.0D,
+		// 64));
 	}
 
 	public void addMessage(String message) {
@@ -104,13 +102,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
-	
-	public void InsertToProgramPath(int loc, BlockPos pos) {
-		// block pos is integer based but we want to move to the center of the
-		// block
-		programPath.add(loc, pos);
-	}
-	
 	public void addToProgramPath(BlockPos pos) {
 		// block pos is integer based but we want to move to the center of the
 		// block
@@ -261,6 +252,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return 10;
 	}
 
+	public int getMemorySize() {
+		return (int) (robot_inventory.getStackInSlot(1) != null
+				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage())) : 8);
+	}
+
 	public Map<Long, String> getMessages() {
 		Map<Long, String> messages = new TreeMap<>();
 		long time = System.currentTimeMillis();
@@ -315,6 +311,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public boolean hasNeededItem() {
 		return false;
+	}
+
+	public void InsertToProgramPath(int loc, BlockPos pos) {
+		// block pos is integer based but we want to move to the center of the
+		// block
+		programPath.add(loc, pos);
 	}
 
 	@Override
@@ -425,7 +427,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		resumeExecution();
 	}
 
-	private void pauseCodeExecution() {
+	public void pauseCodeExecution() {
 		pauseCode = true;
 	}
 
@@ -486,7 +488,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
-	private void resumeExecution() {
+	public void resumeExecution() {
 		pauseCode = false;
 	}
 
@@ -563,7 +565,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 		nbttagcompound.setTag("Items", nbttaglist);
-		
+
 		nbttagcompound.setString("robotName", dataWatcher.getWatchableObjectString(18));
 		nbttagcompound.setBoolean("follow", shouldFollow);
 		nbttagcompound.setBoolean("tame", isTamable);
@@ -587,9 +589,5 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		buffer.writeBoolean(isTamable);
 		buffer.writeBoolean(shouldFollow);
 		buffer.writeInt(1);
-	}
-
-	public int getMemorySize() {
-		return (int) (this.robot_inventory.getStackInSlot(1) != null ? Math.pow(2, (4 + this.robot_inventory.getStackInSlot(1).getItemDamage())) : 8);
 	}
 }
