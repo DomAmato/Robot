@@ -11,6 +11,7 @@ import com.dyn.render.hud.path.EntityPathRenderer;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
+import com.dyn.robot.entity.ai.EntityAIRobotAttackTarget;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.utils.HelperFunctions;
@@ -81,6 +82,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			Class.forName("mobi.omegacentauri.raspberryjammod.RaspberryJamMod");
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
+			tasks.addTask(1, new EntityAIRobotAttackTarget(this, EntityLivingBase.class, 1.0D, false));
 		} catch (ClassNotFoundException er) {
 			// this is just to make sure rjm exists
 		}
@@ -88,9 +90,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
-
-		// targetTasks.addTask(5, new EntityAIMoveTowardsTarget(this, 1.0D,
-		// 64));
 	}
 
 	public void addMessage(String message) {
