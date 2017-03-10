@@ -65,16 +65,24 @@ public class RobotAPI extends Python2MinecraftApi {
 	// players simultaneously run code where the robot id is not set
 	// to the correct robot... we
 
-	public static int getRobotId() {
-		return robotId;
-	}
-
-	protected static Entity getServerEntityByID(int id) {
+	protected static Entity getRobotEntityFromID(int id) {
 		EntityRobot robot = (EntityRobot) Python2MinecraftApi.getServerEntityByID(id);
 		if ((robot == null) || robot.isDead) {
 			fail("Robot is dead or no longer exists");
 		}
 		return robot;
+	}
+
+	public static int getRobotId() {
+		return robotId;
+	}
+
+	protected static Entity getServerEntityByID(int id) {
+		Entity entity = Python2MinecraftApi.getServerEntityByID(id);
+		if ((entity == null) || entity.isDead) {
+			fail("Entity is dead or no longer exists");
+		}
+		return entity;
 	}
 
 	public static void notifyFailure(String failMessage) {
@@ -121,7 +129,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		APIRegistry.registerCommand(ROBOTMOVE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
 
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -139,12 +147,12 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTNAME, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			sendLine(robot.getName());
 		});
 		APIRegistry.registerCommand(ROBOTPLACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int robId = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(robId);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(robId);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -242,7 +250,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		APIRegistry.registerCommand(ROBOTBREAK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			// TODO we need to check permission if the robot can break blocks
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -304,7 +312,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTINTERACT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -337,7 +345,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTTURN, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -354,7 +362,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTFACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
 					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
@@ -367,9 +375,9 @@ public class RobotAPI extends Python2MinecraftApi {
 			// TODO: Need to be able to expand the area and determine the mob
 			// type
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))) {
 					fail("Robot does not know the detect command");
 					return;
 				}
@@ -378,7 +386,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					NetworkManager.sendTo(new RobotSpeakMessage("Detecting", id), player);
 				}
 				int level = EnchantmentUtils.getLevel(Enchantment.power,
-						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 7)));
+						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 5)));
 				// Can map the entity this way
 				// EntityList.stringToClassMapping.get("");
 				List<EntityMob> list = robot.worldObj.getEntitiesWithinAABB(EntityMob.class,
@@ -397,9 +405,9 @@ public class RobotAPI extends Python2MinecraftApi {
 		APIRegistry.registerCommand(ROBOTATTACK, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			// TODO:
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 8))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
 					fail("Robot does not know the attack command");
 					return;
 				}
@@ -409,12 +417,16 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				id = scan.nextInt();
 				Entity target = getServerEntityByID(id);
+				if (target instanceof EntityPlayer) {
+					fail("Cannot go against the first law of robotics");
+				}
 				robot.setAttackTarget((EntityLivingBase) target);
+
 			}
 		});
 		APIRegistry.registerCommand(ROBOTFORWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -429,7 +441,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTBACKWARD, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -444,7 +456,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTCLIMB, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -465,7 +477,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTDESCEND, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -486,14 +498,14 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(GETROBOTID, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = havePlayer ? RobotMod.robotid2player.inverse().get(playerMP) : robotId;
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			robot.setIsFollowing(false);
 			robot.removeNonEssentialAI();
 			sendLine(id);
 		});
 		APIRegistry.registerCommand(ROBOTINSPECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -528,7 +540,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		APIRegistry.registerCommand(ROBOTSAY, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
 			EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 				return;
@@ -538,7 +550,7 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTJUMP, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getServerEntityByID(id);
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
