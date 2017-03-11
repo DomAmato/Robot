@@ -152,27 +152,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 				if (!worldObj.getBlockState(dest).getBlock().isLadder(worldObj, dest, this)) {
 					dest = dest.offset(getProgrammedDirection());
-					// PathPoint newTarget =
-					// nodeProcessor.getSafePoint(theEntity, (int)
-					// targetPosition.xCoord,
-					// (int) targetPosition.yCoord, (int) targetPosition.zCoord,
-					// 1);
-					// Block block = worldObj.getBlockState(dest).getBlock();
-					// Block blockdn =
-					// worldObj.getBlockState(dest.down()).getBlock();
-					// if (blockdn.getMaterial().blocksMovement() &&
-					// !block.getMaterial().blocksMovement()) {
-					// addToProgramPath(dest);
-					// } else {
-					// return false;
-					// }
 				}
 				addToProgramPath(dest);
 			} else {
 				dest = dest.up().offset(getProgrammedDirection());
 				Block block = worldObj.getBlockState(dest).getBlock();
 				Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
-				if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+				if (blockdn.getMaterial().blocksMovement() && block.isPassable(getEntityWorld(), dest)) {
 					addToProgramPath(dest);
 				} else {
 					return false;
