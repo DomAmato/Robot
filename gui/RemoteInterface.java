@@ -105,17 +105,23 @@ public class RemoteInterface extends GuiContainer {
 						+ EnumChatFormatting.RESET,
 				guiLeft + xSize + 30, 120, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Detect: "
+				EnumChatFormatting.GRAY + "Can Interact: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
 				guiLeft + xSize + 30, 130, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
-				EnumChatFormatting.GRAY + "Can Attack: "
+				EnumChatFormatting.GRAY + "Can Detect: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
 				guiLeft + xSize + 30, 140, ColourHelper.AWTColor2RGBInt(Color.white));
+		fontRendererObj.drawString(
+				EnumChatFormatting.GRAY + "Can Attack: "
+						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))
+								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
+						+ EnumChatFormatting.RESET,
+				guiLeft + xSize + 30, 150, ColourHelper.AWTColor2RGBInt(Color.white));
 		int i = (width - xSize) / 5;
 		int j = (height - ySize) / 2;
 		GuiInventory.drawEntityOnScreen(i + 34, j + 69, 47, (i + 51) - mousePosx, (j + 75) - 50 - mousePosY, robot);

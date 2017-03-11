@@ -57,7 +57,7 @@ public class ItemExpansionChip extends Item {
 	 */
 	@Override
 	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-		if ((stack.getItemDamage() == 7)
+		if ((stack.getItemDamage() == 6)
 				&& EnchantmentUtils.hasEnchant(Enchantment.power, Items.enchanted_book.getEnchantments(book))) {
 			return true;
 		}

@@ -158,7 +158,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					fail("Robot is not executing code, it might be out of sync");
 					return;
 				}
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))) {
 					fail("Robot does not know the placeBlock command");
 					return;
 				}
@@ -233,6 +233,69 @@ public class RobotAPI extends Python2MinecraftApi {
 									robot.swingItem();
 									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success",
 											robot.getEntityId(), robot.getOwner()));
+								} else {
+									fail("Cannot place block at location");
+								}
+
+							} else {
+								fail("No Valid Block Found in Inventory");
+								return;
+							}
+						} else {
+							fail("No Block in Inventory");
+							return;
+						}
+					}
+				} else {
+					Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(),
+							placeBlock.getZ());
+					if (scan.hasNext()) {
+						short id = scan.nextShort();
+						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+						String tagString = getRest(scan);
+
+						SetBlockStateWithId setState;
+
+						if (tagString.contains("{")) {
+							try {
+								setState = new SetBlockNBT(pos, id, meta, JsonToNBT.getTagFromJson(tagString));
+							} catch (NBTException e) {
+								System.err.println("Cannot parse NBT");
+								setState = new SetBlockStateWithId(pos, id, meta);
+							}
+						} else {
+							setState = new SetBlockStateWithId(pos, id, meta);
+						}
+						if(setState.getBlockState().getBlock().isPassable(pos.getWorld(), curLoc)){
+							eventHandler.queueServerAction(setState);
+							RaspberryJamMod.EVENT_BUS
+									.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						} else {
+							fail("Cannot place block at location");
+						}
+						
+					} else {
+						if (!robot.robot_inventory.isInventoryEmpty()) {
+							int slot = 0;
+							ItemStack inventorySlot = null;
+							for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
+								if ((robot.robot_inventory.getStackInSlot(i) != null) && (Block
+										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)) {
+									inventorySlot = robot.robot_inventory.getStackInSlot(i);
+									slot = i;
+									break;
+								}
+							}
+
+							if (inventorySlot != null) {
+								Block inventoryBlock = Block.getBlockFromItem(inventorySlot.getItem());
+								if ((inventoryBlock != null) && inventoryBlock.canPlaceBlockAt(robot.worldObj, pos)) {
+									robot.robot_inventory.decrStackSize(slot, 1);
+									eventHandler.queueServerAction(
+											new SetBlockState(pos, inventoryBlock, inventorySlot.getItemDamage()));
+									robot.swingItem();
+									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success",
+											robot.getEntityId(), robot.getOwner()));
 								}
 
 							} else {
@@ -256,7 +319,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					fail("Robot is not executing code, it might be out of sync");
 					return;
 				}
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))) {
 					fail("Robot does not know the breakBlock command");
 					return;
 				}
@@ -377,7 +440,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			int id = scan.nextInt();
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
 					fail("Robot does not know the detect command");
 					return;
 				}
@@ -386,7 +449,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					NetworkManager.sendTo(new RobotSpeakMessage("Detecting", id), player);
 				}
 				int level = EnchantmentUtils.getLevel(Enchantment.power,
-						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 5)));
+						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 6)));
 				// Can map the entity this way
 				// EntityList.stringToClassMapping.get("");
 				List<EntityMob> list = robot.worldObj.getEntitiesWithinAABB(EntityMob.class,
@@ -407,7 +470,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			int id = scan.nextInt();
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
-				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
+				if (!robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))) {
 					fail("Robot does not know the attack command");
 					return;
 				}
