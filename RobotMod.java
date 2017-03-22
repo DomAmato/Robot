@@ -13,6 +13,7 @@ import com.dyn.robot.items.ItemExpansionChip;
 import com.dyn.robot.items.ItemMemoryCard;
 import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemRemote;
+import com.dyn.robot.items.ItemRobotWhistle;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
@@ -51,6 +52,7 @@ public class RobotMod {
 	public static ItemExpansionChip expChip;
 	public static ItemMemoryCard card;
 	public static ItemMemoryStick ram;
+	public static ItemRobotWhistle whistle;
 
 	public static CreativeTabs roboTab = new RoboTab();
 
@@ -126,6 +128,10 @@ public class RobotMod {
 		for (int i = 0; i < 8; i++) {
 			proxy.registerItem(ram, ram.getUnlocalizedName() + "_" + i, i);
 		}
+		
+		whistle = (ItemRobotWhistle) new ItemRobotWhistle().setUnlocalizedName("dyn_robot_whistle").setCreativeTab(roboTab);;
+		GameRegistry.registerItem(whistle, "dyn_robot_whistle");
+		proxy.registerItem(whistle, whistle.getUnlocalizedName(), 0);
 
 		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerAccessLevel.STUDENT)) {
 			dynRobotWrench.setCreativeTab(roboTab);
