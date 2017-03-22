@@ -12,6 +12,7 @@ import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
 import com.dyn.robot.entity.ai.EntityAIRobotAttackTarget;
+import com.dyn.robot.entity.ai.EntiyAIBuildSchematic;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.utils.HelperFunctions;
@@ -66,6 +67,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public int counter = 0;
 
 	private EnumFacing programDir;
+	private boolean buildSchematic;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
@@ -83,6 +85,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
 			tasks.addTask(1, new EntityAIRobotAttackTarget(this, EntityLivingBase.class, 1.0D, false));
+			tasks.addTask(1, new EntiyAIBuildSchematic(this));
 		} catch (ClassNotFoundException er) {
 			// this is just to make sure rjm exists
 		}
@@ -176,7 +179,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
 		if (!(damageSrc.getEntity() instanceof EntityPlayer)
-				&& !((damageSrc == DamageSource.fall) && (damageAmount > 10))) {
+				&& !((damageSrc == DamageSource.fall) && (damageAmount > 25))) {
 			super.damageEntity(damageSrc, damageAmount);
 		}
 	}
@@ -198,7 +201,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				} else {
 					Block block = worldObj.getBlockState(dest).getBlock();
 					Block blockdn = worldObj.getBlockState(dest.down()).getBlock();
-					if (blockdn.getMaterial().blocksMovement() && !block.getMaterial().blocksMovement()) {
+					if (blockdn.getMaterial().blocksMovement() && block.isPassable(getEntityWorld(), dest)) {
 						addToProgramPath(dest);
 					} else {
 						return false;
@@ -484,6 +487,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		programDir = EnumFacing.fromAngle(yaw);
 	}
 
+	public void setBuildSchematic(boolean buildSchematic) {
+		this.buildSchematic = buildSchematic;
+	}
+
 	public void setIsFollowing(boolean shouldFollow) {
 		this.shouldFollow = shouldFollow;
 	}
@@ -518,6 +525,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setTamable(boolean isTamable) {
 		this.isTamable = isTamable;
+	}
+
+	// I think its ok if we don't sync this variable, it should only happen in
+	// code and doesnt need persistence
+	public boolean shouldBuildSchematic() {
+		return buildSchematic;
 	}
 
 	public boolean shouldExecuteCode() {
