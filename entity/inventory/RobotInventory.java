@@ -59,6 +59,19 @@ public class RobotInventory extends InventoryBasic {
 		return 11;
 	}
 
+	public int getQuantityOfItem(ItemStack is) {
+		int total = 0;
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (is2 != null) {
+				if (is2.getItem() == is.getItem()) {
+					total += is2.stackSize;
+				}
+			}
+		}
+		return total;
+	}
+
 	public ItemStack getStackOfItem(ItemStack is) {
 		if (is != null) {
 			for (int i = 0; i < getSizeInventory(); i++) {
@@ -94,5 +107,20 @@ public class RobotInventory extends InventoryBasic {
 		}
 
 		return true;
+	}
+
+	public boolean removeItemFromInventory(ItemStack is, int amount) {
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (is2 != null) {
+				if (is2.getItem() == is.getItem()) {
+					amount -= decrStackSize(i, amount).stackSize;
+					if (amount <= 0) {
+						break;
+					}
+				}
+			}
+		}
+		return amount <= 0;
 	}
 }
