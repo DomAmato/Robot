@@ -92,7 +92,7 @@ public class BlockRobotMagnet extends Block {
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
 			EnumFacing side, float hitX, float hitY, float hitZ) {
 		List<EntityRobot> list = worldIn.getEntitiesWithinAABB(EntityRobot.class, AxisAlignedBB.fromBounds(
-				pos.getX() - 5, pos.getY() - 5, pos.getZ() - 5, pos.getX() + 5, pos.getY() + 5, pos.getZ() + 5));
+				pos.getX() - 10, pos.getY() - 10, pos.getZ() - 10, pos.getX() + 10, pos.getY() + 10, pos.getZ() + 10));
 		for (EntityRobot robot : list) {
 			if (robot.getOwner() == playerIn) {
 				robot.setPosition(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);

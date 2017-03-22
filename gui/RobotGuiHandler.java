@@ -33,7 +33,7 @@ public class RobotGuiHandler implements IGuiHandler {
 			DYNServerMod.logger.error("Invalid ID: expected " + getGuiID() + ", received " + ID);
 		}
 
-		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 20)) {
+		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 32)) {
 			return new RemoteInterface(player.inventory, robot);
 		}
 
@@ -55,7 +55,7 @@ public class RobotGuiHandler implements IGuiHandler {
 			DYNServerMod.logger.error("Invalid ID: expected " + getGuiID() + ", received " + ID);
 		}
 
-		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 20)) {
+		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 32)) {
 			if (robot.getOwner() == player) {
 				return new RobotChipContainer(player.inventory, robot.robot_inventory, robot, player);
 			}
