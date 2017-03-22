@@ -13,7 +13,6 @@ import com.dyn.utils.HelperFunctions;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.actions.SetBlockNBT;
-import mobi.omegacentauri.raspberryjammod.actions.SetBlockState;
 import mobi.omegacentauri.raspberryjammod.actions.SetBlockStateWithId;
 import mobi.omegacentauri.raspberryjammod.api.APIRegistry;
 import mobi.omegacentauri.raspberryjammod.api.APIRegistry.Python2MinecraftApi;
@@ -29,6 +28,8 @@ import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemDoor;
+import net.minecraft.item.ItemReed;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
@@ -58,6 +59,7 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTFACE = "robot.face";
 	private static final String ROBOTDETECT = "robot.detect";
 	private static final String ROBOTATTACK = "robot.attack";
+	private static final String ROBOTSCHEM = "robot.schematic";
 
 	public static int robotId = 0;
 
@@ -185,13 +187,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					}
 					placeBlock = curLoc.add(temp);
 				}
-				// only place the block if the block is air
-				// canBlockBePlaced(blockIn, pos, p_175716_3_, side, entityIn,
-				// itemStackIn)
 				if (robot.worldObj.getBlockState(placeBlock).getBlock().canPlaceBlockAt(robot.worldObj, placeBlock)) {
-					Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(),
-							placeBlock.getZ());
 					if (scan.hasNext()) {
+						Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(),
+								placeBlock.getZ());
 						short id = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 						String tagString = getRest(scan);
@@ -216,8 +215,10 @@ public class RobotAPI extends Python2MinecraftApi {
 							int slot = 0;
 							ItemStack inventorySlot = null;
 							for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-								if ((robot.robot_inventory.getStackInSlot(i) != null) && (Block
-										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)) {
+								if ((robot.robot_inventory.getStackInSlot(i) != null) && ((Block
+										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
+										|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemReed)
+										|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemDoor))) {
 									inventorySlot = robot.robot_inventory.getStackInSlot(i);
 									slot = i;
 									break;
@@ -225,18 +226,19 @@ public class RobotAPI extends Python2MinecraftApi {
 							}
 
 							if (inventorySlot != null) {
-								Block inventoryBlock = Block.getBlockFromItem(inventorySlot.getItem());
-								if ((inventoryBlock != null) && inventoryBlock.canPlaceBlockAt(robot.worldObj, pos)) {
-									robot.robot_inventory.decrStackSize(slot, 1);
-									eventHandler.queueServerAction(
-											new SetBlockState(pos, inventoryBlock, inventorySlot.getItemDamage()));
+								if (!inventorySlot.getItem().onItemUse(inventorySlot, robot.getOwner(),
+										robot.worldObj, placeBlock, (inventorySlot.getItem() instanceof ItemDoor)
+												? EnumFacing.UP : robot.getProgrammedDirection().getOpposite(),
+										0, 0, 0)) {
+									fail("Cannot place block at location");
+								} else {
+									if (robot.robot_inventory.getStackInSlot(slot).stackSize <= 0) {
+										robot.robot_inventory.removeStackFromSlot(slot);
+									}
 									robot.swingItem();
 									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success",
 											robot.getEntityId(), robot.getOwner()));
-								} else {
-									fail("Cannot place block at location");
 								}
-
 							} else {
 								fail("No Valid Block Found in Inventory");
 								return;
@@ -247,66 +249,7 @@ public class RobotAPI extends Python2MinecraftApi {
 						}
 					}
 				} else {
-					Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(),
-							placeBlock.getZ());
-					if (scan.hasNext()) {
-						short id = scan.nextShort();
-						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
-						String tagString = getRest(scan);
-
-						SetBlockStateWithId setState;
-
-						if (tagString.contains("{")) {
-							try {
-								setState = new SetBlockNBT(pos, id, meta, JsonToNBT.getTagFromJson(tagString));
-							} catch (NBTException e) {
-								System.err.println("Cannot parse NBT");
-								setState = new SetBlockStateWithId(pos, id, meta);
-							}
-						} else {
-							setState = new SetBlockStateWithId(pos, id, meta);
-						}
-						if(setState.getBlockState().getBlock().isPassable(pos.getWorld(), curLoc)){
-							eventHandler.queueServerAction(setState);
-							RaspberryJamMod.EVENT_BUS
-									.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
-						} else {
-							fail("Cannot place block at location");
-						}
-						
-					} else {
-						if (!robot.robot_inventory.isInventoryEmpty()) {
-							int slot = 0;
-							ItemStack inventorySlot = null;
-							for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-								if ((robot.robot_inventory.getStackInSlot(i) != null) && (Block
-										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)) {
-									inventorySlot = robot.robot_inventory.getStackInSlot(i);
-									slot = i;
-									break;
-								}
-							}
-
-							if (inventorySlot != null) {
-								Block inventoryBlock = Block.getBlockFromItem(inventorySlot.getItem());
-								if ((inventoryBlock != null) && inventoryBlock.canPlaceBlockAt(robot.worldObj, pos)) {
-									robot.robot_inventory.decrStackSize(slot, 1);
-									eventHandler.queueServerAction(
-											new SetBlockState(pos, inventoryBlock, inventorySlot.getItemDamage()));
-									robot.swingItem();
-									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success",
-											robot.getEntityId(), robot.getOwner()));
-								}
-
-							} else {
-								fail("No Valid Block Found in Inventory");
-								return;
-							}
-						} else {
-							fail("No Block in Inventory");
-							return;
-						}
-					}
+					fail("Cannot place block at location");
 				}
 			}
 		});
@@ -361,11 +304,6 @@ public class RobotAPI extends Python2MinecraftApi {
 					MinecraftForge.EVENT_BUS.post(event);
 					robot.swingItem();
 					robot.worldObj.setBlockToAir(breakBlock);
-					// BlockPos loc = robot.getPosition();
-					// robot.setPosition(loc.getX() + .5, loc.getY(), loc.getZ()
-					// +
-					// .5);
-					// robot.rotate(HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 					RaspberryJamMod.EVENT_BUS
 							.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 				} else {
@@ -434,9 +372,19 @@ public class RobotAPI extends Python2MinecraftApi {
 				robot.rotate(HelperFunctions.getAngleFromFacing(EnumFacing.getFront(scan.nextInt())));
 			}
 		});
+		APIRegistry.registerCommand(ROBOTSCHEM, (String args, Scanner scan, MCEventHandler eventHandler) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
+			if (robot != null) {
+				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
+					NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
+				}
+				robot.setBuildSchematic(true);
+			}
+		});
 		APIRegistry.registerCommand(ROBOTDETECT, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			// TODO: Need to be able to expand the area and determine the mob
-			// type
+			// TODO: Need to be able to determine the mob type
 			int id = scan.nextInt();
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
