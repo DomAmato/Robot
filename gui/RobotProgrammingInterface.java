@@ -64,6 +64,9 @@ public class RobotProgrammingInterface extends Show {
 
 	private Path pathBase = Paths.get(Minecraft.getMinecraft().mcDataDir.getAbsolutePath());
 	private Tab followTab;
+	private Tab robotDirTab;
+	private Tab playerDirTab;
+	private Tab invTab;
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
@@ -137,6 +140,12 @@ public class RobotProgrammingInterface extends Show {
 
 	public EntityRobot getRobot() {
 		return robot;
+	}
+	
+	@Override
+	public void onClose() {
+		super.onClose();
+		RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 	}
 
 	public void handleErrorMessage(String error, String code, int line) {
@@ -246,17 +255,17 @@ public class RobotProgrammingInterface extends Show {
 
 		registerComponent(mainPanel);
 
-		mainPanel.registerComponent(new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
+		mainPanel.registerComponent(robotDirTab = new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
 			tab.setHidden(!tab.isHidden());
 		}));
 
-		mainPanel.registerComponent(new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
+		mainPanel.registerComponent(playerDirTab = new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
 				.setClickListener(tab -> {
 					tab.setHidden(!tab.isHidden());
 				}));
 
-		mainPanel.registerComponent(new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
-				.setHoverText(Lists.newArrayList("Open", "Robot", "Inventory")).setDrawHoverText(true)
+		mainPanel.registerComponent(invTab = new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
+				.setHoverText(Lists.newArrayList("Open Robot", "Inventory")).setDrawHoverText(true)
 				.setClickListener(tab -> {
 					NetworkManager.sendToServer(new MessageOpenRobotInterface(RobotMod.currentRobot.getEntityId()));
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
@@ -283,10 +292,6 @@ public class RobotProgrammingInterface extends Show {
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 										robot.setIsFollowing(false);
 									}
-									// NetworkManager.sendToServer(new
-									// MessageTeleportRobot(RobotMod.currentRobot.getEntityId()));
-									// ((DynRobotEntity)
-									// RobotMod.currentRobot).spawnParticles(EnumParticleTypes.REDSTONE);
 								}));
 
 		// The Panel background
@@ -322,6 +327,10 @@ public class RobotProgrammingInterface extends Show {
 		// menu panel
 		mainPanel.registerComponent(
 				new Button(0, 0, (mainPanel.getWidth() - 15) / 4, 15, "<<Game").setClickListener(btn -> {
+//					followTab.setHidden(true);
+//					robotDirTab.setHidden(true);
+//					playerDirTab.setHidden(true);
+//					invTab.setHidden(true);
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));

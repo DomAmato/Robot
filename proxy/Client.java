@@ -14,14 +14,18 @@ import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
+import com.rabbit.gui.component.display.tabs.PictureTab;
+import com.rabbit.gui.component.display.tabs.Tab;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -36,10 +40,14 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class Client implements Proxy {
 
 	private RobotProgrammingInterface robotProgramInterface;
+	
+	private Tab programTab;
 
 	private KeyBinding scriptKey;
 
 	private boolean showRobotProgrammer = false;
+
+	private int windowWidth;
 
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
@@ -91,7 +99,12 @@ public class Client implements Proxy {
 				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
 			if (Minecraft.getMinecraft().inGameHasFocus) {
 				if (showRobotProgrammer && !robotProgramInterface.getRobot().isDead) {
-					robotProgramInterface.onDraw(0, 0, event.renderTickTime);
+					ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
+					if(windowWidth != scaledresolution.getScaledWidth()){
+						windowWidth = scaledresolution.getScaledWidth();
+						programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90, new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);;
+					}
+					programTab.onDraw(0, 0, event.renderTickTime);
 				}
 			} else if (robotProgramInterface.getRobot().isDead) {
 				RabbitGui.proxy.getCurrentStage().close();
@@ -156,6 +169,11 @@ public class Client implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		if (!robotProgramInterface.getRobot().isDead) {
 			showRobotProgrammer = state;
+			if(state){
+				ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
+				windowWidth = scaledresolution.getScaledWidth();
+				programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90, new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);;
+			}
 		} else {
 			showRobotProgrammer = false;
 		}
