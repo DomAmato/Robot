@@ -582,9 +582,12 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	public static void setRobotId(int id, EntityPlayer player) {
 		robotId = id;
-		if (RobotMod.robotid2player.inverse().containsKey(player)
+		if (RobotMod.robotid2player.containsValue(player)
 				&& (RobotMod.robotid2player.inverse().get(player) != id)) {
 			int oldId = RobotMod.robotid2player.inverse().remove(player);
+			if(RobotMod.robotid2player.containsKey(oldId)){
+				RobotMod.robotid2player.remove(oldId);
+			}
 			DYNServerMod.logger
 					.info("Replacing robot id " + oldId + " with new id " + id + " to player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
