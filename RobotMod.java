@@ -128,8 +128,10 @@ public class RobotMod {
 		for (int i = 0; i < 8; i++) {
 			proxy.registerItem(ram, ram.getUnlocalizedName() + "_" + i, i);
 		}
-		
-		whistle = (ItemRobotWhistle) new ItemRobotWhistle().setUnlocalizedName("dyn_robot_whistle").setCreativeTab(roboTab);;
+
+		whistle = (ItemRobotWhistle) new ItemRobotWhistle().setUnlocalizedName("dyn_robot_whistle")
+				.setCreativeTab(roboTab);
+		;
 		GameRegistry.registerItem(whistle, "dyn_robot_whistle");
 		proxy.registerItem(whistle, whistle.getUnlocalizedName(), 0);
 

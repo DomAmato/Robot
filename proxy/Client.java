@@ -40,7 +40,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class Client implements Proxy {
 
 	private RobotProgrammingInterface robotProgramInterface;
-	
+
 	private Tab programTab;
 
 	private KeyBinding scriptKey;
@@ -100,9 +100,11 @@ public class Client implements Proxy {
 			if (Minecraft.getMinecraft().inGameHasFocus) {
 				if (showRobotProgrammer && !robotProgramInterface.getRobot().isDead) {
 					ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
-					if(windowWidth != scaledresolution.getScaledWidth()){
+					if (windowWidth != scaledresolution.getScaledWidth()) {
 						windowWidth = scaledresolution.getScaledWidth();
-						programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90, new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);;
+						programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90,
+								new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);
+						;
 					}
 					programTab.onDraw(0, 0, event.renderTickTime);
 				}
@@ -169,10 +171,12 @@ public class Client implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		if (!robotProgramInterface.getRobot().isDead) {
 			showRobotProgrammer = state;
-			if(state){
+			if (state) {
 				ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
 				windowWidth = scaledresolution.getScaledWidth();
-				programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90, new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);;
+				programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90,
+						new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);
+				;
 			}
 		} else {
 			showRobotProgrammer = false;

@@ -141,12 +141,6 @@ public class RobotProgrammingInterface extends Show {
 	public EntityRobot getRobot() {
 		return robot;
 	}
-	
-	@Override
-	public void onClose() {
-		super.onClose();
-		RobotMod.proxy.toggleRenderRobotProgramInterface(true);
-	}
 
 	public void handleErrorMessage(String error, String code, int line) {
 		// we have to subtract 2 since lines start at 0 and the error produces
@@ -160,6 +154,13 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
+		onClose();
+	}
+
+	@Override
+	public void onClose() {
+		super.onClose();
+		RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 	}
 
 	@Override
@@ -255,14 +256,16 @@ public class RobotProgrammingInterface extends Show {
 
 		registerComponent(mainPanel);
 
-		mainPanel.registerComponent(robotDirTab = new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
-			tab.setHidden(!tab.isHidden());
-		}));
-
-		mainPanel.registerComponent(playerDirTab = new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
-				.setClickListener(tab -> {
+		mainPanel.registerComponent(
+				robotDirTab = new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
 					tab.setHidden(!tab.isHidden());
 				}));
+
+		mainPanel.registerComponent(
+				playerDirTab = new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
+						.setClickListener(tab -> {
+							tab.setHidden(!tab.isHidden());
+						}));
 
 		mainPanel.registerComponent(invTab = new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
 				.setHoverText(Lists.newArrayList("Open Robot", "Inventory")).setDrawHoverText(true)
@@ -327,10 +330,10 @@ public class RobotProgrammingInterface extends Show {
 		// menu panel
 		mainPanel.registerComponent(
 				new Button(0, 0, (mainPanel.getWidth() - 15) / 4, 15, "<<Game").setClickListener(btn -> {
-//					followTab.setHidden(true);
-//					robotDirTab.setHidden(true);
-//					playerDirTab.setHidden(true);
-//					invTab.setHidden(true);
+					// followTab.setHidden(true);
+					// robotDirTab.setHidden(true);
+					// playerDirTab.setHidden(true);
+					// invTab.setHidden(true);
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));
