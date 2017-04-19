@@ -1,6 +1,7 @@
 package com.dyn.robot.gui;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.dyn.DYNServerMod;
 import com.dyn.robot.entity.EntityRobot;
@@ -19,22 +20,41 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
  * per mod.
  */
 public class RobotGuiHandler implements IGuiHandler {
-	private static final int GUIID = 1;
+	private static final int ACTIVATING = 1;
+	private static final int SEARCHING = 2;
 
-	public static int getGuiID() {
-		return GUIID;
+	public static int getActivationGuiID() {
+		return ACTIVATING;
+	}
+
+	public static int getSearchingGuiID() {
+		return SEARCHING;
 	}
 
 	// Gets the client side element for the given gui id this should return a
 	// gui
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		if (ID != getGuiID()) {
-			DYNServerMod.logger.error("Invalid ID: expected " + getGuiID() + ", received " + ID);
+		if ((ID != getActivationGuiID()) && (ID != getSearchingGuiID())) {
+			DYNServerMod.logger.error(
+					"Invalid ID: expected " + getActivationGuiID() + " or " + getSearchingGuiID() + ", received " + ID);
 		}
 
-		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 32)) {
-			return new RemoteInterface(player.inventory, robot);
+		switch (ID) {
+		case ACTIVATING:
+			for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 1)) {
+				return new RemoteInterface(player.inventory, robot);
+			}
+			DYNServerMod.logger.error("No Robots found in radius");
+			break;
+		case SEARCHING:
+			for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 32)) {
+				if ((robot.getOwner() == player) || UUID.fromString(robot.getOwnerId()).equals(player.getUniqueID())) {
+					return new RemoteInterface(player.inventory, robot);
+				}
+			}
+			DYNServerMod.logger.error("No Robots belonging to player found in radius");
+			break;
 		}
 
 		return null;
@@ -51,8 +71,9 @@ public class RobotGuiHandler implements IGuiHandler {
 	// container
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		if (ID != getGuiID()) {
-			DYNServerMod.logger.error("Invalid ID: expected " + getGuiID() + ", received " + ID);
+		if ((ID != getActivationGuiID()) && (ID != getSearchingGuiID())) {
+			DYNServerMod.logger.error(
+					"Invalid ID: expected " + getActivationGuiID() + " or " + getSearchingGuiID() + ", received " + ID);
 		}
 
 		for (EntityRobot robot : getEntitiesInRadius(world, x, y, z, 32)) {
