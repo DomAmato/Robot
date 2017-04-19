@@ -51,7 +51,9 @@ public class Client implements Proxy {
 
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
-		robotProgramInterface = new RobotProgrammingInterface(robot);
+		if (robotProgramInterface.getRobot() != robot) {
+			robotProgramInterface = new RobotProgrammingInterface(robot);
+		}
 	}
 
 	@Override
@@ -102,8 +104,11 @@ public class Client implements Proxy {
 					ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
 					if (windowWidth != scaledresolution.getScaledWidth()) {
 						windowWidth = scaledresolution.getScaledWidth();
-						programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90,
-								new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);
+						programTab = new PictureTab(windowWidth, 0, 45, 50, "(P)", 90,
+								new ResourceLocation("dyn",
+										robotProgramInterface.getRobot().getIsFollowing()
+												? "textures/gui/robot_follow.png" : "textures/gui/robot_stand.png"))
+														.setHidden(false);
 						;
 					}
 					programTab.onDraw(0, 0, event.renderTickTime);
@@ -134,9 +139,7 @@ public class Client implements Proxy {
 
 	@Override
 	public void openRobotProgrammingWindow(EntityRobot robot) {
-		if (robotProgramInterface.getRobot() != robot) {
-			createNewProgrammingInterface(robot);
-		}
+		createNewProgrammingInterface(robot);
 
 		openRobotProgrammingWindow();
 	}
@@ -175,7 +178,8 @@ public class Client implements Proxy {
 				ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
 				windowWidth = scaledresolution.getScaledWidth();
 				programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90,
-						new ResourceLocation("dyn", "textures/gui/robot_stand.png")).setHidden(false);
+						new ResourceLocation("dyn", robotProgramInterface.getRobot().getIsFollowing()
+								? "textures/gui/robot_follow.png" : "textures/gui/robot_stand.png")).setHidden(false);
 				;
 			}
 		} else {
