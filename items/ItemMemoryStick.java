@@ -57,6 +57,14 @@ public class ItemMemoryStick extends Item {
 	}
 
 	/**
+	 * Checks isDamagable and if it cannot be stacked
+	 */
+	@Override
+	public boolean isItemTool(ItemStack stack) {
+		return false;
+	}
+
+	/**
 	 * Called when the player Left Clicks (attacks) an entity. Processed before
 	 * damage is done, if return value is true further processing is canceled
 	 * and the entity is not attacked.

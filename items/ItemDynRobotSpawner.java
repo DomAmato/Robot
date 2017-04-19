@@ -33,6 +33,14 @@ public class ItemDynRobotSpawner extends Item {
 		subItems.add(new ItemStack(itemIn, 1, 1));
 	}
 
+	/**
+	 * Checks isDamagable and if it cannot be stacked
+	 */
+	@Override
+	public boolean isItemTool(ItemStack stack) {
+		return false;
+	}
+
 	@Override
 	public boolean onItemUse(ItemStack is, EntityPlayer p, World worldIn, BlockPos pos, EnumFacing side, float hitX,
 			float hitY, float hitZ) {
@@ -50,5 +58,4 @@ public class ItemDynRobotSpawner extends Item {
 		}
 		return false;
 	}
-
 }

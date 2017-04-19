@@ -52,6 +52,14 @@ public class ItemWrench extends Item {
 		return false;
 	}
 
+	/**
+	 * Checks isDamagable and if it cannot be stacked
+	 */
+	@Override
+	public boolean isItemTool(ItemStack stack) {
+		return false;
+	}
+
 	// called when the player starts holding right click;
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {

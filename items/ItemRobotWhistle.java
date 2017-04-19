@@ -42,6 +42,14 @@ public class ItemRobotWhistle extends Item {
 	}
 
 	/**
+	 * Checks isDamagable and if it cannot be stacked
+	 */
+	@Override
+	public boolean isItemTool(ItemStack stack) {
+		return false;
+	}
+
+	/**
 	 * Called whenever this item is equipped and the right mouse button is
 	 * pressed. Args: itemStack, world, entityPlayer
 	 */
