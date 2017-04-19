@@ -148,13 +148,15 @@ public class RobotProgrammingInterface extends Show {
 		errorPanel.setVisible(true);
 		errorPanel.setFocused(true);
 		errorLabel.setText(error);
-		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")) {
-			// name errors dont seem to have the same offset as other errors
+		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")
+				|| error.contains("AttributeError")) {
+			// some errors dont seem to have the same offset as other errors
 			codeWindow.notifyError(line - 1, code, error);
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
-		onClose();
+		robot.worldObj.playSoundAtEntity(robot.getOwner(), "dynrobot:robot.error", 1, 1);
+		// onClose();
 	}
 
 	@Override

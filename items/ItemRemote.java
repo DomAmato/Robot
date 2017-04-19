@@ -13,7 +13,6 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 public class ItemRemote extends Item {
@@ -39,6 +38,14 @@ public class ItemRemote extends Item {
 	}
 
 	/**
+	 * Checks isDamagable and if it cannot be stacked
+	 */
+	@Override
+	public boolean isItemTool(ItemStack stack) {
+		return false;
+	}
+
+	/**
 	 * Returns true if the item can be used on the given entity, e.g. shears on
 	 * sheep.
 	 */
@@ -57,16 +64,10 @@ public class ItemRemote extends Item {
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
 		if (!worldIn.isRemote) {
-			playerIn.openGui(RobotMod.instance, RobotGuiHandler.getGuiID(), playerIn.worldObj, (int) playerIn.posX,
-					(int) playerIn.posY, (int) playerIn.posZ);
-		} 
-//		else {
-//			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead) {
-//				net.minecraft.client.Minecraft.getMinecraft().getSoundHandler()
-//						.playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"),
-//								(float) playerIn.posX, (float) playerIn.posY, (float) playerIn.posZ));
-//			}
-//		}
+			playerIn.openGui(RobotMod.instance, RobotGuiHandler.getSearchingGuiID(), playerIn.worldObj,
+					(int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
+			worldIn.playSoundAtEntity(playerIn, "dynrobot:robot.remote", 1, 1);
+		}
 		return itemStackIn;
 	}
 

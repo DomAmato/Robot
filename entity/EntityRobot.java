@@ -226,6 +226,22 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return false;
 	}
 
+	/**
+	 * Returns the sound this mob makes on death.
+	 */
+	@Override
+	protected String getDeathSound() {
+		return "mob.irongolem.death";
+	}
+
+	/**
+	 * Returns the sound this mob makes when it is hurt.
+	 */
+	@Override
+	protected String getHurtSound() {
+		return "mob.blaze.hit";
+	}
+
 	public boolean getIsFollowing() {
 		return shouldFollow;
 	}
@@ -235,9 +251,17 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return 0.41F;
 	}
 
+	/**
+	 * Returns the sound this mob makes while it's alive.
+	 */
+	@Override
+	protected String getLivingSound() {
+		return "dynrobot:robot.beep";
+	}
+
 	@Override
 	public int getMaxFallHeight() {
-		return 10;
+		return 20;
 	}
 
 	public int getMemorySize() {
@@ -297,6 +321,15 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return shouldJump;
 	}
 
+	/**
+	 * Get number of ticks, at least during which the living entity will be
+	 * silent.
+	 */
+	@Override
+	public int getTalkInterval() {
+		return 240;
+	}
+
 	public boolean hasNeededItem() {
 		return false;
 	}
@@ -325,6 +358,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		} catch (Exception e) {
 			DYNServerMod.logger.info("No Owner Information Present");
+			return false;
 		}
 		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID().toString());
 	}
@@ -417,6 +451,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void pauseCodeExecution() {
 		pauseCode = true;
+	}
+
+	@Override
+	protected void playStepSound(BlockPos pos, Block blockIn) {
+		playSound("mob.chicken.step", 0.15F, 1.0F);
 	}
 
 	@Override
@@ -586,6 +625,5 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void writeSpawnData(ByteBuf buffer) {
 		buffer.writeBoolean(isTamable);
 		buffer.writeBoolean(shouldFollow);
-		buffer.writeInt(1);
 	}
 }
