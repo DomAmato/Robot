@@ -508,7 +508,14 @@ public class RobotAPI extends Python2MinecraftApi {
 			}
 		});
 		APIRegistry.registerCommand(GETROBOTID, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			int id = havePlayer ? RobotMod.robotid2player.inverse().get(playerMP) : robotId;
+			int playerid = scan.nextInt();
+			EntityPlayer player = (EntityPlayer) getServerEntityByID(playerid);
+			int id = player != null ? RobotMod.robotid2player.inverse().get(player) : robotId;
+			if (player != null) {
+				DYNServerMod.logger.info("Getting Id For Player: " + player.getName());
+			} else {
+				DYNServerMod.logger.info("Player Id was null using stored RobotID: " + robotId);
+			}
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			robot.setIsFollowing(false);
 			robot.removeNonEssentialAI();
@@ -588,7 +595,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				RobotMod.robotid2player.remove(oldId);
 			}
 			DYNServerMod.logger
-					.info("Replacing robot id " + oldId + " with new id " + id + " to player " + player.getName());
+					.info("Replacing robot id " + oldId + " with new id " + id + " for player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
 		} else {
 			DYNServerMod.logger.info("Attaching robot " + id + " to player " + player.getName());
