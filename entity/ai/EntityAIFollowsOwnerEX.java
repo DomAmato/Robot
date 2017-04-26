@@ -18,7 +18,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	World theWorld;
 	private double followSpeed;
 	private PathNavigate entityPath;
-	private int field_75343_h;
+	private int ticks;
 	float maxDist;
 	float minDist;
 
@@ -80,7 +80,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public void startExecuting() {
-		field_75343_h = 0;
+		ticks = 0;
 	}
 
 	/**
@@ -90,8 +90,8 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	public void updateTask() {
 		follower.getLookHelper().setLookPositionWithEntity(follower.getOwner(), 10.0F, follower.getVerticalFaceSpeed());
 
-		if (--field_75343_h <= 0) {
-			field_75343_h = 10;
+		if (--ticks <= 0) {
+			ticks = 10;
 			if (!entityPath.tryMoveToEntityLiving(follower.getOwner(), followSpeed)) {
 				if (follower.getDistanceSqToEntity(follower.getOwner()) >= 144.0D) {
 					int i = MathHelper.floor_double(follower.getOwner().posX) - 2;

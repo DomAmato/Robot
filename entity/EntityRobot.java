@@ -90,6 +90,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			// this is just to make sure rjm exists
 		}
 
+		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
@@ -535,14 +536,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void setOwner(EntityPlayer player) {
-		owner = player;
-		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 		setOwnerId(player.getUniqueID().toString());
 	}
 
 	public void setOwner(UUID playerId) {
 		owner = worldObj.getPlayerEntityByUUID(playerId);
-		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 	}
 
 	public void setOwnerId(String ownerUuid) {
