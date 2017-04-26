@@ -155,7 +155,7 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
-		robot.worldObj.playSoundAtEntity(robot.getOwner(), "dynrobot:robot.error", 1, 1);
+		robot.worldObj.playSoundAtEntity(Minecraft.getMinecraft().thePlayer, "dynrobot:robot.error", 1, 1);
 		// onClose();
 	}
 
