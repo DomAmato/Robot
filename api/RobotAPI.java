@@ -138,8 +138,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Moving", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Moving", id), player);
+					}
 				}
 				int x = (int) (robot.posX + scan.nextInt());
 				int y = (int) (robot.posY + scan.nextInt());
@@ -153,8 +155,8 @@ public class RobotAPI extends Python2MinecraftApi {
 			sendLine(robot.getName());
 		});
 		APIRegistry.registerCommand(ROBOTPLACE, (String args, Scanner scan, MCEventHandler eventHandler) -> {
-			int robId = scan.nextInt();
-			EntityRobot robot = (EntityRobot) getRobotEntityFromID(robId);
+			int id = scan.nextInt();
+			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (!robot.shouldExecuteCode()) {
 					fail("Robot is not executing code, it might be out of sync");
@@ -165,8 +167,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(robId) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Place", robId), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Place", id), player);
+					}
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos placeBlock = curLoc.offset(robot.getProgrammedDirection());
@@ -191,7 +195,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					if (scan.hasNext()) {
 						Location pos = new Location(robot.worldObj, placeBlock.getX(), placeBlock.getY(),
 								placeBlock.getZ());
-						short id = scan.nextShort();
+						short blockId = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 						String tagString = getRest(scan);
 
@@ -199,13 +203,13 @@ public class RobotAPI extends Python2MinecraftApi {
 
 						if (tagString.contains("{")) {
 							try {
-								setState = new SetBlockNBT(pos, id, meta, JsonToNBT.getTagFromJson(tagString));
+								setState = new SetBlockNBT(pos, blockId, meta, JsonToNBT.getTagFromJson(tagString));
 							} catch (NBTException e) {
 								System.err.println("Cannot parse NBT");
-								setState = new SetBlockStateWithId(pos, id, meta);
+								setState = new SetBlockStateWithId(pos, blockId, meta);
 							}
 						} else {
-							setState = new SetBlockStateWithId(pos, id, meta);
+							setState = new SetBlockStateWithId(pos, blockId, meta);
 						}
 						eventHandler.queueServerAction(setState);
 						RaspberryJamMod.EVENT_BUS
@@ -267,8 +271,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Break", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Break", id), player);
+					}
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos breakBlock = curLoc.offset(robot.getProgrammedDirection());
@@ -324,8 +330,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Interact", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Interact", id), player);
+					}
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos interactBlock = null;
@@ -353,8 +361,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Turning", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Turning", id), player);
+					}
 				}
 				float rotate = scan.nextFloat();
 				float newYaw = MathHelper.wrapAngleTo180_float(robot.rotationYaw + rotate);
@@ -366,8 +376,10 @@ public class RobotAPI extends Python2MinecraftApi {
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
+					}
 				}
 				robot.rotate(HelperFunctions.getAngleFromFacing(EnumFacing.getFront(scan.nextInt())));
 			}
@@ -377,8 +389,10 @@ public class RobotAPI extends Python2MinecraftApi {
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (robot != null) {
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
+					}
 				}
 				robot.setBuildSchematic(true);
 			}
@@ -393,8 +407,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Detecting", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Detecting", id), player);
+					}
 				}
 				int level = EnchantmentUtils.getLevel(Enchantment.power,
 						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 6)));
@@ -423,8 +439,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Attacking", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Attacking", id), player);
+					}
 				}
 				id = scan.nextInt();
 				Entity target = getServerEntityByID(id);
@@ -444,8 +462,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Forward", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Forward", id), player);
+					}
 				}
 				robot.moveForward(scan.nextInt());
 			}
@@ -459,8 +479,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Backward", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Backward", id), player);
+					}
 				}
 				robot.moveBackward(scan.nextInt());
 			}
@@ -478,8 +500,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Climb", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Climb", id), player);
+					}
 				}
 				if (!robot.climb(scan.nextInt())) {
 					fail("Could not climb block");
@@ -499,8 +523,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Descend", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Descend", id), player);
+					}
 				}
 				if (!robot.descend(scan.nextInt())) {
 					fail("Could not descend block");
@@ -535,8 +561,10 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Inspect", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Inspect", id), player);
+					}
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos inspectBlock = curLoc.offset(robot.getProgrammedDirection());
@@ -557,14 +585,16 @@ public class RobotAPI extends Python2MinecraftApi {
 		});
 		APIRegistry.registerCommand(ROBOTSAY, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
-			EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
+			EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
 			EntityRobot robot = (EntityRobot) getRobotEntityFromID(id);
 			if (!robot.shouldExecuteCode()) {
 				fail("Robot is not executing code, it might be out of sync");
 				return;
 			}
 			// adds a comma to the beginning so we substring
-			NetworkManager.sendTo(new RobotSpeakMessage(scan.nextLine().substring(1), id), player);
+			if (player != null) {
+				NetworkManager.sendTo(new RobotSpeakMessage(scan.nextLine().substring(1), id), player);
+			}
 		});
 		APIRegistry.registerCommand(ROBOTJUMP, (String args, Scanner scan, MCEventHandler eventHandler) -> {
 			int id = scan.nextInt();
@@ -579,8 +609,10 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = havePlayer ? (EntityPlayerMP) RobotMod.robotid2player.get(id) : playerMP;
-					NetworkManager.sendTo(new RobotSpeakMessage("Jumping", id), player);
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Jumping", id), player);
+					}
 				}
 				robot.setShouldJump(true);
 			}
