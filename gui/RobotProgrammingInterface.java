@@ -1,20 +1,17 @@
 package com.dyn.robot.gui;
 
-import java.awt.Color;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import com.dyn.DYNServerMod;
+import com.dyn.render.manager.NamesManager;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.server.network.NetworkManager;
 import com.dyn.server.network.messages.MessageOpenRobotInterface;
+import com.dyn.server.network.messages.MessageReplaceSDCardItemStack;
 import com.dyn.server.network.messages.MessageRunRobotScript;
 import com.dyn.server.network.messages.MessageToggleRobotFollow;
 import com.dyn.utils.FileUtils;
@@ -23,6 +20,7 @@ import com.rabbit.gui.component.code.CodeInterface;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.control.TextBox;
+import com.rabbit.gui.component.display.Compass;
 import com.rabbit.gui.component.display.Panel;
 import com.rabbit.gui.component.display.Picture;
 import com.rabbit.gui.component.display.TextLabel;
@@ -30,17 +28,13 @@ import com.rabbit.gui.component.display.tabs.CompassTab;
 import com.rabbit.gui.component.display.tabs.ItemTab;
 import com.rabbit.gui.component.display.tabs.PictureTab;
 import com.rabbit.gui.component.display.tabs.Tab;
-import com.rabbit.gui.component.list.DisplayList;
-import com.rabbit.gui.component.list.ScrollableDisplayList;
-import com.rabbit.gui.component.list.entries.ListEntry;
-import com.rabbit.gui.component.list.entries.SelectElementEntry;
-import com.rabbit.gui.component.list.entries.SelectListEntry;
-import com.rabbit.gui.component.list.entries.SelectStringEntry;
 import com.rabbit.gui.show.Show;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 
 public class RobotProgrammingInterface extends Show {
@@ -49,31 +43,21 @@ public class RobotProgrammingInterface extends Show {
 	private String termText;
 	private String fileName;
 
-	private File[] files;
-	private File selectedFile;
-
-	private File currentDir;
-
 	private CodeInterface codeWindow;
-	private TextLabel openPath;
 
 	private Panel errorPanel;
 	private TextLabel errorLabel;
-	private ScrollableDisplayList fileList;
 	private TextBox fileNameEntry;
 
-	private Path pathBase = Paths.get(Minecraft.getMinecraft().mcDataDir.getAbsolutePath());
+	private ItemStack sdCard;
+
 	private Tab followTab;
-	private Tab robotDirTab;
-	private Tab playerDirTab;
 	private Tab invTab;
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
 		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
 
-		currentDir = DYNServerMod.scriptsLoc;
-		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
 		robot = null;
 	}
 
@@ -81,56 +65,9 @@ public class RobotProgrammingInterface extends Show {
 		title = "Robot Remote Interface";
 		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
 
-		currentDir = DYNServerMod.scriptsLoc;
-		files = DYNServerMod.scriptsLoc.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
 		this.robot = robot;
 		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
 			RobotMod.currentRobot = robot;
-		}
-	}
-
-	public void entrySelected(SelectListEntry entry, DisplayList dlist, int mouseX, int mouseY) {
-		if (entry.getTitle().equals("..")) {
-			dlist.clear();
-			((ScrollableDisplayList) dlist).setScrollAmount(0);
-			if (currentDir.getParentFile() != null) {
-				currentDir = currentDir.getParentFile();
-			}
-			openPath.setText("Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath())));
-			files = currentDir.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py")
-					|| new File(file, name).isDirectory());
-			if (!pathBase.relativize(Paths.get(currentDir.getAbsolutePath())).equals(".")
-					&& (currentDir.getParentFile() != null)) {
-				// dont leave the minecraft directory
-				dlist.add(new SelectStringEntry("..", (SelectStringEntry sentry, DisplayList sdlist, int smouseX,
-						int smouseY) -> entrySelected(sentry, sdlist, smouseX, smouseY)));
-			}
-			for (File subfile : files) {
-				dlist.add(new SelectElementEntry(subfile, subfile.getName(),
-						(SelectElementEntry sentry, DisplayList sdlist, int smouseX, int smouseY) -> {
-							entrySelected(sentry, sdlist, smouseX, smouseY);
-						}));
-			}
-
-		} else {
-			if (((File) entry.getValue()).isDirectory()) {
-				((ScrollableDisplayList) dlist).setScrollAmount(0);
-				currentDir = (File) entry.getValue();
-				openPath.setText("Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath())));
-				dlist.clear();
-				files = currentDir.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py")
-						|| new File(file, name).isDirectory());
-				dlist.add(new SelectStringEntry("..", (SelectStringEntry sentry, DisplayList sdlist, int smouseX,
-						int smouseY) -> entrySelected(sentry, sdlist, smouseX, smouseY)));
-				for (File subfile : files) {
-					dlist.add(new SelectElementEntry(subfile, subfile.getName(),
-							(SelectElementEntry sentry, DisplayList sdlist, int smouseX, int smouseY) -> {
-								entrySelected(sentry, sdlist, smouseX, smouseY);
-							}));
-				}
-			} else {
-				selectedFile = (File) entry.getValue();
-			}
 		}
 	}
 
@@ -168,50 +105,15 @@ public class RobotProgrammingInterface extends Show {
 	@Override
 	public void setup() {
 		super.setup();
-		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true);
 
-		Panel openPanel = new Panel((int) (width * .25), (int) (height * .23), (int) (width * .5), (int) (height * .55))
-				.setVisible(false).setFocused(false).setZ(1000);
-
-		registerComponent(openPanel);
-
-		openPanel.registerComponent(new Picture(0, 0, (openPanel.getWidth()), (openPanel.getHeight()),
-				new ResourceLocation("dyn", "textures/gui/background.png")));
-
-		openPanel.registerComponent(openPath = new TextLabel(10, 10, openPanel.getWidth() - 20, 15, Color.black,
-				"Open File: " + pathBase.relativize(Paths.get(currentDir.getAbsolutePath()))));
-
-		// components
-		ArrayList<ListEntry> scriptFiles = new ArrayList<>();
-
-		scriptFiles.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist, int mouseX,
-				int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
-		for (File file : files) {
-			scriptFiles.add(new SelectElementEntry(file, file.getName(), (SelectElementEntry entry, DisplayList dlist,
-					int mouseX, int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
+		if (sdCard != robot.robot_inventory.getStackInSlot(0)) {
+			sdCard = robot.robot_inventory.getStackInSlot(0);
+			if ((sdCard != null) && sdCard.hasTagCompound()) {
+				termText = sdCard.getTagCompound().getString("text");
+			}
 		}
 
-		openPanel.registerComponent(fileList = new ScrollableDisplayList((int) (openPanel.getWidth() * .1),
-				(int) (openPanel.getHeight() * .2), (int) (openPanel.getWidth() * .8),
-				(int) (openPanel.getHeight() * .6), 15, scriptFiles));
-
-		openPanel.registerComponent(
-				new Button((int) (openPanel.getWidth() * .2), (int) (openPanel.getHeight() * .85), 45, 15, "Open")
-						.setClickListener(btn -> {
-							if (selectedFile != null) {
-								termText = FileUtils.readFile(selectedFile);
-								codeWindow.setText(termText);
-								openPanel.setVisible(false);
-								mainPanel.setFocused(true);
-							}
-						}));
-
-		openPanel.registerComponent(
-				new Button((int) (openPanel.getWidth() * .7), (int) (openPanel.getHeight() * .85), 45, 15, "Cancel")
-						.setClickListener(btn -> {
-							openPanel.setVisible(false);
-							mainPanel.setFocused(true);
-						}));
+		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true);
 
 		Panel savePanel = new Panel((int) (width * .33), (int) (height * .33), (int) (width * .45),
 				(int) (height * .33)).setVisible(false).setFocused(false).setZ(1000);
@@ -233,18 +135,71 @@ public class RobotProgrammingInterface extends Show {
 		savePanel.registerComponent(
 				new Button((savePanel.getWidth() / 3) - 23, savePanel.getHeight() - 35, 45, 15, "Save")
 						.setClickListener(btn -> {
-							if ((fileName != null) && !fileName.isEmpty()) {
-								try {
-									FileUtils.writeFile(new File(DYNServerMod.scriptsLoc, fileName + ".py"),
-											Arrays.asList(termText.split(Pattern.quote("\n"))));
-								} catch (Exception e) {
-									DYNServerMod.logger.error("Could not create script file", e);
+							if (sdCard.hasTagCompound()) {
+								// TODO: Warn the user they are overwriting
+								if ((fileName != null) && !fileName.isEmpty()) {
+									DYNServerMod.logger.info("Overwriting SD Card");
+									try {
+										FileUtils.writeFile(new File(DYNServerMod.scriptsLoc, fileName + ".py"),
+												Arrays.asList(termText.split(Pattern.quote("\n"))));
+									} catch (Exception e) {
+										DYNServerMod.logger.error("Could not create script file", e);
+									}
+
+									NBTTagCompound tag = new NBTTagCompound();
+
+									String author = NamesManager
+											.getDYNUsername(Minecraft.getMinecraft().thePlayer.getName());
+									if ((author == null) || author.isEmpty()) {
+										author = Minecraft.getMinecraft().thePlayer.getName();
+									}
+
+									tag.setString("author", author);
+									tag.setString("title", fileName);
+									tag.setString("text", termText);
+
+									ItemStack is = new ItemStack(RobotMod.card);
+									is.setTagCompound(tag);
+
+									sdCard = is;
+
+									NetworkManager
+											.sendToServer(new MessageReplaceSDCardItemStack(robot.getEntityId(), is));
+
+									fileNameEntry.setText("");
+									fileName = "";
+									savePanel.setVisible(false);
+									mainPanel.setFocused(true);
+								}
+							} else {
+								if ((fileName != null) && !fileName.isEmpty()) {
+									DYNServerMod.logger.info("Saving to SD Card");
+									try {
+										FileUtils.writeFile(new File(DYNServerMod.scriptsLoc, fileName + ".py"),
+												Arrays.asList(termText.split(Pattern.quote("\n"))));
+									} catch (Exception e) {
+										DYNServerMod.logger.error("Could not create script file", e);
+									}
+
+									NBTTagCompound tag = new NBTTagCompound();
+
+									tag.setString("author",
+											NamesManager.getDYNUsername(Minecraft.getMinecraft().thePlayer.getName()));
+									tag.setString("title", fileName);
+									tag.setString("text", termText);
+
+									sdCard.setTagCompound(tag);
+
+									NetworkManager.sendToServer(
+											new MessageReplaceSDCardItemStack(robot.getEntityId(), sdCard));
+
+									fileNameEntry.setText("");
+									fileName = "";
+									savePanel.setVisible(false);
+									mainPanel.setFocused(true);
+									mainPanel.setDimming(true);
 								}
 							}
-							fileNameEntry.setText("");
-							fileName = "";
-							savePanel.setVisible(false);
-							mainPanel.setFocused(true);
 						}));
 
 		savePanel.registerComponent(
@@ -258,25 +213,29 @@ public class RobotProgrammingInterface extends Show {
 
 		registerComponent(mainPanel);
 
-		mainPanel.registerComponent(
-				robotDirTab = new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
-					tab.setHidden(!tab.isHidden());
-				}));
+		mainPanel.setDimming(true);
 
-		mainPanel.registerComponent(
-				playerDirTab = new CompassTab(0, 50, 50, 40, "Player", 90, Minecraft.getMinecraft().thePlayer)
-						.setClickListener(tab -> {
-							tab.setHidden(!tab.isHidden());
-						}));
+		Compass robotComp = new Compass(0, 0, 0, 0, robot);
+		Compass playerComp = new Compass(0, 0, 0, 0, Minecraft.getMinecraft().thePlayer);
 
-		mainPanel.registerComponent(invTab = new ItemTab(0, 100, 40, 40, "", 90, Blocks.chest)
+		mainPanel.registerComponent(new CompassTab(0, 0, 50, 40, "Robot", 90, robot).setClickListener(tab -> {
+			if (((CompassTab) tab).getCompass().getTrackingEntity() instanceof EntityPlayer) {
+				((CompassTab) tab).setCompass(robotComp);
+				((CompassTab) tab).setTitle("Robot");
+			} else {
+				((CompassTab) tab).setCompass(playerComp);
+				((CompassTab) tab).setTitle("Player");
+			}
+		}));
+
+		mainPanel.registerComponent(invTab = new ItemTab(0, 50, 40, 40, "", 90, Blocks.chest)
 				.setHoverText(Lists.newArrayList("Open Robot", "Inventory")).setDrawHoverText(true)
 				.setClickListener(tab -> {
 					NetworkManager.sendToServer(new MessageOpenRobotInterface(RobotMod.currentRobot.getEntityId()));
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 				}));
 
-		mainPanel.registerComponent(followTab = new PictureTab(0, 140, 40, 40, "", 90,
+		mainPanel.registerComponent(followTab = new PictureTab(0, mainPanel.getHeight() - 40, 40, 40, "", 90,
 				robot.getIsFollowing() ? new ResourceLocation("dyn", "textures/gui/robot_stand.png")
 						: new ResourceLocation("dyn", "textures/gui/robot_follow.png"))
 								.setHoverText(robot.getIsFollowing() ? Lists.newArrayList("Make Robot", "Stand still")
@@ -341,30 +300,21 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(
-				new Button((mainPanel.getWidth() - 15) / 4, 0, (mainPanel.getWidth() - 15) / 4, 15, "Open")
+				new Button((mainPanel.getWidth() - 15) / 4, 0, (mainPanel.getWidth() - 15) / 4, 15, "Load")
 						.setClickListener(btn -> {
-							files = DYNServerMod.scriptsLoc
-									.listFiles((FilenameFilter) (file, name) -> name.toLowerCase().endsWith(".py"));
-							fileList.clear();
-							fileList.add(new SelectStringEntry("..", (SelectStringEntry entry, DisplayList dlist,
-									int mouseX, int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
-							for (File file : files) {
-								fileList.add(new SelectElementEntry(file, file.getName(),
-										(SelectElementEntry entry, DisplayList dlist, int mouseX,
-												int mouseY) -> entrySelected(entry, dlist, mouseX, mouseY)));
+							if (sdCard.hasTagCompound()) {
+								codeWindow.setText(sdCard.getTagCompound().getString("text"));
 							}
-							openPanel.setVisible(true);
-							openPanel.setFocused(true);
-							mainPanel.setFocused(false);
-						}).setIsEnabled(robot.robot_inventory.containsItem(new ItemStack(RobotMod.card, 1))));
+						}).setIsEnabled((sdCard != null) && sdCard.hasTagCompound()));
 
 		mainPanel.registerComponent(
 				new Button((mainPanel.getWidth() - 15) / 2, 0, (mainPanel.getWidth() - 15) / 4, 15, "Save")
 						.setClickListener(btn -> {
 							savePanel.setVisible(true);
 							savePanel.setFocused(true);
+							mainPanel.setDimming(false);
 							mainPanel.setFocused(false);
-						}).setIsEnabled(robot.robot_inventory.containsItem(new ItemStack(RobotMod.card, 1))));
+						}).setIsEnabled(sdCard != null));
 
 		mainPanel.registerComponent(
 				new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0, (mainPanel.getWidth() - 15) / 4, 15, "Run")
