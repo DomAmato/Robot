@@ -24,7 +24,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class RemoteInterface extends GuiContainer {
 	private static final ResourceLocation guiTex = new ResourceLocation("dynrobot", "textures/gui/robot_container.png");
 
-	private IInventory playerInventory;
 	private EntityRobot robot;
 
 	/** The mouse x-position recorded during the last rendered frame. */
@@ -34,7 +33,6 @@ public class RemoteInterface extends GuiContainer {
 
 	public RemoteInterface(IInventory playerInv, EntityRobot robot) {
 		super(new RobotChipContainer(playerInv, robot.robot_inventory, robot, Minecraft.getMinecraft().thePlayer));
-		playerInventory = playerInv;
 		this.robot = robot;
 		allowUserInput = false;
 	}
@@ -63,65 +61,59 @@ public class RemoteInterface extends GuiContainer {
 		this.drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 
 		fontRendererObj.drawString(EnumChatFormatting.GRAY + "Name: " + EnumChatFormatting.WHITE + robot.getRobotName(),
-				guiLeft + xSize + 30, 40, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 30, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Location: " + EnumChatFormatting.WHITE
 						+ String.format("X: %d Y: %d Z: %d", robot.getPosition().getX(), robot.getPosition().getY(),
 								robot.getPosition().getZ()),
-				guiLeft + xSize + 30, 50, ColourHelper.AWTColor2RGBInt(Color.white));
-		if (robot.getOwner() != null) {
-			fontRendererObj.drawString(
-					EnumChatFormatting.GRAY + "Owner Name: " + EnumChatFormatting.WHITE
-							+ robot.getOwner().getDisplayNameString(),
-					guiLeft + xSize + 30, 60, ColourHelper.AWTColor2RGBInt(Color.gray));
-		}
+				guiLeft + xSize + 30, 40, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Current Memory: " + EnumChatFormatting.WHITE + robot.getMemorySize(),
-				guiLeft + xSize + 30, 70, ColourHelper.AWTColor2RGBInt(Color.gray));
+				guiLeft + xSize + 30, 50, ColourHelper.AWTColor2RGBInt(Color.gray));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Climb: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 0))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
-				guiLeft + xSize + 30, 80, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 70, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Jump: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 1))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
-				guiLeft + xSize + 30, 90, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 80, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Mine: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
-				guiLeft + xSize + 30, 100, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 90, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Build: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No"),
-				guiLeft + xSize + 30, 110, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 100, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Inspect: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 4))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
-				guiLeft + xSize + 30, 120, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 110, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Interact: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
-				guiLeft + xSize + 30, 130, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 120, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Detect: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
-				guiLeft + xSize + 30, 140, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 130, ColourHelper.AWTColor2RGBInt(Color.white));
 		fontRendererObj.drawString(
 				EnumChatFormatting.GRAY + "Can Attack: "
 						+ (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))
 								? EnumChatFormatting.GREEN + "Yes" : EnumChatFormatting.RED + "No")
 						+ EnumChatFormatting.RESET,
-				guiLeft + xSize + 30, 150, ColourHelper.AWTColor2RGBInt(Color.white));
+				guiLeft + xSize + 30, 140, ColourHelper.AWTColor2RGBInt(Color.white));
 		int i = (width - xSize) / 5;
 		int j = (height - ySize) / 2;
 		GuiInventory.drawEntityOnScreen(i + 34, j + 69, 47, (i + 51) - mousePosx, (j + 75) - 50 - mousePosY, robot);
@@ -135,7 +127,7 @@ public class RemoteInterface extends GuiContainer {
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		fontRendererObj.drawString(robot.robot_inventory.getDisplayName().getUnformattedText(), 8, 6, 4210752);
-		fontRendererObj.drawString(playerInventory.getDisplayName().getUnformattedText(), 8, 112, 4210752);
+		fontRendererObj.drawString("Your Inventory", 8, 112, 4210752);
 	}
 
 	/**
@@ -155,8 +147,6 @@ public class RemoteInterface extends GuiContainer {
 		ySize = (int) (height * .85);
 		guiTop = (int) (height * .075);
 		guiLeft = (width - xSize) / 5;
-		// this.buttonList.add(new GuiButton(1, (this.width + this.xSize) / 2 -
-		// 150, ySize +46, 150, 20, "Open Programmer"));
 		buttonList.add(new GuiButton(1, guiLeft + xSize + 20, ySize - 20, 150, 20, "Open Programmer"));
 	}
 }
