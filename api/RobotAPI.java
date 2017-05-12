@@ -176,7 +176,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos placeBlock = curLoc.offset(robot.getProgrammedDirection());
 
 				if (scan.hasNext()) {
-					BlockPos temp = rotateVector(getBlockPos(scan),
+					BlockPos temp = rotateVectorAngle(getBlockPos(scan),
 							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 
 					if ((sqVectorLength(temp) == 0) || (sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
@@ -279,18 +279,20 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos curLoc = robot.getPosition();
 				BlockPos breakBlock = curLoc.offset(robot.getProgrammedDirection());
 				if (scan.hasNext()) {
-					BlockPos temp = rotateVector(getBlockPos(scan),
+					// this rotation is the problem
+					BlockPos temp = rotateVectorAngle(getBlockPos(scan),
 							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 
-					if ((sqVectorLength(temp) == 0) || (sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
-							|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
-						if (sqVectorLength(temp) == 0) {
-							fail("Coordinates cannot equal 0");
-							return;
-						} else {
-							fail("Distance is greater than robots reach");
-							return;
-						}
+					if (sqVectorLength(temp) == 0) {
+						fail("Coordinates cannot equal 0");
+						return;
+					}
+
+					if ((sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1) || (Math.abs(temp.getY()) > 1)
+							|| (Math.abs(temp.getZ()) > 1)) {
+						fail("Distance is greater than robots reach: " + String.format("(%d, %d, %d) = %d", temp.getX(),
+								temp.getY(), temp.getZ(), sqVectorLength(temp)));
+						return;
 					}
 					breakBlock = curLoc.add(temp);
 				}
@@ -569,7 +571,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos curLoc = robot.getPosition();
 				BlockPos inspectBlock = curLoc.offset(robot.getProgrammedDirection());
 				if (scan.hasNext()) {
-					BlockPos temp = rotateVector(getBlockPos(scan),
+					BlockPos temp = rotateVectorAngle(getBlockPos(scan),
 							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 
 					if ((sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1) || (Math.abs(temp.getY()) > 1)
@@ -633,5 +635,9 @@ public class RobotAPI extends Python2MinecraftApi {
 			DYNServerMod.logger.info("Attaching robot " + id + " to player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
 		}
+	}
+
+	private static int sqVectorLength(BlockPos temp) {
+		return (temp.getX() * temp.getX()) + (temp.getY() * temp.getY()) + (temp.getZ() * temp.getZ());
 	}
 }
