@@ -76,8 +76,17 @@ public class EntiyAIBuildSchematic extends EntityAIBase {
 	private boolean loadSchematic(int slot) {
 		placingList.clear();
 		BlockPos firstPos = startingPos.offset(robot.getProgrammedDirection()).down();
+		if (!robot.robot_inventory.getStackInSlot(slot).hasTagCompound()) {
+			RaspberryJamMod.EVENT_BUS
+					.post(new CodeEvent.FailEvent("Schematic is empty", robot.getEntityId(), robot.getOwner()));
+			return false;
+		}
 		Schematic schematic = ItemSchematic.getSchematic(robot.robot_inventory.getStackInSlot(slot));
-
+		if (schematic == null) {
+			RaspberryJamMod.EVENT_BUS
+					.post(new CodeEvent.FailEvent("Schematic is null", robot.getEntityId(), robot.getOwner()));
+			return false;
+		}
 		for (Entry<Block, Integer> block : schematic.getMaterialCosts().entrySet()) {
 			int total = robot.robot_inventory.getQuantityOfItem(new ItemStack(block.getKey()));
 			if (total < block.getValue()) {
