@@ -16,6 +16,7 @@ import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
 
 public class RobotChipContainer extends Container {
 
@@ -64,8 +65,7 @@ public class RobotChipContainer extends Container {
 			@Override
 			public boolean isItemValid(ItemStack stack) {
 				return super.isItemValid(stack) && ((stack.getItem() instanceof ItemSword)
-						|| (stack.getItem() instanceof ItemSpade) || (stack.getItem() instanceof ItemPickaxe)
-						|| (stack.getItem() instanceof ItemAxe) || (stack.getItem() instanceof ItemHoe))
+						|| (stack.getItem() instanceof ItemTool) || (stack.getItem() instanceof ItemHoe))
 						&& !getHasStack();
 			}
 
