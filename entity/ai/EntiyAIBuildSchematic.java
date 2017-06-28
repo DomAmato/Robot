@@ -3,9 +3,9 @@ package com.dyn.robot.entity.ai;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-import com.dyn.fixins.items.ItemSchematic;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.schematics.BlockData;
+import com.dyn.schematics.ItemSchematic;
 import com.dyn.schematics.Schematic;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
