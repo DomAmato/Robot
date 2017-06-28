@@ -50,7 +50,6 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				notifySuccess = false;
 				entity.stopExecutingCode();
 				entity.clearProgramPath();
-				entityPath.clearPathEntity();
 				entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
 				entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
 			}
@@ -69,7 +68,6 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					notifySuccess = false;
 					entity.stopExecutingCode();
 					entity.clearProgramPath();
-					entityPath.clearPathEntity();
 					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
 					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
@@ -200,7 +198,6 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 							DYNServerMod.logger.info("Stopping Code from path");
 							entity.stopExecutingCode();
 							entity.clearProgramPath();
-							entityPath.clearPathEntity();
 						}
 					}
 				} else if (notifySuccess) {

@@ -141,6 +141,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void clearProgramPath() {
+		// clear the robots current path too
+		navigator.clearPathEntity();
 		programPath.clear();
 	}
 
