@@ -12,6 +12,8 @@ import com.dyn.robot.items.ItemDynRobotSpawner;
 import com.dyn.robot.items.ItemExpansionChip;
 import com.dyn.robot.items.ItemMemoryCard;
 import com.dyn.robot.items.ItemMemoryStick;
+import com.dyn.robot.items.ItemMemoryWipe;
+import com.dyn.robot.items.ItemRecombobulator;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemRobotWhistle;
 import com.dyn.robot.items.ItemWrench;
@@ -24,6 +26,7 @@ import com.google.common.collect.HashBiMap;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -53,6 +56,8 @@ public class RobotMod {
 	public static ItemMemoryCard card;
 	public static ItemMemoryStick ram;
 	public static ItemRobotWhistle whistle;
+	public static ItemMemoryWipe neuralyzer;
+	public static ItemRecombobulator printer;
 
 	public static CreativeTabs roboTab = new RoboTab();
 
@@ -131,9 +136,17 @@ public class RobotMod {
 
 		whistle = (ItemRobotWhistle) new ItemRobotWhistle().setUnlocalizedName("dyn_robot_whistle")
 				.setCreativeTab(roboTab);
-		;
 		GameRegistry.registerItem(whistle, "dyn_robot_whistle");
 		proxy.registerItem(whistle, whistle.getUnlocalizedName(), 0);
+
+		neuralyzer = (ItemMemoryWipe) new ItemMemoryWipe().setUnlocalizedName("dyn_robot_wipe").setCreativeTab(roboTab);
+		GameRegistry.registerItem(neuralyzer, "dyn_robot_wipe");
+		proxy.registerItem(neuralyzer, neuralyzer.getUnlocalizedName(), 0);
+
+		printer = (ItemRecombobulator) new ItemRecombobulator(Item.ToolMaterial.EMERALD)
+				.setUnlocalizedName("dyn_robot_printer").setCreativeTab(roboTab);
+		GameRegistry.registerItem(printer, "dyn_robot_printer");
+		proxy.registerItem(printer, printer.getUnlocalizedName(), 0);
 
 		if (DYNServerMod.developmentEnvironment || (DYNServerMod.accessLevel != PlayerAccessLevel.STUDENT)) {
 			dynRobotWrench.setCreativeTab(roboTab);

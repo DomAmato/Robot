@@ -1,6 +1,7 @@
 package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.items.ItemMemoryWipe;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemWrench;
 
@@ -75,12 +76,16 @@ public class DynRobotEntity extends EntityRobot {
 					return true;
 				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
 					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
 				}
 			}
 		} else {
 			if (itemstack != null) {
 				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
 					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
 				}
 			}
 		}
