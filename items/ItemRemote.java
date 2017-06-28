@@ -64,8 +64,17 @@ public class ItemRemote extends Item {
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
 		if (!worldIn.isRemote) {
-			playerIn.openGui(RobotMod.instance, RobotGuiHandler.getSearchingGuiID(), playerIn.worldObj,
-					(int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
+			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead
+					&& (playerIn.getPosition().distanceSq(RobotMod.currentRobot.getPosition()) < (64 * 64))) {
+				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), playerIn.worldObj,
+						(int) RobotMod.currentRobot.posX, (int) RobotMod.currentRobot.posY,
+						(int) RobotMod.currentRobot.posZ);
+			} else {
+				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getSearchingGuiID(), playerIn.worldObj,
+						(int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
+			}
+
+		} else {
 			worldIn.playSoundAtEntity(playerIn, "dynrobot:robot.remote", 1, 1);
 		}
 		return itemStackIn;
