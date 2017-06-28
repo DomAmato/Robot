@@ -65,10 +65,11 @@ public class ItemRobotWhistle extends Item {
 		if (!worldIn.isRemote) {
 			for (EntityRobot robot : getEntitiesInRadius(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, 32)) {
 				if (robot.getOwner() == playerIn) {
-					if (robot.getIsFollowing()) {
-						robot.getNavigator().clearPathEntity();
-					}
-					robot.setIsFollowing(!robot.getIsFollowing());
+					// if (robot.getIsFollowing()) {
+					// robot.getNavigator().clearPathEntity();
+					// }
+					// robot.setIsFollowing(!robot.getIsFollowing());
+					robot.setIsFollowing(true);
 				}
 			}
 		}
