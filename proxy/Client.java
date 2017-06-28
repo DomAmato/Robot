@@ -3,6 +3,7 @@ package com.dyn.robot.proxy;
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.DYNServerMod;
+import com.dyn.render.manager.NotificationsManager;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockDynRobot;
 import com.dyn.robot.entity.DynRobotEntity;
@@ -66,8 +67,15 @@ public class Client implements Proxy {
 
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
-		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
-				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
+		if (showRobotProgrammer) {
+			NotificationsManager.addGenericNotification(new ResourceLocation("Minecraft", "textures/items/barrier.png"),
+					error.split(":")[0], error.split(":")[1]);
+			if ((RabbitGui.proxy.getCurrentStage() != null)
+					&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface)) {
+				robotProgramInterface.handleErrorMessage(error, code, line);
+			}
+		} else if ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface)) {
 			robotProgramInterface.handleErrorMessage(error, code, line);
 		}
 	}

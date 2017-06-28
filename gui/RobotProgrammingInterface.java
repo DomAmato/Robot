@@ -18,6 +18,7 @@ import com.dyn.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.rabbit.gui.component.code.CodeInterface;
 import com.rabbit.gui.component.control.Button;
+import com.rabbit.gui.component.control.DraggableCamera;
 import com.rabbit.gui.component.control.PictureButton;
 import com.rabbit.gui.component.control.TextBox;
 import com.rabbit.gui.component.display.Compass;
@@ -43,6 +44,9 @@ public class RobotProgrammingInterface extends Show {
 	private String termText;
 	private String fileName;
 
+	private String errorText;
+	private boolean showError;
+
 	private CodeInterface codeWindow;
 
 	private Panel errorPanel;
@@ -57,14 +61,16 @@ public class RobotProgrammingInterface extends Show {
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
 		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
-
+		errorText = "";
+		showError = false;
 		robot = null;
 	}
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
 		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
-
+		errorText = "";
+		showError = false;
 		this.robot = robot;
 		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
 			RobotMod.currentRobot = robot;
@@ -85,6 +91,8 @@ public class RobotProgrammingInterface extends Show {
 		errorPanel.setVisible(true);
 		errorPanel.setFocused(true);
 		errorLabel.setText(error);
+		errorText = error;
+		showError = true;
 		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")
 				|| error.contains("AttributeError")) {
 			// some errors dont seem to have the same offset as other errors
@@ -337,6 +345,15 @@ public class RobotProgrammingInterface extends Show {
 							} else {
 								codeWindow.clearError();
 								errorPanel.setVisible(false);
+
+								// if(!termText.contains("robo = Robot()")){
+								// termText = "robo = Robot()\n" + termText;
+								// }
+								// if(!termText.contains("from api.ext.robot
+								// import *")){
+								// termText = "from api.ext.robot import *\n" +
+								// termText;
+								// }
 								NetworkManager
 										.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
 								((PictureTab) followTab)
@@ -353,13 +370,13 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(errorPanel = new Panel(0, (int) (mainPanel.getHeight() * .8), mainPanel.getWidth(),
-				(int) (mainPanel.getHeight() * .2)).setVisible(false));
+				(int) (mainPanel.getHeight() * .2)).setVisible(showError));
 
 		errorPanel.registerComponent(new Picture(0, 0, (errorPanel.getWidth()), (errorPanel.getHeight()),
 				new ResourceLocation("dyn", "textures/gui/background2.png")));
 
 		errorPanel.registerComponent(
-				errorLabel = new TextLabel(10, 20, errorPanel.getWidth() - 20, errorPanel.getHeight() - 20, "")
+				errorLabel = new TextLabel(10, 20, errorPanel.getWidth() - 20, errorPanel.getHeight() - 20, errorText)
 						.setMultilined(true));
 
 		errorPanel.registerComponent(new TextLabel(10, 5, errorPanel.getWidth() - 20, 10, "Error Description:"));
@@ -367,16 +384,20 @@ public class RobotProgrammingInterface extends Show {
 		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
 					errorPanel.setVisible(false);
+					showError = false;
 				}));
 
+		registerComponent(new DraggableCamera(0, 0, width, height).setEnabled(true));
+
+		// TODO: make this grab from the api or something
 		List<String> robotMembers = Lists.newArrayList();
 		robotMembers.add("forward()");
 		robotMembers.add("backward()");
 		robotMembers.add("inspect()");
 		robotMembers.add("left()");
 		robotMembers.add("right()");
-		robotMembers.add("breakBlock()");
-		robotMembers.add("placeBlock()");
+		robotMembers.add("mine()");
+		robotMembers.add("place()");
 		robotMembers.add("jump()");
 		robotMembers.add("say()");
 		robotMembers.add("interact()");
