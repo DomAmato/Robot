@@ -56,7 +56,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 			if (notifySuccess) {
 				if (entity.getPosition().equals(destination)) {
 					RaspberryJamMod.EVENT_BUS
-							.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
+							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
 					entityPath.clearPathEntity();
 					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
@@ -204,7 +204,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					DYNServerMod.logger.info("Notifying Success");
 					// the program path is empty lets send a 1 time event
 					RaspberryJamMod.EVENT_BUS
-							.post(new CodeEvent.SuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
+							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
 
 					entityPath.clearPathEntity();

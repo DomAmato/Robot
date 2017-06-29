@@ -67,7 +67,7 @@ public class EntityAIRobotAttackTarget extends EntityAIBase {
 						.post(new CodeEvent.FailEvent("Failed to kill target", robot.getEntityId(), robot.getOwner()));
 			} else {
 				RaspberryJamMod.EVENT_BUS
-						.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 			}
 			robot.resumeExecution();
 		}

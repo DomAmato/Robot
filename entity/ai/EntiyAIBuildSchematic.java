@@ -50,7 +50,7 @@ public class EntiyAIBuildSchematic extends EntityAIBase {
 			robot.setCurrentItemOrArmor(0, robot.robot_inventory.getStackInSlot(2));
 			if (nearPosition(startingPos)) {
 				RaspberryJamMod.EVENT_BUS
-						.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 			} else {
 				return true;
 			}

@@ -212,8 +212,8 @@ public class RobotAPI extends Python2MinecraftApi {
 							setState = new SetBlockStateWithId(pos, blockId, meta);
 						}
 						eventHandler.queueServerAction(setState);
-						RaspberryJamMod.EVENT_BUS
-								.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						RaspberryJamMod.EVENT_BUS.post(
+								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 					} else {
 						if (!robot.robot_inventory.isInventoryEmpty()) {
 							int slot = 0;
@@ -240,7 +240,7 @@ public class RobotAPI extends Python2MinecraftApi {
 										robot.robot_inventory.removeStackFromSlot(slot);
 									}
 									robot.swingItem();
-									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.SuccessEvent("Success",
+									RaspberryJamMod.EVENT_BUS.post(new CodeEvent.RobotSuccessEvent("Success",
 											robot.getEntityId(), robot.getOwner()));
 								}
 							} else {
@@ -313,7 +313,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					robot.swingItem();
 					robot.worldObj.setBlockToAir(breakBlock);
 					RaspberryJamMod.EVENT_BUS
-							.post(new CodeEvent.SuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 				} else {
 					fail("Nothing to break");
 				}

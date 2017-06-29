@@ -36,7 +36,7 @@ public class EntityAIJumpToward extends EntityAIBase {
 		boolean doContinue = !leaper.onGround;
 		if (!doContinue) {
 			RaspberryJamMod.EVENT_BUS
-					.post(new CodeEvent.SuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
+					.post(new CodeEvent.RobotSuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
 			if (leaper.getProgramPath().iterator().hasNext()) {
 				BlockPos prevLoc = leaper.getProgramPath().iterator().next();
 				leaper.getProgramPath().remove(prevLoc);
