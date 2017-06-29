@@ -32,6 +32,7 @@ import com.rabbit.gui.component.display.tabs.Tab;
 import com.rabbit.gui.show.Show;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -57,6 +58,8 @@ public class RobotProgrammingInterface extends Show {
 
 	private Tab followTab;
 	private Tab invTab;
+	private Button runButton;
+	private boolean btnStatus;
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
@@ -64,6 +67,7 @@ public class RobotProgrammingInterface extends Show {
 		errorText = "";
 		showError = false;
 		robot = null;
+		btnStatus = true;
 	}
 
 	public RobotProgrammingInterface(EntityRobot robot) {
@@ -71,6 +75,7 @@ public class RobotProgrammingInterface extends Show {
 		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
 		errorText = "";
 		showError = false;
+		btnStatus = true;
 		this.robot = robot;
 		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
 			RobotMod.currentRobot = robot;
@@ -83,6 +88,11 @@ public class RobotProgrammingInterface extends Show {
 
 	public EntityRobot getRobot() {
 		return robot;
+	}
+
+	public void handleCompletion() {
+		runButton.setIsEnabled(true);
+		btnStatus = true;
 	}
 
 	public void handleErrorMessage(String error, String code, int line) {
@@ -100,7 +110,8 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
-		robot.worldObj.playSoundAtEntity(Minecraft.getMinecraft().thePlayer, "dynrobot:robot.error", 1, 1);
+		Minecraft.getMinecraft().getSoundHandler()
+				.playSound(PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.error"), 1.0F));
 		// onClose();
 	}
 
@@ -324,44 +335,43 @@ public class RobotProgrammingInterface extends Show {
 							mainPanel.setFocused(false);
 						}).setIsEnabled(sdCard != null));
 
-		mainPanel.registerComponent(
-				new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0, (mainPanel.getWidth() - 15) / 4, 15, "Run")
-						.setClickListener(btn -> {
-							List<String> codeLines = Lists.newArrayList();
-							for (String line : termText.split(Pattern.quote("\n"))) {
-								line.trim();
-								if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
-									continue;
-								}
-								codeLines.add(line);
-							}
-							if (codeLines.size() > robot.getMemorySize()) {
-								handleErrorMessage(
-										"Robot out of memory, can only process " + robot.getMemorySize()
-												+ " lines but program contains " + codeLines.size(),
-										termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length
-												- 1],
-										termText.split(Pattern.quote("\n")).length);
-							} else {
-								codeWindow.clearError();
-								errorPanel.setVisible(false);
+		mainPanel.registerComponent(runButton = new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0,
+				(mainPanel.getWidth() - 15) / 4, 15, "Run").setIsEnabled(btnStatus).setClickListener(btn -> {
+					List<String> codeLines = Lists.newArrayList();
+					for (String line : termText.split(Pattern.quote("\n"))) {
+						line.trim();
+						if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
+							continue;
+						}
+						codeLines.add(line);
+					}
+					if (codeLines.size() > robot.getMemorySize()) {
+						handleErrorMessage(
+								"Robot out of memory, can only process " + robot.getMemorySize()
+										+ " lines but program contains " + codeLines.size(),
+								termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length - 1],
+								termText.split(Pattern.quote("\n")).length);
+					} else {
+						btn.setIsEnabled(false);
+						btnStatus = false;
+						codeWindow.clearError();
+						errorPanel.setVisible(false);
 
-								// if(!termText.contains("robo = Robot()")){
-								// termText = "robo = Robot()\n" + termText;
-								// }
-								// if(!termText.contains("from api.ext.robot
-								// import *")){
-								// termText = "from api.ext.robot import *\n" +
-								// termText;
-								// }
-								NetworkManager
-										.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
-								((PictureTab) followTab)
-										.setPicture(new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
-								followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
-								robot.setIsFollowing(false);
-							}
-						}));
+						// if(!termText.contains("robo = Robot()")){
+						// termText = "robo = Robot()\n" + termText;
+						// }
+						// if(!termText.contains("from api.ext.robot
+						// import *")){
+						// termText = "from api.ext.robot import *\n" +
+						// termText;
+						// }
+						NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+						((PictureTab) followTab)
+								.setPicture(new ResourceLocation("dyn", "textures/gui/robot_follow.png"));
+						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
+						robot.setIsFollowing(false);
+					}
+				}));
 
 		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15,
 				new ResourceLocation("dyn", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
