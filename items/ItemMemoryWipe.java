@@ -28,7 +28,7 @@ public class ItemMemoryWipe extends Item {
 	 */
 	@Override
 	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.NONE;
+		return EnumAction.BOW;
 	}
 
 	@Override
