@@ -38,7 +38,7 @@ public class ItemRobotWhistle extends Item {
 	 */
 	@Override
 	public int getMaxItemUseDuration(ItemStack stack) {
-		return 12;
+		return 18;
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class ItemRobotWhistle extends Item {
 	 */
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
-		worldIn.playSoundAtEntity(playerIn, "random.bow", 0.5F, 0.4F / ((itemRand.nextFloat() * 0.4F) + 0.8F));
+		worldIn.playSoundAtEntity(playerIn, "dynrobot:robo.whistle", 1, 1);
 		playerIn.setItemInUse(itemStackIn, getMaxItemUseDuration(itemStackIn));
 		return itemStackIn;
 	}
