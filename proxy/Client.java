@@ -66,10 +66,18 @@ public class Client implements Proxy {
 	}
 
 	@Override
+	public void handleCodeExecutionEnded() {
+		if ((RabbitGui.proxy.getCurrentStage() != null)
+				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface)) {
+			robotProgramInterface.handleCompletion();
+		}
+	}
+
+	@Override
 	public void handleErrorMessage(String error, String code, int line) {
 		if (showRobotProgrammer) {
 			NotificationsManager.addGenericNotification(new ResourceLocation("Minecraft", "textures/items/barrier.png"),
-					error.split(":")[0], error.split(":")[1]);
+					error.split(":")[0], error.split(":")[1].trim());
 			if ((RabbitGui.proxy.getCurrentStage() != null)
 					&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface)) {
 				robotProgramInterface.handleErrorMessage(error, code, line);

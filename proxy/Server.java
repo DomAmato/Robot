@@ -41,6 +41,12 @@ public class Server implements Proxy {
 	}
 
 	@Override
+	public void handleCodeExecutionEnded() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void handleErrorMessage(String error, String code, int line) {
 		// TODO Auto-generated method stub
 

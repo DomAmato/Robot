@@ -13,6 +13,8 @@ public interface Proxy {
 
 	public String getProgrammingInterfaceText();
 
+	public void handleCodeExecutionEnded();
+
 	public void handleErrorMessage(String error, String code, int line);
 
 	public void init();
