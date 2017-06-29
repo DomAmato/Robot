@@ -9,6 +9,7 @@ import com.dyn.robot.entity.inventory.RobotChipContainer;
 import com.rabbit.gui.utils.ColourHelper;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -35,6 +36,8 @@ public class RemoteInterface extends GuiContainer {
 		super(new RobotChipContainer(playerInv, robot.robot_inventory, robot, Minecraft.getMinecraft().thePlayer));
 		this.robot = robot;
 		allowUserInput = false;
+		Minecraft.getMinecraft().getSoundHandler()
+				.playSound(PositionedSoundRecord.create(new ResourceLocation("dynrobot:robot.remote"), 1.0F));
 	}
 
 	/**
