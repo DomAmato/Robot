@@ -2,6 +2,7 @@ package com.dyn.robot.items;
 
 import java.util.List;
 
+import com.dyn.DYNServerMod;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;
@@ -66,16 +67,16 @@ public class ItemRemote extends Item {
 		if (!worldIn.isRemote) {
 			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead
 					&& (playerIn.getPosition().distanceSq(RobotMod.currentRobot.getPosition()) < (64 * 64))) {
+				DYNServerMod.logger.info("Opening current robot window");
 				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), playerIn.worldObj,
 						(int) RobotMod.currentRobot.posX, (int) RobotMod.currentRobot.posY,
 						(int) RobotMod.currentRobot.posZ);
 			} else {
+				DYNServerMod.logger.info("Searching for closest robot");
 				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getSearchingGuiID(), playerIn.worldObj,
 						(int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
 			}
 
-		} else {
-			worldIn.playSoundAtEntity(playerIn, "dynrobot:robot.remote", 1, 1);
 		}
 		return itemStackIn;
 	}
