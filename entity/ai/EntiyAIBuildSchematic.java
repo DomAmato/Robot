@@ -4,7 +4,6 @@ import java.util.Map.Entry;
 import java.util.Stack;
 
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.schematics.BlockData;
 import com.dyn.schematics.ItemSchematic;
 import com.dyn.schematics.Schematic;
 
@@ -23,6 +22,27 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 public class EntiyAIBuildSchematic extends EntityAIBase {
+	private class BlockData {
+		public BlockPos pos;
+		public IBlockState state;
+		public NBTTagCompound tile;
+
+		private ItemStack stack;
+
+		public BlockData(BlockPos pos, IBlockState state, NBTTagCompound tile) {
+			this.pos = pos;
+			this.state = state;
+			this.tile = tile;
+		}
+
+		public ItemStack getStack() {
+			if (stack == null) {
+				stack = new ItemStack(state.getBlock(), 1, state.getBlock().damageDropped(state));
+			}
+			return stack;
+		}
+	}
+
 	private Stack<BlockData> placingList;
 	private BlockData placing;
 	private int tryTicks;
@@ -87,7 +107,7 @@ public class EntiyAIBuildSchematic extends EntityAIBase {
 					.post(new CodeEvent.FailEvent("Schematic is null", robot.getEntityId(), robot.getOwner()));
 			return false;
 		}
-		for (Entry<Block, Integer> block : schematic.getMaterialCosts().entrySet()) {
+		for (Entry<Block, Integer> block : schematic.getRequiredMaterials().entrySet()) {
 			int total = robot.robot_inventory.getQuantityOfItem(new ItemStack(block.getKey()));
 			if (total < block.getValue()) {
 				RaspberryJamMod.EVENT_BUS
@@ -99,15 +119,15 @@ public class EntiyAIBuildSchematic extends EntityAIBase {
 			}
 		}
 
-		for (int i = 0; i < schematic.blockArray.length; i++) {
-			Block b = Block.getBlockById(schematic.blockArray[i]);
+		for (int i = 0; i < schematic.getSize(); i++) {
+			Block b = Block.getBlockById(schematic.getBlockIdAtIndex(i));
 			if (b == null) {
 				b = Blocks.air;
 			}
-			int meta = schematic.blockDataArray[i];
-			int x = i % schematic.width;
-			int z = ((i - x) / schematic.width) % schematic.length;
-			int y = (((i - x) / schematic.width) - z) / schematic.length;
+			int meta = schematic.getBlockMetadataAtIndex(i);
+			int x = i % schematic.getWidth();
+			int z = ((i - x) / schematic.getWidth()) % schematic.getLength();
+			int y = (((i - x) / schematic.getWidth()) - z) / schematic.getLength();
 			BlockPos blockPos = firstPos.add(schematic.rotatePos(x, y, z, rotation));
 			IBlockState original = robot.worldObj.getBlockState(blockPos);
 			if (original.getBlock() == b) {
@@ -122,9 +142,9 @@ public class EntiyAIBuildSchematic extends EntityAIBase {
 			state = schematic.rotationState(state, rotation);
 			NBTTagCompound tile = null;
 			if (b instanceof ITileEntityProvider) {
-				tile = schematic.getTileEntity(x, y, z, blockPos);
+				tile = schematic.getTileEntityTag(x, y, z, blockPos);
 			}
-			placingList.add(0, new BlockData(blockPos, state, tile));
+			placingList.push(new BlockData(blockPos, state, tile));
 		}
 		return true;
 	}
