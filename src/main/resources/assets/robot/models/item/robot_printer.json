@@ -1,0 +1,19 @@
+{
+	"parent": "builtin/generated",
+	"textures": {
+		"layer0": "robot:items/recombobulator2"
+	},
+	"display": {
+		"thirdperson": {
+			"rotation": [ 0, 90, 0],
+			"translation": [ 0, 1, -3 ],
+			"scale": [ 0.6, 0.6, 4 ]
+		},
+		"firstperson": {
+			"rotation": [ 180, -90, 180],
+			"translation": [ 0, 4, 2 ],
+			"scale": [ 2, 1.5, 12 ]
+		}
+	}
+}
+
