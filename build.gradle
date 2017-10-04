@@ -49,6 +49,7 @@ configurations {
 dependencies {
     compile 'com.github.CityOfLearning:rabbit-gui:1.8.9-SNAPSHOT'
     compile 'com.github.CityOfLearning:schematic:1.8.9-SNAPSHOT'
+	compile 'com.github.CityOfLearning:raspberryjammod:dyn-SNAPSHOT'
 
 	// https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket
 	shade group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.3.0'
