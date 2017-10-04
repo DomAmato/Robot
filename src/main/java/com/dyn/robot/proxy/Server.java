@@ -7,11 +7,13 @@ import com.dyn.robot.entity.DynRobotEntity;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.network.NetworkManager;
+import com.dyn.robot.network.messages.CodeExecutionEndedMessage;
 import com.dyn.robot.network.messages.RawErrorMessage;
 
 import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
 import mobi.omegacentauri.raspberryjammod.network.CodeEvent.RobotErrorEvent;
+import mobi.omegacentauri.raspberryjammod.network.SocketEvent;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -58,6 +60,21 @@ public class Server implements Proxy {
 				(EntityPlayerMP) event.getPlayer());
 	}
 
+		// should be fine from server side
+		@SubscribeEvent
+		public void socketClose(SocketEvent.Close event) {
+			if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
+				World world = event.getPlayer().worldObj;
+				EntityRobot robot = (EntityRobot) world
+						.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
+				RobotMod.logger.info("Stop Executing Code from Socket Message for Player: " + event.getPlayer().getName());
+				if (robot != null) {
+					robot.stopExecutingCode();
+				}
+			}
+			NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
+		}
+	
 	@Override
 	public void createNewProgrammingInterface(EntityRobot robot) {
 		// TODO Auto-generated method stub
@@ -109,6 +126,7 @@ public class Server implements Proxy {
 
 	@Override
 	public void init() {
+		RaspberryJamMod.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 

@@ -21,8 +21,6 @@ import com.dyn.robot.items.ItemRobotWhistle;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.items.RoboTab;
 import com.dyn.robot.network.NetworkManager;
-import com.dyn.robot.network.messages.CodeExecutionEndedMessage;
-import com.dyn.robot.network.messages.RawErrorMessage;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
@@ -30,17 +28,10 @@ import com.dyn.robot.util.PlayerAccessLevel;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import mobi.omegacentauri.raspberryjammod.RaspberryJamMod;
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent;
-import mobi.omegacentauri.raspberryjammod.network.CodeEvent.RobotErrorEvent;
-import mobi.omegacentauri.raspberryjammod.network.SocketEvent;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -48,7 +39,6 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -92,24 +82,9 @@ public class RobotMod {
 		EntityRegistry.registerModEntity(entityClass, name, id, RobotMod.instance, 64, 3, false);
 	}
 
-	@SubscribeEvent
-	public void codeError(CodeEvent.ErrorEvent event) {
-		if (event instanceof RobotErrorEvent) {
-			EntityPlayer player = event.getPlayer();
-			World world = player.worldObj;
-			EntityRobot robot = (EntityRobot) world.getEntityByID(((RobotErrorEvent) event).getEntityId());
-			robot.stopExecutingCode();
-		}
-		NetworkManager.sendTo(new RawErrorMessage(event.getCode(), event.getError(), event.getLine()),
-				(EntityPlayerMP) event.getPlayer());
-	}
-
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		RobotMod.proxy.init();
-
-		RaspberryJamMod.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.register(this);
 
 		RobotMod.proxy.registerBlockItem(RobotMod.dynRobot);
 		RobotMod.proxy.registerBlockItem(RobotMod.dynRobotMagnet);
@@ -228,20 +203,5 @@ public class RobotMod {
 		} catch (ClassNotFoundException er) {
 			// this is just to make sure rjm exists
 		}
-	}
-
-	// should be fine from server side
-	@SubscribeEvent
-	public void socketClose(SocketEvent.Close event) {
-		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
-			World world = event.getPlayer().worldObj;
-			EntityRobot robot = (EntityRobot) world
-					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
-			RobotMod.logger.info("Stop Executing Code from Socket Message for Player: " + event.getPlayer().getName());
-			if (robot != null) {
-				robot.stopExecutingCode();
-			}
-		}
-		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
 	}
 }
