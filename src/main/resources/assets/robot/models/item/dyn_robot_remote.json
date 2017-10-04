@@ -1,0 +1,19 @@
+{
+	"parent": "builtin/generated",
+	"textures": {
+		"layer0": "robot:items/dyn_robot_remote"
+	},
+	"display": {
+		"thirdperson": {
+			"rotation": [ -90, 0, 0],
+			"translation": [ 0, 1, -3 ],
+			"scale": [ 0.6, 0.6, 0.6 ]
+		},
+		"firstperson": {
+			"rotation": [ 0, -90, 25 ],
+			"translation": [ 0, 4, 2 ],
+			"scale": [ 1, 1, 1 ]
+		}
+	}
+}
+

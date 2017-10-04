@@ -1,0 +1,9 @@
+{
+    "variants": {
+        "normal": { "model": "robot:dyn_robot_magnet" },
+        "facing=north": { "model": "robot:dyn_robot_magnet" },
+        "facing=south": { "model": "robot:dyn_robot_magnet", "y": 180 },
+        "facing=west": { "model": "robot:dyn_robot_magnet", "y": 270 },
+        "facing=east": { "model": "robot:dyn_robot_magnet", "y": 90 }
+    }
+}
