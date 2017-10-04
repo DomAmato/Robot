@@ -222,13 +222,11 @@ public class RobotMod {
 	// this only fires for the client if its internal
 	@Mod.EventHandler
 	public void serverStarted(FMLServerStartingEvent e) {
-		if (e.getSide() == Side.CLIENT) {
-			try {
-				Class.forName("mobi.omegacentauri.raspberryjammod.RaspberryJamMod");
-				RobotAPI.registerCommands();
-			} catch (ClassNotFoundException er) {
-				// this is just to make sure rjm exists
-			}
+		try {
+			Class.forName("mobi.omegacentauri.raspberryjammod.RaspberryJamMod");
+			RobotAPI.registerCommands();
+		} catch (ClassNotFoundException er) {
+			// this is just to make sure rjm exists
 		}
 	}
 
