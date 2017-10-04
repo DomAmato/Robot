@@ -1,0 +1,39 @@
+item.dyn_robot_remote.name=Robot Remote
+item.dyn_robot_spawn.name=Robot Spawner
+item.dyn_robot_wrench.name=Wrench
+item.dyn_robot_memory_0.name=Robot Memory
+item.dyn_robot_memory_1.name=Robot MemoryX2
+item.dyn_robot_memory_2.name=Robot MemoryX3
+item.dyn_robot_memory_3.name=Robot MemoryX4
+item.dyn_robot_memory_4.name=Robot MemoryX5
+item.dyn_robot_memory_5.name=Robot MemoryX6
+item.dyn_robot_memory_6.name=Robot MemoryX7
+item.dyn_robot_memory_7.name=Robot MemoryX8
+item.dyn_robot_card.name=Save Card
+item.dyn_robot_whistle.name=Whistle
+item.expansion_chip_0.name=Climbing Chip
+item.expansion_chip_1.name=Jumping Chip
+item.expansion_chip_2.name=Mining Chip
+item.expansion_chip_3.name=Builder Chip
+item.expansion_chip_4.name=Inspection Chip
+item.expansion_chip_5.name=Interact Chip
+item.expansion_chip_6.name=Detection Chip
+item.expansion_chip_7.name=Attack Chip
+item.expansion_chip_8.name=#CORRUPTED CHIP#
+item.expansion_chip_9.name=#CORRUPTED CHIP#
+item.expansion_chip_10.name=#CORRUPTED CHIP#
+item.expansion_chip_11.name=#CORRUPTED CHIP#
+item.expansion_chip_12.name=#CORRUPTED CHIP#
+item.expansion_chip_13.name=Boolean Chip
+item.expansion_chip_14.name=Loop Chip 
+item.expansion_chip_15.name=Echo Chip
+item.expansion_chip_15.name=Echo Chip
+item.dyn_robot_wipe.name=Memory Wiper
+item.dyn_robot_printer_0.name=Recombobulator
+
+tile.dyn_robot.name=Robot
+tile.dyn_robot_magnet.name=Magnetic Block
+
+robot.inventory=Robot Inventory
+
+itemGroup.roboTab=Robot Tab
