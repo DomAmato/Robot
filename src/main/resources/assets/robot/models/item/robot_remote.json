@@ -1,19 +1,14 @@
 {
-	"parent": "builtin/generated",
+	"parent": "item/generated",
 	"textures": {
 		"layer0": "robot:items/robot_remote"
 	},
 	"display": {
-		"thirdperson": {
-			"rotation": [ -90, 0, 0],
-			"translation": [ 0, 1, -3 ],
-			"scale": [ 0.6, 0.6, 0.6 ]
-		},
-		"firstperson": {
-			"rotation": [ 0, -90, 25 ],
-			"translation": [ 0, 4, 2 ],
-			"scale": [ 1, 1, 1 ]
-		}
+	"firstperson_righthand": {
+            "rotation": [ 0, -70, -17 ],
+            "translation": [ 1.13, 4.2, 0],
+            "scale": [ 0.68, 0.68, 0.68 ]
+        }
 	}
 }
 
