@@ -47,7 +47,7 @@ configurations {
 }
 
 dependencies {
-	compile 'com.github.CityOfLearning:rabbit-gui:DYN-CityServer-SNAPSHOT'
+	compile 'com.github.CityOfLearning:rabbit-gui:1.12-SNAPSHOT'
 	compile 'com.github.CityOfLearning:Schematic:master-SNAPSHOT'
 
 	// https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket
