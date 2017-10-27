@@ -36,10 +36,10 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean containsItem(ItemStack is) {
-		if (is != null) {
+		if (!is.isEmpty()) {
 			for (int i = 0; i < getSizeInventory(); i++) {
 				ItemStack is2 = getStackInSlot(i);
-				if (is2 != null) {
+				if (!is2.isEmpty()) {
 					if ((is2.getItem() == is.getItem())
 							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
 						return true;
@@ -49,21 +49,56 @@ public class RobotInventory extends InventoryBasic {
 		}
 		return false;
 	}
+	
+	public boolean hasExpansionChip(ItemStack chip) {
+		if (!chip.isEmpty()) {
+			for (int i = 3; i < 12; i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (!is2.isEmpty()) {
+					if ((is2.getItem() == chip.getItem())
+							&& ((is2.getItemDamage() == chip.getItemDamage()))) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean containsItemType(Class itemType) {
+			for (int i = 0; i < getSizeInventory(); i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (!is2.isEmpty()) {
+					if (is2.getItem().getClass().isAssignableFrom(itemType)) {
+						return true;
+					}
+				}
+			}
+		return false;
+	}
 
 	public int getOpenExpansionSlot() {
 		for (int a = 3; a < 12; a++) {
-			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
+			if ((getStackInSlot(a).isEmpty())) {
 				return a;
 			}
 		}
 		return 11;
+	}
+	
+	public boolean hasSDCard() {
+		return (getStackInSlot(0).isEmpty());
+	}
+	
+	public ItemStack getSDCard() {
+		return getStackInSlot(0);
 	}
 
 	public int getQuantityOfItem(ItemStack is) {
 		int total = 0;
 		for (int i = 0; i < getSizeInventory(); i++) {
 			ItemStack is2 = getStackInSlot(i);
-			if (is2 != null) {
+			if (!is2.isEmpty()) {
 				if (is2.getItem() == is.getItem()) {
 					total += is2.getCount();
 				}
@@ -73,10 +108,10 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public ItemStack getStackOfItem(ItemStack is) {
-		if (is != null) {
+		if (!is.isEmpty()) {
 			for (int i = 0; i < getSizeInventory(); i++) {
 				ItemStack is2 = getStackInSlot(i);
-				if (is2 != null) {
+				if (!is2.isEmpty()) {
 					if ((is2.getItem() == is.getItem())
 							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
 						return is2;
@@ -89,7 +124,7 @@ public class RobotInventory extends InventoryBasic {
 
 	public boolean isInventoryEmpty() {
 		for (int a = 12; a < getSizeInventory(); a++) {
-			if (getStackInSlot(a) != null) {
+			if (!getStackInSlot(a).isEmpty()) {
 				return false;
 			}
 		}
@@ -98,10 +133,10 @@ public class RobotInventory extends InventoryBasic {
 
 	public boolean isInventoryFull() {
 		for (int a = 12; a < getSizeInventory(); a++) {
-			if ((getStackInSlot(a) != null) && (getStackInSlot(a).isEmpty())) {
+			if (getStackInSlot(a).isEmpty()) {
 				removeStackFromSlot(a);
 			}
-			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
+			if (getStackInSlot(a).isEmpty()) {
 				return false;
 			}
 		}
@@ -112,7 +147,7 @@ public class RobotInventory extends InventoryBasic {
 	public boolean removeItemFromInventory(ItemStack is, int amount) {
 		for (int i = 0; i < getSizeInventory(); i++) {
 			ItemStack is2 = getStackInSlot(i);
-			if (is2 != null) {
+			if (!is2.isEmpty()) {
 				if (is2.getItem() == is.getItem()) {
 					amount -= decrStackSize(i, amount).getCount();
 					if (amount <= 0) {

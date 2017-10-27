@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.reference.Reference;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -23,6 +24,7 @@ import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -80,7 +82,6 @@ public class ItemMemoryCard extends Item {
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
 		if (isInCreativeTab(tab)) {
 			items.add(new ItemStack(this, 1, 0));
-			// List<String> schematics = Lists.newArrayList();
 			for (File script : RobotMod.scriptsLoc.listFiles((FilenameFilter) (dir, name) -> name.endsWith("py"))) {
 				if (script != null) {
 					NBTTagCompound tag = new NBTTagCompound();
@@ -92,7 +93,7 @@ public class ItemMemoryCard extends Item {
 							sb.append(line + "\n");
 						});
 
-						tag.setString("author", "Dom Amato");
+						tag.setString("author", "Some Guy"); //how do we save the author
 						tag.setString("title", script.getName().replace(".py", ""));
 						tag.setString("text", sb.toString());
 

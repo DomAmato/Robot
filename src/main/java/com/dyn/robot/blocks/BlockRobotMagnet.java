@@ -14,6 +14,8 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -28,9 +30,9 @@ public class BlockRobotMagnet extends BlockHorizontal {
 
 	public BlockRobotMagnet() {
 		super(Material.IRON);
-		setDefaultState(blockState.getBaseState().withProperty(BlockHorizontal.FACING, EnumFacing.NORTH));
 		setUnlocalizedName("robot_magnet");
 		setRegistryName(Reference.MOD_ID, "robot_magnet");
+		setDefaultState(blockState.getBaseState().withProperty(BlockHorizontal.FACING, EnumFacing.NORTH));
 		setCreativeTab(RobotMod.roboTab);
 	}
 
@@ -43,6 +45,10 @@ public class BlockRobotMagnet extends BlockHorizontal {
 	@SideOnly(Side.CLIENT)
 	public BlockRenderLayer getBlockLayer() {
 		return BlockRenderLayer.CUTOUT;
+	}
+
+	public Item getItemBlock() {
+		return new ItemBlock(this).setRegistryName(getRegistryName());
 	}
 
 	/**

@@ -11,14 +11,18 @@ import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
 import com.dyn.robot.entity.ai.EntityAIRobotAttackTarget;
-import com.dyn.robot.entity.ai.EntiyAIBuildSchematic;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
+import com.dyn.robot.items.ItemMemoryWipe;
+import com.dyn.robot.items.ItemRemote;
+import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.utils.HelperFunctions;
 import com.google.common.base.Optional;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
@@ -31,6 +35,7 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -41,9 +46,11 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
@@ -54,8 +61,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected static final DataParameter<String> ROBOT_NAME = EntityDataManager.<String>createKey(EntityRobot.class,
 			DataSerializers.STRING);
 
-	public static List getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
-		List list = world.getEntitiesWithinAABB(EntityItem.class,
+	public static List<EntityItem> getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
+		List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class,
 				new AxisAlignedBB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
 		return list;
 	}
@@ -74,12 +81,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	private EntityAIWander wanderTask;
 
-	public final int on1 = 50;
-	public final int on2 = 75;
 	public int counter = 0;
 
 	private EnumFacing programDir;
 	private boolean buildSchematic;
+
+	protected boolean shouldSwingArm;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
@@ -92,20 +99,52 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataManager.register(EntityRobot.OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");// robot name
 
-		try {
-			Class.forName("com.dyn.rjm.RaspberryJamMod");
-			tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
-			tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
-			tasks.addTask(1, new EntityAIRobotAttackTarget(this, EntityLivingBase.class, 1.0D, false));
-			tasks.addTask(1, new EntiyAIBuildSchematic(this));
-		} catch (ClassNotFoundException er) {
-			// this is just to make sure rjm exists
-		}
+		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
+		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
+		tasks.addTask(1, new EntityAIRobotAttackTarget(this, EntityLivingBase.class, 1.0D, false));
 
 		tasks.addTask(2, new EntityAIFollowsOwnerEX(this, 1.5D, 6.0F, 1.25F));
 		tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(3, wanderTask = new EntityAIWander(this, 1.0D));
 		tasks.addTask(4, new EntityAILookIdle(this));
+	}
+
+	/**
+	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
+	 * into the saddle on a pig.
+	 */
+	@Override
+	public boolean processInteract(EntityPlayer player, EnumHand hand) {
+		ItemStack itemstack = player.inventory.getCurrentItem();
+		if (world.isRemote) {
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
+					if (isOwner(player) || ((owner == null) && isTamable)) {
+						RobotMod.proxy.openRobotProgrammingWindow(this);
+					} else {
+						if (owner != null) {
+							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
+						} else {
+							player.sendMessage(new TextComponentString("Robot is not compatible with remote"));
+						}
+					}
+					return true;
+				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				}
+			}
+		} else {
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				}
+			}
+		}
+		return super.processInteract(player, hand);
 	}
 
 	public void addMessage(String message) {
@@ -247,8 +286,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	 */
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return SoundEvents.BLOCK_IRON_DOOR_OPEN;
-		// return "dynrobot:robot.beep";
+		return RobotMod.ROBOT_BEEP;
 	}
 
 	@Override
@@ -516,12 +554,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		shouldFollow = additionalData.readBoolean();
 	}
 
-	public void reinitNonEssentialAI() {
+	public void reinitIdleAI() {
 		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
 		tasks.addTask(4, new EntityAILookIdle(this));
 	}
 
-	public void removeNonEssentialAI() {
+	public void removeIdleAI() {
 		List<EntityAIBase> nonEssentialAIs = new ArrayList();
 		for (EntityAITaskEntry task : tasks.taskEntries) {
 			if ((task.action instanceof EntityAIWatchClosest) || (task.action instanceof EntityAILookIdle)) {
@@ -558,6 +596,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setOwner(UUID playerId) {
 		owner = world.getPlayerEntityByUUID(playerId);
+		if(world.isRemote) {
+			
+		}
 	}
 
 	public void setOwnerId(UUID ownerUuid) {
@@ -628,6 +669,50 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
+	public float getDigSpeed(IBlockState state) {
+		float f = this.robot_inventory.getStackInSlot(2).getStrVsBlock(state);
+
+		if (f > 1.0F) {
+			int i = EnchantmentHelper.getEfficiencyModifier(this);
+			ItemStack itemstack = this.getHeldItemMainhand();
+
+			if (i > 0 && !itemstack.isEmpty()) {
+				f += (float) (i * i + 1);
+			}
+		}
+
+		if (this.isPotionActive(MobEffects.HASTE)) {
+			f *= 1.0F + (float) (this.getActivePotionEffect(MobEffects.HASTE).getAmplifier() + 1) * 0.2F;
+		}
+
+		if (this.isPotionActive(MobEffects.MINING_FATIGUE)) {
+			float f1;
+
+			switch (this.getActivePotionEffect(MobEffects.MINING_FATIGUE).getAmplifier()) {
+			case 0:
+				f1 = 0.3F;
+				break;
+			case 1:
+				f1 = 0.09F;
+				break;
+			case 2:
+				f1 = 0.0027F;
+				break;
+			case 3:
+			default:
+				f1 = 8.1E-4F;
+			}
+
+			f *= f1;
+		}
+
+		if (!this.onGround) {
+			f /= 5.0F;
+		}
+
+		return (f < 0 ? 0 : f);
+	}
+
 	/**
 	 * Called by the server when constructing the spawn packet. Data should be added
 	 * to the provided stream.
@@ -639,5 +724,18 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void writeSpawnData(ByteBuf buffer) {
 		buffer.writeBoolean(isTamable);
 		buffer.writeBoolean(shouldFollow);
+	}
+
+	public void makeSwingArm(boolean state) {
+		shouldSwingArm = state;
+	}
+
+	@Override
+	public void onLivingUpdate() {
+		super.onLivingUpdate();
+		if (!isSwingInProgress && shouldSwingArm) {
+			swingArm(getActiveHand());
+		}
+		updateArmSwingProgress();
 	}
 }

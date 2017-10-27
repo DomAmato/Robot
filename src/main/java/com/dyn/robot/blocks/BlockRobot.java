@@ -12,11 +12,12 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -29,9 +30,9 @@ public class BlockRobot extends BlockFalling {
 
 	public BlockRobot() {
 		super(Material.IRON);
-		setDefaultState(blockState.getBaseState().withProperty(BlockRobot.FACING, EnumFacing.NORTH));
-		setUnlocalizedName("robot_block");
+		setDefaultState(blockState.getBaseState().withProperty(BlockRobot.FACING, EnumFacing.SOUTH));
 		setRegistryName(Reference.MOD_ID, "robot_block");
+		setUnlocalizedName("robot_block");
 		setCreativeTab(RobotMod.roboTab);
 	}
 
@@ -44,6 +45,10 @@ public class BlockRobot extends BlockFalling {
 	@SideOnly(Side.CLIENT)
 	public BlockRenderLayer getBlockLayer() {
 		return BlockRenderLayer.CUTOUT;
+	}
+
+	public Item getItemBlock() {
+		return new ItemBlock(this).setRegistryName(getRegistryName());
 	}
 
 	/**
@@ -60,12 +65,12 @@ public class BlockRobot extends BlockFalling {
 
 	/**
 	 * Called by ItemBlocks just before a block is actually set in the world, to
-	 * allow for adjustments to the IBlockState
+	 * allow for adjustments to the IBlockstate
 	 */
 	@Override
 	public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
 			float hitZ, int meta, EntityLivingBase placer) {
-		return getDefaultState().withProperty(BlockRobot.FACING, placer.getHorizontalFacing());
+		return getDefaultState().withProperty(BlockRobot.FACING, placer.getHorizontalFacing().getOpposite());
 	}
 
 	/**
@@ -124,14 +129,5 @@ public class BlockRobot extends BlockFalling {
 
 	public void setRobotName(String robotName) {
 		this.robotName = robotName;
-	}
-
-	/**
-	 * Returns the blockstate with the given rotation from the passed blockstate. If
-	 * inapplicable, returns the passed blockstate.
-	 */
-	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(BlockRobot.FACING, rot.rotate(state.getValue(BlockRobot.FACING)));
 	}
 }

@@ -1,4 +1,6 @@
-package com.dyn.robot;
+package com.dyn.robot.items;
+
+import com.dyn.robot.RobotMod;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;

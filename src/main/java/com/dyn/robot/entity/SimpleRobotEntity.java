@@ -19,6 +19,9 @@ import net.minecraft.world.World;
 
 public class SimpleRobotEntity extends EntityRobot {
 
+	public final int on1 = 50;
+	public final int on2 = 75;
+	
 	public SimpleRobotEntity(World worldIn) {
 		this(worldIn, null);
 	}
@@ -73,12 +76,6 @@ public class SimpleRobotEntity extends EntityRobot {
 	}
 
 	@Override
-	public void onLivingUpdate() {
-		super.onLivingUpdate();
-		updateArmSwingProgress();
-	}
-
-	@Override
 	public void onUpdate() {
 		super.onUpdate();
 		Vec3d vec = getLookVec();
@@ -90,44 +87,6 @@ public class SimpleRobotEntity extends EntityRobot {
 		if (((ticksExisted % 5) == 0)) {
 			spawnAntennaParticles(EnumParticleTypes.REDSTONE);
 		}
-	}
-
-	/**
-	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
-	 * into the saddle on a pig.
-	 */
-	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack itemstack = player.inventory.getCurrentItem();
-		if (world.isRemote) {
-			if (itemstack != null) {
-				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
-					if (isOwner(player) || ((owner == null) && isTamable)) {
-						RobotMod.proxy.openRobotProgrammingWindow(this);
-					} else {
-						if (owner != null) {
-							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
-						} else {
-							player.sendMessage(new TextComponentString("Robot is not compatible with remote"));
-						}
-					}
-					return true;
-				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				}
-			}
-		} else {
-			if (itemstack != null) {
-				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				}
-			}
-		}
-		return super.processInteract(player, hand);
 	}
 
 	public void slightMoveWhenStill() {

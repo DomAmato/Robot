@@ -71,7 +71,6 @@ public class ItemMemoryWipe extends Item {
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
 		if ((entity != null) && !entity.isDead) {
-			System.out.println("Starting Memory Wipe");
 			playerIn.setActiveHand(handIn);
 		}
 		return new ActionResult<>(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
@@ -84,16 +83,15 @@ public class ItemMemoryWipe extends Item {
 	@Override
 	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase playerIn) {
 		if (!worldIn.isRemote) {
-			System.out.println("Finishing Memory Wipe");
 			if ((entity != null) && (entity instanceof EntityRobot)) {
 				EntityRobot robot = (EntityRobot) worldIn.getEntityByID(entity.getEntityId());
 				if (robot != null) {
-					System.out.println("Wiping Robots Memory");
 					robot.clearProgramPath();
 					robot.stopExecutingCode();
 				}
 			}
 		}
+		RobotMod.proxy.handleCodeExecutionEnded();
 		entity = null;
 		return stack;
 	}
@@ -123,7 +121,6 @@ public class ItemMemoryWipe extends Item {
 	@Override
 	public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
 		if (timeLeft > 0) {
-			System.out.println("Stopping Memory Wipe");
 			entity = null;
 		}
 	}
