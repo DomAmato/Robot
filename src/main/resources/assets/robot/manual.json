@@ -1,0 +1,88 @@
+{
+	"functions": [
+		{
+			"package": "robot.Robot",
+			"short": "Initialize the Robot",
+			"argument_list": "[robot name] = Robot()",
+			"description": "Create the connection between your controller and the robots computer brain"
+		},
+		{
+			"package": "robot.inspect",
+			"short": "Get the Block in (x, y, z)",
+			"argument_list": "inspect([x,y,z])",
+			"description": "Inspects and returns the type of block\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.detect",
+			"short": "Detect mobs within a range of the robot",
+			"argument_list": "detect()",
+			"description": "Detects mobs nearby and returns a list of them\n\nCan be powered up to increase the range"
+		},
+		{
+			"package": "robot.attack",
+			"short": "Attack an enemy",
+			"argument_list": "attack(enemy)",
+			"description": "Requires the in game ID of the enemy\n\nWorks best if paired with detect as the ID is random"
+		},
+		{
+			"package": "robot.left",
+			"short": "Turn the Robot Left",
+			"argument_list": "left()",
+			"description": "Turns the robot 90 degrees counterclockwise from current heading"
+		},
+		{
+			"package": "robot.right",
+			"short": "Turn the Robot Right",
+			"argument_list": "right()",
+			"description": "Turns the robot 90 degrees clockwise from current heading"
+		},
+		{
+			"package": "robot.forward",
+			"short": "Make Robot move Forward",
+			"argument_list": "forward(distance)",
+			"description": "Defaults to 1 block forward but can be a positive integer"
+		},
+		{
+			"package": "robot.climb",
+			"short": "Robot climbs a block",
+			"argument_list": "climb(distance)",
+			"description": "Have the robot climb up a block or a ladder/vine\n\nDefaults to 1 but can be any positive integer"
+		},
+		{
+			"package": "robot.descend",
+			"short": "Have the robot descend a block",
+			"argument_list": "descend(amount)",
+			"description": "Used to decend a ladder or down a block\n\nDefaults to 1 can be any positive integer"
+		},
+		{
+			"package": "robot.place",
+			"short": "Have the robot Place a block",
+			"argument_list": "place([x,y,z])",
+			"description": "Places a block from robot inventory\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.mine",
+			"short": "Have the robot Mine a block",
+			"argument_list": "mine([x,y,z])",
+			"description": "Defaults to the block directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.say",
+			"short": "Make the robot speak",
+			"argument_list": "say(phrase)",
+			"description": "Make the robot say something\n\nUseful for debugging"
+		},
+		{
+			"package": "robot.jump",
+			"short": "Have the robot jump",
+			"argument_list": "jump()",
+			"description": "Will jump forward, can only jump a 1 block gap!"
+		},
+		{
+			"package": "robot.interact",
+			"short": "Have the robot interact with the game",
+			"argument_list": "interact([x,y,z])",
+			"description": "Make the robot push buttons, open doors, etc.\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+		}
+	]
+}
