@@ -1,0 +1,23 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"GGG",
+		"GBG",
+		"GGG"
+	],
+	"key": {
+		"G": {
+			"item": "minecraft:gold_nugget",
+      		"data": 0
+		},
+		"B": {
+			"item": "minecraft:golden_boots",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:expansion_chip",
+      		"data": 1,
+		"count": 1
+	}
+}

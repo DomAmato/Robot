@@ -1,0 +1,22 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"III",
+		"ITI",
+		"III"
+	],
+	"key": {
+		"T": {
+			"item": "minecraft:redstone_torch",
+      		"data": 0
+		},
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:robot_magnet",
+		"count": 1
+	}
+}

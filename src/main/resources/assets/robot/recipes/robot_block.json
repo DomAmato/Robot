@@ -1,0 +1,30 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"IIT",
+		"IQI",
+		"RIR"
+	],
+	"key": {
+		"T": {
+			"item": "minecraft:redstone_torch",
+      		"data": 0
+		},
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		},
+		"R": {
+			"item": "minecraft:redstone",
+      		"data": 0
+		},
+		"Q": {
+			"item": "minecraft:quartz",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:robot_block",
+		"count": 1
+	}
+}

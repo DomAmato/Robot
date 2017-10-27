@@ -1,0 +1,23 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"GGG",
+		"GBG",
+		"GGG"
+	],
+	"key": {
+		"G": {
+			"item": "minecraft:gold_nugget",
+      		"data": 0
+		},
+		"B": {
+			"item": "minecraft:stone_pressure_plate",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:expansion_chip",
+      		"data": 6,
+		"count": 1
+	}
+}
