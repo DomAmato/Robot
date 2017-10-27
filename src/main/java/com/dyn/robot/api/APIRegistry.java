@@ -1,17 +1,16 @@
-package com.dyn.rjm.api;
+package com.dyn.robot.api;
 
 import java.util.Map;
 import java.util.Scanner;
 
-import com.dyn.rjm.RaspberryJamMod;
-import com.dyn.rjm.events.MCEventHandler;
+import com.dyn.robot.RobotMod;
 import com.google.common.collect.Maps;
 
 public class APIRegistry {
 
 	@FunctionalInterface
 	public static interface CommandRunnable {
-		void execute(String args, Scanner scan, MCEventHandler eventHandler);
+		void execute(String args, Scanner scan);
 	}
 
 	public static boolean initd = false;
@@ -25,21 +24,21 @@ public class APIRegistry {
 	public static void registerCommand(String name, CommandRunnable executableCode) {
 		try {
 			APIRegistry.commands.put(name, executableCode);
-			RaspberryJamMod.logger.info("Registering Command: " + name);
+			RobotMod.logger.info("Registering Command: " + name);
 		} catch (Exception e) {
-			RaspberryJamMod.logger.error("Command already registered");
+			RobotMod.logger.error("Command already registered");
 		}
 	}
 
-	public static boolean runCommand(String name, String args, Scanner scan, MCEventHandler eventHandler) {
+	public static boolean runCommand(String name, String args, Scanner scan) {
 		if (!APIRegistry.commands.containsKey(name)) {
 			return false;
 		}
 		try {
-			RaspberryJamMod.logger.info("Running Cmd: " + name + ", " + args);
-			APIRegistry.commands.get(name).execute(args, scan, eventHandler);
+			RobotMod.logger.info("Running Cmd: " + name + ", " + args);
+			APIRegistry.commands.get(name).execute(args, scan);
 		} catch (Exception e) {
-			RaspberryJamMod.logger.error("Failed Executing Command: " + name, e);
+			RobotMod.logger.error("Failed Executing Command: " + name, e);
 		}
 		return true;
 	}

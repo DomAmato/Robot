@@ -1,8 +1,8 @@
-package com.dyn.rjm.util;
+package com.dyn.robot.utils;
 
 import java.io.File;
 
-import com.dyn.rjm.RaspberryJamMod;
+import com.dyn.robot.RobotMod;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -18,7 +18,7 @@ public class PathUtility {
 	}
 
 	public static String getPythonExecutablePath() {
-		String base = RaspberryJamMod.pythonInterpreter;
+		String base = RobotMod.pythonInterpreter;
 
 		String pathSep = System.getProperty("path.separator");
 		String fileSep = System.getProperty("file.separator");
@@ -28,15 +28,15 @@ public class PathUtility {
 
 		String pathVar = "";
 
-		if (RaspberryJamMod.useSystemPath) {
+		if (RobotMod.useSystemPath) {
 			pathVar = System.getenv("PATH");
 		} else {
 			if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
 				File localpath = Minecraft.getMinecraft().mcDataDir;
-				pathVar = new File(localpath, RaspberryJamMod.pythonEmbeddedLocation).getAbsolutePath();
+				pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
 			} else {
 				File localpath = FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory();
-				pathVar = new File(localpath, RaspberryJamMod.pythonEmbeddedLocation).getAbsolutePath();
+				pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
 			}
 		}
 

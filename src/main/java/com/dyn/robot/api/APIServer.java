@@ -1,4 +1,4 @@
-package com.dyn.rjm.api;
+package com.dyn.robot.api;
 
 // TODO: getHeight() should check block queue
 
@@ -12,47 +12,37 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dyn.rjm.RaspberryJamMod;
-import com.dyn.rjm.events.MCEventHandler;
-import com.dyn.rjm.util.WSServer;
+import com.dyn.robot.RobotMod;
+import com.dyn.robot.utils.WSServer;
 
 public class APIServer {
 	private static final int MAX_CONNECTIONS = 64;
 	private ServerSocket serverSocket;
-	private MCEventHandler eventHandler;
 	private boolean listening = true;
 	private List<Socket> socketList;
-	private boolean controlServer;
 	private int portNumber;
 	private WSServer ws;
 
-	public APIServer(MCEventHandler eventHandler, int startPort, int endPort, int wsPort, boolean clientSide)
-			throws IOException {
+	public APIServer(int startPort, int endPort, int wsPort) throws IOException {
 		socketList = new ArrayList<>();
-		this.eventHandler = eventHandler;
-		controlServer = !clientSide;
 		serverSocket = null;
 
 		ws = null;
 		if (wsPort != 0) {
 			try {
-				RaspberryJamMod.logger.info("Opening websocket server on " + wsPort);
-				ws = new WSServer(eventHandler, wsPort, clientSide);
+				RobotMod.logger.info("Opening websocket server on " + wsPort);
+				ws = new WSServer(wsPort);
 				ws.start();
 			} catch (Exception e) {
-				RaspberryJamMod.logger.error("Error " + e);
+				RobotMod.logger.error("Error " + e);
 				ws = null;
 			}
 		}
 
 		for (portNumber = startPort;; portNumber++) {
 			try {
-				if (RaspberryJamMod.allowRemote) {
-					serverSocket = new ServerSocket(portNumber);
-				} else {
-					serverSocket = new ServerSocket(portNumber, 50, InetAddress.getByName("127.0.0.1"));
-				}
-				RaspberryJamMod.logger.info("RaspberryJamMod listening on port " + portNumber);
+				serverSocket = new ServerSocket(portNumber, 50, InetAddress.getByName("127.0.0.1"));
+				RobotMod.logger.info("RobotMod listening on port " + portNumber);
 				return;
 			} catch (IOException e) {
 				if (portNumber == endPort) {
@@ -64,7 +54,7 @@ public class APIServer {
 	}
 
 	public void close() {
-		RaspberryJamMod.logger.info("Closing sockets");
+		RobotMod.logger.info("Closing sockets");
 		listening = false;
 		synchronized (socketList) {
 			for (Socket s : socketList) {
@@ -91,7 +81,7 @@ public class APIServer {
 
 	public void communicate() throws IOException {
 		while (listening) {
-			if (!RaspberryJamMod.concurrent) {
+			if (!RobotMod.concurrent) {
 				try {
 					socketCommunicate(serverSocket.accept());
 				} catch (Exception e) {
@@ -138,13 +128,13 @@ public class APIServer {
 			reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 			writer = new PrintWriter(connectionSocket.getOutputStream());
 
-			api = controlServer ? new APIHandler(eventHandler, writer) : new APIHandlerClientOnly(eventHandler, writer);
+			api = new APIHandler(writer);
 
 			while (null != (clientSentence = reader.readLine())) {
 				api.process(clientSentence);
 			}
 		} catch (Exception e) {
-			RaspberryJamMod.logger.error("" + e);
+			RobotMod.logger.error("" + e);
 		} finally {
 			if (api != null) {
 				api.close();

@@ -1,4 +1,4 @@
-package com.dyn.rjm.util;
+package com.dyn.robot.utils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,10 +14,8 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import com.dyn.rjm.RaspberryJamMod;
-import com.dyn.rjm.api.APIHandler;
-import com.dyn.rjm.api.APIHandlerClientOnly;
-import com.dyn.rjm.events.MCEventHandler;
+import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.APIHandler;
 
 public class WSServer extends WebSocketServer {
 	private static boolean isLocal(InetAddress addr) {
@@ -32,21 +30,16 @@ public class WSServer extends WebSocketServer {
 	}
 
 	Map<WebSocket, APIHandler> handlers;
-	boolean controlServer;
 
-	private MCEventHandler eventHandler;
-
-	public WSServer(MCEventHandler eventHandler, int port, boolean clientSide) throws UnknownHostException {
+	public WSServer(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port));
-		RaspberryJamMod.logger.info("Websocket server on " + port);
-		controlServer = !clientSide;
-		this.eventHandler = eventHandler;
+		RobotMod.logger.info("Websocket server on " + port);
 		handlers = new HashMap<>();
 	}
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		RaspberryJamMod.logger.info("websocket closed for reason " + reason);
+		RobotMod.logger.info("websocket closed for reason " + reason);
 		APIHandler apiHandler = handlers.get(conn);
 		if (apiHandler != null) {
 			apiHandler.getWriter().close();
@@ -68,9 +61,9 @@ public class WSServer extends WebSocketServer {
 
 	@Override
 	public void onOpen(final WebSocket conn, ClientHandshake handshake) {
-		RaspberryJamMod.logger.info("websocket connect from " + conn.getRemoteSocketAddress().getHostName());
-		if (!RaspberryJamMod.allowRemote && !WSServer.isLocal(conn.getRemoteSocketAddress().getAddress())) {
-			conn.closeConnection(1, "Remote connections disabled");
+		RobotMod.logger.info("websocket connect from " + conn.getRemoteSocketAddress().getHostName());
+		if (!WSServer.isLocal(conn.getRemoteSocketAddress().getAddress())) {
+			conn.closeConnection(1, "Remote connections not allowed");
 			return;
 		}
 		Writer writer = new Writer() {
@@ -89,8 +82,7 @@ public class WSServer extends WebSocketServer {
 		};
 		PrintWriter pw = new PrintWriter(writer);
 		try {
-			APIHandler apiHandler = controlServer ? new APIHandler(eventHandler, pw)
-					: new APIHandlerClientOnly(eventHandler, pw);
+			APIHandler apiHandler = new APIHandler(pw);
 
 			handlers.put(conn, apiHandler);
 		} catch (IOException e) {

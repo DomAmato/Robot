@@ -1,4 +1,4 @@
-package com.dyn.rjm.network;
+package com.dyn.robot.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.Event;

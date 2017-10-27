@@ -1,4 +1,4 @@
-package com.dyn.rjm.process;
+package com.dyn.robot.python;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.dyn.rjm.RaspberryJamMod;
-import com.dyn.rjm.api.APIHandler;
-import com.dyn.rjm.network.CodeEvent;
-import com.dyn.rjm.util.PathUtility;
+import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.APIHandler;
+import com.dyn.robot.network.CodeEvent;
+import com.dyn.robot.utils.PathUtility;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -192,21 +192,22 @@ public class RunPythonShell {
 
 			ProcessBuilder builder = new ProcessBuilder(RunPythonShell.scriptProcessorPath, "-i");
 
-			builder.directory(new File("mcpy/"));
+//			builder.directory(new File(RobotMod.mcpiLocation));
+			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
 
 			Map<String, String> environment = builder.environment();
 			environment.put("MINECRAFT_PLAYER_NAME", player.getName());
 			environment.put("MINECRAFT_PLAYER_ID", "" + player.getEntityId());
-			environment.put("MINECRAFT_API_PORT", "" + RaspberryJamMod.currentPortNumber);
+			environment.put("MINECRAFT_API_PORT", "" + RobotMod.currentPortNumber);
 
 			RunPythonShell.runningScript = builder.start();
 
 			// we dont have to worry about checking if the script is alive since
 			// it gets destroyed earlier
-			if (RaspberryJamMod.playerProcesses.containsKey(player)) {
-				RaspberryJamMod.playerProcesses.replace(player, RunPythonShell.runningScript);
+			if (RobotMod.playerProcesses.containsKey(player)) {
+				RobotMod.playerProcesses.replace(player, RunPythonShell.runningScript);
 			} else {
-				RaspberryJamMod.playerProcesses.put(player, RunPythonShell.runningScript);
+				RobotMod.playerProcesses.put(player, RunPythonShell.runningScript);
 			}
 
 			RunPythonShell.gobble(RunPythonShell.runningScript.getInputStream(), player, "");
@@ -243,8 +244,8 @@ public class RunPythonShell {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent(codeLine, e.getMessage(),
+					0, player, robotId));
 		}
 	}
 }

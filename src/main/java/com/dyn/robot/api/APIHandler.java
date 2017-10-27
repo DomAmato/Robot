@@ -1,19 +1,15 @@
-package com.dyn.rjm.api;
+package com.dyn.robot.api;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
-import com.dyn.rjm.RaspberryJamMod;
-import com.dyn.rjm.api.Python2MinecraftApi.ChatDescription;
-import com.dyn.rjm.events.MCEventHandler;
-import com.dyn.rjm.network.CodeEvent;
+import com.dyn.robot.RobotMod;
+import com.dyn.robot.network.CodeEvent;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.LeftClickBlock;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 public class APIHandler {
@@ -38,20 +34,13 @@ public class APIHandler {
 		}
 	}
 
-	protected MCEventHandler eventHandler;
-
-	public APIHandler(MCEventHandler eventHandler, PrintWriter writer) throws IOException {
-		this.eventHandler = eventHandler;
+	public APIHandler(PrintWriter writer) throws IOException {
 		Python2MinecraftApi.setWriter(writer);
-		eventHandler.registerAPIHandler(this);
-	}
-
-	public void addChatDescription(ChatDescription cd) {
-		Python2MinecraftApi.addChatDescription(cd);
+		RobotMod.registerAPIHandler(this);
 	}
 
 	public void close() {
-		eventHandler.unregisterAPIHandler(this);
+		RobotMod.unregisterAPIHandler(this);
 	}
 
 	protected void fail(String string) {
@@ -60,14 +49,6 @@ public class APIHandler {
 
 	public PrintWriter getWriter() {
 		return Python2MinecraftApi.getWriter();
-	}
-
-	public void onClick(LeftClickBlock event) {
-		Python2MinecraftApi.onClick(event, eventHandler);
-	}
-
-	public void onClick(RightClickBlock event) {
-		Python2MinecraftApi.onClick(event, eventHandler);
 	}
 
 	public void onFail(CodeEvent.FailEvent event) {
@@ -106,16 +87,14 @@ public class APIHandler {
 			scan = new Scanner(args);
 			scan.useDelimiter(",");
 
-			synchronized (eventHandler) {
-				if (!APIRegistry.runCommand(cmd, args, scan, eventHandler)) {
-					unknownCommand(cmd);
-				}
+			if (!APIRegistry.runCommand(cmd, args, scan)) {
+				unknownCommand(cmd);
 			}
 
 			scan.close();
 			scan = null;
 		} catch (Exception e) {
-			RaspberryJamMod.logger.error("Error during processing" + e);
+			RobotMod.logger.error("Error during processing" + e);
 			e.printStackTrace();
 		} finally {
 			if (scan != null) {
