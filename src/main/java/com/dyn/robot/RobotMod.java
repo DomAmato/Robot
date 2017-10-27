@@ -43,7 +43,6 @@ import com.google.common.collect.Maps;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
@@ -86,13 +85,13 @@ public class RobotMod {
 	public static final ItemMemoryWipe neuralyzer = new ItemMemoryWipe();
 	public static final ItemReferenceManual manual = new ItemReferenceManual();
 
-	public static final SoundEvent ROBOT_ON = createSoundEvent("robot.on");
-	public static final SoundEvent ROBOT_REMOTE = createSoundEvent("robot.remote");
-	public static final SoundEvent ROBOT_ERROR = createSoundEvent("robot.error");
-	public static final SoundEvent ROBOT_HARSH = createSoundEvent("robot.harsh");
-	public static final SoundEvent ROBOT_BEEP = createSoundEvent("robot.beep");
-	public static final SoundEvent ROBOT_WHISTLE = createSoundEvent("robot.whistle");
-	
+	public static final SoundEvent ROBOT_ON = RobotMod.createSoundEvent("robot.on");
+	public static final SoundEvent ROBOT_REMOTE = RobotMod.createSoundEvent("robot.remote");
+	public static final SoundEvent ROBOT_ERROR = RobotMod.createSoundEvent("robot.error");
+	public static final SoundEvent ROBOT_HARSH = RobotMod.createSoundEvent("robot.harsh");
+	public static final SoundEvent ROBOT_BEEP = RobotMod.createSoundEvent("robot.beep");
+	public static final SoundEvent ROBOT_WHISTLE = RobotMod.createSoundEvent("robot.whistle");
+
 	public static File scriptsLoc;
 
 	// config options
@@ -129,14 +128,51 @@ public class RobotMod {
 	/**
 	 * Create a {@link SoundEvent}.
 	 *
-	 * @param soundName The SoundEvent's name without the testmod3 prefix
+	 * @param soundName
+	 *            The SoundEvent's name without the testmod3 prefix
 	 * @return The SoundEvent
 	 */
 	private static SoundEvent createSoundEvent(final String soundName) {
 		final ResourceLocation soundID = new ResourceLocation(Reference.MOD_ID, soundName);
 		return new SoundEvent(soundID).setRegistryName(soundID);
 	}
-	
+
+	public static void registerAPIHandler(APIHandler h) {
+		RobotMod.apiHandlers.add(h);
+	}
+
+	public static void synchronizeConfig() {
+		RobotMod.portNumber = RobotMod.configFile.getInt("Port Number", Configuration.CATEGORY_GENERAL, 4711, 0, 65535,
+				"Port number");
+		RobotMod.wsPort = RobotMod.configFile.getInt("Websocket Port", Configuration.CATEGORY_GENERAL, 14711, 0, 65535,
+				"Websocket port");
+		RobotMod.searchForPort = RobotMod.configFile.getBoolean("Port Search if Needed", Configuration.CATEGORY_GENERAL,
+				false, "Port search if needed");
+		RobotMod.concurrent = RobotMod.configFile.getBoolean("Multiple Connections", Configuration.CATEGORY_GENERAL,
+				true, "Multiple connections");
+		RobotMod.useSystemPath = RobotMod.configFile.getBoolean("Search System Path", Configuration.CATEGORY_GENERAL,
+				true, "Search for python on the system path or use a local embedded version");
+		RobotMod.pythonEmbeddedLocation = RobotMod.configFile.getString("Embedded Python Location",
+				Configuration.CATEGORY_GENERAL, "emb-python",
+				"Relative to .minecraft folder or server jar, only works on Windows");
+		RobotMod.pythonInterpreter = RobotMod.configFile.getString("Python Interpreter", Configuration.CATEGORY_GENERAL,
+				"python", "Python interpreter");
+		RobotMod.globalChatMessages = RobotMod.configFile.getBoolean("Messages Go To All",
+				Configuration.CATEGORY_GENERAL, true, "Messages go to all");
+		RobotMod.mcpiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
+				Configuration.CATEGORY_GENERAL, "mcpy/", "Relative to .minecraft folder or server jar");
+
+		if (RobotMod.configFile.hasChanged()) {
+			RobotMod.configFile.save();
+		}
+	}
+
+	public static void unregisterAPIHandler(APIHandler h) {
+		RobotMod.apiHandlers.remove(h);
+	}
+
+	private APIServer fullAPIServer = null;
+
 	@SubscribeEvent
 	public void codeError(CodeEvent.ErrorEvent event) {
 		if (event instanceof CodeEvent.RobotErrorEvent) {
@@ -157,40 +193,10 @@ public class RobotMod {
 		}
 	}
 
-	public static void registerAPIHandler(APIHandler h) {
-		RobotMod.apiHandlers.add(h);
+	@Mod.EventHandler
+	public void init(FMLInitializationEvent event) {
+		RobotMod.proxy.init();
 	}
-
-	public static void synchronizeConfig() {
-		RobotMod.portNumber = RobotMod.configFile.getInt("Port Number", Configuration.CATEGORY_GENERAL, 4711, 0, 65535,
-				"Port number");
-		RobotMod.wsPort = RobotMod.configFile.getInt("Websocket Port", Configuration.CATEGORY_GENERAL, 14711, 0, 65535,
-				"Websocket port");
-		RobotMod.searchForPort = RobotMod.configFile.getBoolean("Port Search if Needed", Configuration.CATEGORY_GENERAL,
-				false, "Port search if needed");
-		RobotMod.concurrent = RobotMod.configFile.getBoolean("Multiple Connections", Configuration.CATEGORY_GENERAL,
-				true, "Multiple connections");
-		RobotMod.useSystemPath = RobotMod.configFile.getBoolean("Search System Path", Configuration.CATEGORY_GENERAL,
-				true, "Search for python on the system path or use a local embedded version");
-		RobotMod.pythonEmbeddedLocation = RobotMod.configFile.getString("Embedded Python Location",
-				Configuration.CATEGORY_GENERAL, "emb-python", "Relative to .minecraft folder or server jar, only works on Windows");
-		RobotMod.pythonInterpreter = RobotMod.configFile.getString("Python Interpreter", Configuration.CATEGORY_GENERAL,
-				"python", "Python interpreter");
-		RobotMod.globalChatMessages = RobotMod.configFile.getBoolean("Messages Go To All",
-				Configuration.CATEGORY_GENERAL, true, "Messages go to all");
-		RobotMod.mcpiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
-				Configuration.CATEGORY_GENERAL, "mcpy/", "Relative to .minecraft folder or server jar");
-
-		if (RobotMod.configFile.hasChanged()) {
-			RobotMod.configFile.save();
-		}
-	}
-
-	public static void unregisterAPIHandler(APIHandler h) {
-		RobotMod.apiHandlers.remove(h);
-	}
-
-	private APIServer fullAPIServer = null;
 
 	@SubscribeEvent
 	public void onFailEvent(CodeEvent.FailEvent event) {
@@ -264,10 +270,10 @@ public class RobotMod {
 
 		MinecraftForge.EVENT_BUS.unregister(this);
 
-		for(Process process : playerProcesses.values()) {
+		for (Process process : RobotMod.playerProcesses.values()) {
 			process.destroy();
 		}
-		
+
 		if (fullAPIServer != null) {
 			fullAPIServer.close();
 		}
@@ -278,6 +284,11 @@ public class RobotMod {
 		for (APIHandler apiHandler : RobotMod.apiHandlers) {
 			apiHandler.onSuccess(event);
 		}
+	}
+
+	@Mod.EventHandler
+	public void postInit(FMLPostInitializationEvent event) {
+
 	}
 
 	@Mod.EventHandler
@@ -321,22 +332,6 @@ public class RobotMod {
 		RobotMod.proxy.preInit();
 	}
 
-	@Mod.EventHandler
-	public void init(FMLInitializationEvent event) {
-		RobotMod.proxy.init();
-	}
-
-	@Mod.EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-
-	}
-
-	@SubscribeEvent
-    public void spawnEvent(LivingSpawnEvent event) {
-    	if(event.getEntity() instanceof EntityRobot) {
-    		System.out.println(event.getWorld().isRemote + " - " + ((EntityRobot)event.getEntity()).getOwnerId());
-    	}
-    }
 	@SubscribeEvent
 	public void socketClose(SocketEvent.Close event) {
 		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
@@ -349,5 +344,12 @@ public class RobotMod {
 			}
 		}
 		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
+	}
+
+	@SubscribeEvent
+	public void spawnEvent(LivingSpawnEvent event) {
+		if (event.getEntity() instanceof EntityRobot) {
+			System.out.println(event.getWorld().isRemote + " - " + ((EntityRobot) event.getEntity()).getOwnerId());
+		}
 	}
 }

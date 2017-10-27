@@ -87,7 +87,8 @@ public class ItemRemote extends Item {
 			}
 
 		}
-		worldIn.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
+		worldIn.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(),
+				RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
 		return new ActionResult<>(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
 	}
 

@@ -109,44 +109,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		tasks.addTask(4, new EntityAILookIdle(this));
 	}
 
-	/**
-	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
-	 * into the saddle on a pig.
-	 */
-	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack itemstack = player.inventory.getCurrentItem();
-		if (world.isRemote) {
-			if (itemstack != null) {
-				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
-					if (isOwner(player) || ((owner == null) && isTamable)) {
-						RobotMod.proxy.openRobotProgrammingWindow(this);
-					} else {
-						if (owner != null) {
-							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
-						} else {
-							player.sendMessage(new TextComponentString("Robot is not compatible with remote"));
-						}
-					}
-					return true;
-				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				}
-			}
-		} else {
-			if (itemstack != null) {
-				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				}
-			}
-		}
-		return super.processInteract(player, hand);
-	}
-
 	public void addMessage(String message) {
 		long time = System.currentTimeMillis();
 
@@ -303,6 +265,50 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return SoundEvents.ENTITY_IRONGOLEM_DEATH;
 	}
 
+	public float getDigSpeed(IBlockState state) {
+		float f = robot_inventory.getStackInSlot(2).getStrVsBlock(state);
+
+		if (f > 1.0F) {
+			int i = EnchantmentHelper.getEfficiencyModifier(this);
+			ItemStack itemstack = getHeldItemMainhand();
+
+			if ((i > 0) && !itemstack.isEmpty()) {
+				f += (i * i) + 1;
+			}
+		}
+
+		if (isPotionActive(MobEffects.HASTE)) {
+			f *= 1.0F + ((getActivePotionEffect(MobEffects.HASTE).getAmplifier() + 1) * 0.2F);
+		}
+
+		if (isPotionActive(MobEffects.MINING_FATIGUE)) {
+			float f1;
+
+			switch (getActivePotionEffect(MobEffects.MINING_FATIGUE).getAmplifier()) {
+			case 0:
+				f1 = 0.3F;
+				break;
+			case 1:
+				f1 = 0.09F;
+				break;
+			case 2:
+				f1 = 0.0027F;
+				break;
+			case 3:
+			default:
+				f1 = 8.1E-4F;
+			}
+
+			f *= f1;
+		}
+
+		if (!onGround) {
+			f /= 5.0F;
+		}
+
+		return (f < 0 ? 0 : f);
+	}
+
 	/**
 	 * Returns the sound this mob makes when it is hurt.
 	 */
@@ -423,6 +429,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return isTamable;
 	}
 
+	public void makeSwingArm(boolean state) {
+		shouldSwingArm = state;
+	}
+
 	public void moveBackward(int num) {
 		if (getIsFollowing()) {
 			setIsFollowing(false);
@@ -505,6 +515,15 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		resumeExecution();
 	}
 
+	@Override
+	public void onLivingUpdate() {
+		super.onLivingUpdate();
+		if (!isSwingInProgress && shouldSwingArm) {
+			swingArm(getActiveHand());
+		}
+		updateArmSwingProgress();
+	}
+
 	public void pauseCodeExecution() {
 		pauseCode = true;
 	}
@@ -512,6 +531,44 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	protected void playStepSound(BlockPos pos, Block blockIn) {
 		playSound(SoundEvents.ENTITY_CHICKEN_STEP, 0.15F, 1.0F);
+	}
+
+	/**
+	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
+	 * into the saddle on a pig.
+	 */
+	@Override
+	public boolean processInteract(EntityPlayer player, EnumHand hand) {
+		ItemStack itemstack = player.inventory.getCurrentItem();
+		if (world.isRemote) {
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
+					if (isOwner(player) || ((owner == null) && isTamable)) {
+						RobotMod.proxy.openRobotProgrammingWindow(this);
+					} else {
+						if (owner != null) {
+							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
+						} else {
+							player.sendMessage(new TextComponentString("Robot is not compatible with remote"));
+						}
+					}
+					return true;
+				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				}
+			}
+		} else {
+			if (itemstack != null) {
+				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				}
+			}
+		}
+		return super.processInteract(player, hand);
 	}
 
 	@Override
@@ -596,8 +653,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setOwner(UUID playerId) {
 		owner = world.getPlayerEntityByUUID(playerId);
-		if(world.isRemote) {
-			
+		if (world.isRemote) {
+
 		}
 	}
 
@@ -669,50 +726,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 	}
 
-	public float getDigSpeed(IBlockState state) {
-		float f = this.robot_inventory.getStackInSlot(2).getStrVsBlock(state);
-
-		if (f > 1.0F) {
-			int i = EnchantmentHelper.getEfficiencyModifier(this);
-			ItemStack itemstack = this.getHeldItemMainhand();
-
-			if (i > 0 && !itemstack.isEmpty()) {
-				f += (float) (i * i + 1);
-			}
-		}
-
-		if (this.isPotionActive(MobEffects.HASTE)) {
-			f *= 1.0F + (float) (this.getActivePotionEffect(MobEffects.HASTE).getAmplifier() + 1) * 0.2F;
-		}
-
-		if (this.isPotionActive(MobEffects.MINING_FATIGUE)) {
-			float f1;
-
-			switch (this.getActivePotionEffect(MobEffects.MINING_FATIGUE).getAmplifier()) {
-			case 0:
-				f1 = 0.3F;
-				break;
-			case 1:
-				f1 = 0.09F;
-				break;
-			case 2:
-				f1 = 0.0027F;
-				break;
-			case 3:
-			default:
-				f1 = 8.1E-4F;
-			}
-
-			f *= f1;
-		}
-
-		if (!this.onGround) {
-			f /= 5.0F;
-		}
-
-		return (f < 0 ? 0 : f);
-	}
-
 	/**
 	 * Called by the server when constructing the spawn packet. Data should be added
 	 * to the provided stream.
@@ -724,18 +737,5 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void writeSpawnData(ByteBuf buffer) {
 		buffer.writeBoolean(isTamable);
 		buffer.writeBoolean(shouldFollow);
-	}
-
-	public void makeSwingArm(boolean state) {
-		shouldSwingArm = state;
-	}
-
-	@Override
-	public void onLivingUpdate() {
-		super.onLivingUpdate();
-		if (!isSwingInProgress && shouldSwingArm) {
-			swingArm(getActiveHand());
-		}
-		updateArmSwingProgress();
 	}
 }

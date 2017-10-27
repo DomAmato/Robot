@@ -192,7 +192,7 @@ public class RunPythonShell {
 
 			ProcessBuilder builder = new ProcessBuilder(RunPythonShell.scriptProcessorPath, "-i");
 
-//			builder.directory(new File(RobotMod.mcpiLocation));
+			// builder.directory(new File(RobotMod.mcpiLocation));
 			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
 
 			Map<String, String> environment = builder.environment();
@@ -244,8 +244,8 @@ public class RunPythonShell {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent(codeLine, e.getMessage(),
-					0, player, robotId));
+			MinecraftForge.EVENT_BUS
+					.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine, e.getMessage(), 0, player, robotId));
 		}
 	}
 }

@@ -77,28 +77,6 @@ public class ModelManager {
 	}
 
 	/**
-	 * Register a model for a metadata value of the {@link Block}'s {@link Item}.
-	 * <p>
-	 * Uses the registry name as the domain/path and the {@link IBlockState} as the
-	 * variant.
-	 *
-	 * @param state
-	 *            The state to use as the variant
-	 * @param metadata
-	 *            The item metadata to register the model for
-	 */
-	private void registerBlockItemModelForMeta(final IBlockState state, final int metadata) {
-		final Block block = state.getBlock();
-		final Item item = Item.getItemFromBlock(block);
-
-		if (item != Items.AIR) {
-			registerItemModel(item, new ModelResourceLocation(block.getRegistryName(),
-					propertyStringMapper.getPropertyString(state.getProperties())));
-		}
-
-	}
-
-	/**
 	 * Register this mod's {@link Block} models.
 	 */
 	private void registerBlockModels() {

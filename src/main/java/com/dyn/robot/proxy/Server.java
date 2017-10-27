@@ -1,7 +1,6 @@
 package com.dyn.robot.proxy;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;

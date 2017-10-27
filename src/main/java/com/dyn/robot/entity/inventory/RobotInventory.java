@@ -49,31 +49,16 @@ public class RobotInventory extends InventoryBasic {
 		}
 		return false;
 	}
-	
-	public boolean hasExpansionChip(ItemStack chip) {
-		if (!chip.isEmpty()) {
-			for (int i = 3; i < 12; i++) {
-				ItemStack is2 = getStackInSlot(i);
-				if (!is2.isEmpty()) {
-					if ((is2.getItem() == chip.getItem())
-							&& ((is2.getItemDamage() == chip.getItemDamage()))) {
-						return true;
-					}
+
+	public boolean containsItemType(Class itemType) {
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (!is2.isEmpty()) {
+				if (is2.getItem().getClass().isAssignableFrom(itemType)) {
+					return true;
 				}
 			}
 		}
-		return false;
-	}
-	
-	public boolean containsItemType(Class itemType) {
-			for (int i = 0; i < getSizeInventory(); i++) {
-				ItemStack is2 = getStackInSlot(i);
-				if (!is2.isEmpty()) {
-					if (is2.getItem().getClass().isAssignableFrom(itemType)) {
-						return true;
-					}
-				}
-			}
 		return false;
 	}
 
@@ -84,14 +69,6 @@ public class RobotInventory extends InventoryBasic {
 			}
 		}
 		return 11;
-	}
-	
-	public boolean hasSDCard() {
-		return (getStackInSlot(0).isEmpty());
-	}
-	
-	public ItemStack getSDCard() {
-		return getStackInSlot(0);
 	}
 
 	public int getQuantityOfItem(ItemStack is) {
@@ -107,6 +84,10 @@ public class RobotInventory extends InventoryBasic {
 		return total;
 	}
 
+	public ItemStack getSDCard() {
+		return getStackInSlot(0);
+	}
+
 	public ItemStack getStackOfItem(ItemStack is) {
 		if (!is.isEmpty()) {
 			for (int i = 0; i < getSizeInventory(); i++) {
@@ -120,6 +101,24 @@ public class RobotInventory extends InventoryBasic {
 			}
 		}
 		return null;
+	}
+
+	public boolean hasExpansionChip(ItemStack chip) {
+		if (!chip.isEmpty()) {
+			for (int i = 3; i < 12; i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (!is2.isEmpty()) {
+					if ((is2.getItem() == chip.getItem()) && ((is2.getItemDamage() == chip.getItemDamage()))) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean hasSDCard() {
+		return (getStackInSlot(0).isEmpty());
 	}
 
 	public boolean isInventoryEmpty() {

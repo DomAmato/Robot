@@ -32,7 +32,6 @@ import com.rabbit.gui.show.Show;
 import com.rabbit.gui.utils.DefaultTextures;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -113,7 +112,8 @@ public class RobotProgrammingInterface extends Show {
 		}
 		runButton.setIsEnabled(true);
 		btnStatus = true;
-		Minecraft.getMinecraft().player.world.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_ERROR, SoundCategory.PLAYERS, 1, 1);
+		Minecraft.getMinecraft().player.world.playSound(Minecraft.getMinecraft().player,
+				Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_ERROR, SoundCategory.PLAYERS, 1, 1);
 
 	}
 
@@ -129,7 +129,8 @@ public class RobotProgrammingInterface extends Show {
 
 		sdCard = robot.robot_inventory.getSDCard();
 
-		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true).setCanDrag(true)/*.setCanResize(true)*/;
+		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true)
+				.setCanDrag(true)/* .setCanResize(true) */;
 
 		Panel savePanel = new Panel((int) (width * .33), (int) (height * .33), (int) (width * .45),
 				(int) (height * .33)).setVisible(false).setFocused(false).setCanDrag(true).setZ(1000);
@@ -274,7 +275,7 @@ public class RobotProgrammingInterface extends Show {
 
 		// The Panel background
 		mainPanel.registerComponent(
-				new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()), DefaultTextures.RESIZINGBACKGROUND2));
+				new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()), DefaultTextures.BACKGROUND2));
 
 		mainPanel.registerComponent(
 				(codeWindow = new CodeInterface(10, 15, mainPanel.getWidth() - 20, mainPanel.getHeight() - 35))
@@ -352,7 +353,8 @@ public class RobotProgrammingInterface extends Show {
 						codeWindow.clearError();
 						errorPanel.setVisible(false);
 
-						NetworkManager.sendToServer(new MessageRunRobotScript("from api.robot import *\nrobot = Robot()\n" +termText, robot.getEntityId(), true));
+						NetworkManager.sendToServer(new MessageRunRobotScript(
+								"from api.robot import *\nrobot = Robot()\n" + termText, robot.getEntityId(), true));
 						((PictureTab) followTab)
 								.setPicture(new ResourceLocation("robot", "textures/gui/robot_follow.png"));
 						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
@@ -360,8 +362,8 @@ public class RobotProgrammingInterface extends Show {
 					}
 				}));
 
-		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15,
-				new ResourceLocation("robot", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
+		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15, DefaultTextures.EXIT)
+				.setDrawsButton(false).setClickListener(btn -> {
 					RobotMod.proxy.toggleRenderRobotProgramInterface(false);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));
@@ -376,10 +378,11 @@ public class RobotProgrammingInterface extends Show {
 				errorLabel = new TextLabel(10, 20, errorPanel.getWidth() - 20, errorPanel.getHeight() - 20, errorText)
 						.setMultilined(true));
 
-		errorPanel.registerComponent(new Picture(10, 5, (errorPanel.getWidth()/10), (errorPanel.getHeight()/4), new ResourceLocation("robot", "textures/gui/error2.png")));
+		errorPanel.registerComponent(new Picture(10, 5, (errorPanel.getWidth() / 10), (errorPanel.getHeight() / 4),
+				new ResourceLocation("robot", "textures/gui/error2.png")));
 
-		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10,
-				new ResourceLocation("robot", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
+		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10, DefaultTextures.EXIT)
+				.setDrawsButton(false).setClickListener(btn -> {
 					errorPanel.setVisible(false);
 					showError = false;
 				}));
@@ -391,24 +394,24 @@ public class RobotProgrammingInterface extends Show {
 		robotMembers.add("forward()");
 		robotMembers.add("backward()");
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 4))) {
-		robotMembers.add("inspect()");
+			robotMembers.add("inspect()");
 		}
 		robotMembers.add("left()");
 		robotMembers.add("right()");
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))) {
-		robotMembers.add("mine()");
+			robotMembers.add("mine()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))) {
-		robotMembers.add("place()");
+			robotMembers.add("place()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 1))) {
-		robotMembers.add("jump()");
+			robotMembers.add("jump()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
-		robotMembers.add("say()");
+			robotMembers.add("say()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))) {
-		robotMembers.add("interact()");
+			robotMembers.add("interact()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
 			robotMembers.add("detect()");
@@ -420,7 +423,7 @@ public class RobotProgrammingInterface extends Show {
 			robotMembers.add("climb()");
 			robotMembers.add("descend()");
 		}
-		
+
 		Collections.sort(robotMembers);
 
 		codeWindow.addClassMembers("Robot", robotMembers);

@@ -61,14 +61,11 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.manual);
 	}
 
-	private static void registerTileEntities() {
-
-	}
-	
 	/**
 	 * Register this mod's {@link SoundEvent}s.
 	 *
-	 * @param event The event
+	 * @param event
+	 *            The event
 	 */
 	@SubscribeEvent
 	public static void registerSoundEvents(final RegistryEvent.Register<SoundEvent> event) {
@@ -80,5 +77,8 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.ROBOT_WHISTLE);
 	}
 
-	
+	private static void registerTileEntities() {
+
+	}
+
 }

@@ -1,9 +1,6 @@
 package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.items.ItemMemoryWipe;
-import com.dyn.robot.items.ItemRemote;
-import com.dyn.robot.items.ItemWrench;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
@@ -11,17 +8,15 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 public class SimpleRobotEntity extends EntityRobot {
 
 	public final int on1 = 50;
 	public final int on2 = 75;
-	
+
 	public SimpleRobotEntity(World worldIn) {
 		this(worldIn, null);
 	}

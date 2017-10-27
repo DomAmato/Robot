@@ -2,8 +2,6 @@ package com.dyn.robot.api;
 
 import java.util.List;
 import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,14 +28,11 @@ import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
-import net.minecraft.item.ItemTool;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
 import net.minecraftforge.event.world.BlockEvent;
 
 public class RobotAPI extends Python2MinecraftApi {
@@ -163,11 +158,11 @@ public class RobotAPI extends Python2MinecraftApi {
 						short blockId = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
-						if(!robot.robot_inventory.containsItem(new ItemStack(Block.getBlockById(blockId), 1, meta))) {
+						if (!robot.robot_inventory.containsItem(new ItemStack(Block.getBlockById(blockId), 1, meta))) {
 							Python2MinecraftApi.fail("Block not Found in Inventory");
 							return;
 						}
-						
+
 						final BlockPos immutablePlaceBlock = placeBlock;
 						RobotMod.proxy.addScheduledTask(() -> {
 							IBlockState oldState = robot.world.getBlockState(immutablePlaceBlock);
@@ -248,7 +243,9 @@ public class RobotAPI extends Python2MinecraftApi {
 						NetworkManager.sendTo(new RobotSpeakMessage("Break", id), player);
 					}
 				}
-				if (robot.robot_inventory.getStackInSlot(2).isEmpty() || robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemSword || robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemHoe) {
+				if (robot.robot_inventory.getStackInSlot(2).isEmpty()
+						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemSword)
+						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemHoe)) {
 					Python2MinecraftApi.fail("Robot has no tool to break block with");
 					return;
 				}
@@ -276,29 +273,28 @@ public class RobotAPI extends Python2MinecraftApi {
 
 				if (robot.world.getBlockState(breakBlock).getBlock() != Blocks.AIR) {
 					IBlockState state = robot.world.getBlockState(breakBlock);
-					float speed = Math.min(state.getBlockHardness(robot.world, breakBlock)/robot.getDigSpeed(state)/10f, 2);
+					float speed = Math
+							.min(state.getBlockHardness(robot.world, breakBlock) / robot.getDigSpeed(state) / 10f, 2);
 					final BlockPos immutableBreakBlock = breakBlock;
 					robot.makeSwingArm(true);
-					scheduler.schedule(new Runnable() {
-			            public void run() {
-			            	robot.makeSwingArm(false);
-			            	if (!robot.robot_inventory.isInventoryFull()) {
-								IBlockState broken = robot.world.getBlockState(immutableBreakBlock);
-								robot.robot_inventory.addItemStackToInventory(
-										new ItemStack(broken.getBlock(), 1, broken.getBlock().getMetaFromState(broken)));
-							} else {
-								robot.world.getBlockState(immutableBreakBlock).getBlock().dropBlockAsItem(robot.world, immutableBreakBlock,
-										robot.world.getBlockState(immutableBreakBlock), 1);
-							}
-			            	BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(robot.world, immutableBreakBlock, state,
-									robot.getOwner());
-							MinecraftForge.EVENT_BUS.post(event);
-							robot.world.setBlockToAir(immutableBreakBlock);
-							MinecraftForge.EVENT_BUS
-									.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
-			            }
-			        }, (long) Math.max(100, 1000*speed), TimeUnit.MILLISECONDS);
-					
+					RobotAPI.scheduler.schedule(() -> {
+						robot.makeSwingArm(false);
+						if (!robot.robot_inventory.isInventoryFull()) {
+							IBlockState broken = robot.world.getBlockState(immutableBreakBlock);
+							robot.robot_inventory.addItemStackToInventory(
+									new ItemStack(broken.getBlock(), 1, broken.getBlock().getMetaFromState(broken)));
+						} else {
+							robot.world.getBlockState(immutableBreakBlock).getBlock().dropBlockAsItem(robot.world,
+									immutableBreakBlock, robot.world.getBlockState(immutableBreakBlock), 1);
+						}
+						BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(robot.world, immutableBreakBlock, state,
+								robot.getOwner());
+						MinecraftForge.EVENT_BUS.post(event);
+						robot.world.setBlockToAir(immutableBreakBlock);
+						MinecraftForge.EVENT_BUS.post(
+								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+					}, (long) Math.max(100, 1000 * speed), TimeUnit.MILLISECONDS);
+
 				} else {
 					Python2MinecraftApi.fail("Nothing to break");
 				}
@@ -572,7 +568,7 @@ public class RobotAPI extends Python2MinecraftApi {
 			// adds a comma to the beginning so we substring
 			if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
 				Python2MinecraftApi.fail("Robot does not know the say command");
-					return;
+				return;
 			}
 			if (player != null) {
 				NetworkManager.sendTo(new RobotSpeakMessage(scan.nextLine().substring(1), id), player);

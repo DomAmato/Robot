@@ -17,7 +17,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderSimpleRobot extends RenderLiving<SimpleRobotEntity> {
@@ -51,9 +50,10 @@ public class RenderSimpleRobot extends RenderLiving<SimpleRobotEntity> {
 					}
 
 					GlStateManager.pushMatrix();
-		            GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
-		            Minecraft.getMinecraft().getItemRenderer().renderItemSide(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, false);
-		            GlStateManager.popMatrix();
+					GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
+					Minecraft.getMinecraft().getItemRenderer().renderItemSide(entitylivingbaseIn, itemstack,
+							ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, false);
+					GlStateManager.popMatrix();
 
 					GlStateManager.popMatrix();
 				}

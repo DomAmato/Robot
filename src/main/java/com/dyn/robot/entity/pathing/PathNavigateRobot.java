@@ -133,7 +133,8 @@ public class PathNavigateRobot extends PathNavigateGround {
 	// int l = j1;
 	//
 	// for (int i1 = i - 1; i1 >= currentPath.getCurrentPathIndex(); --i1) {
-	// if (isDirectPathBetweenPoints(vec3, currentPath.getVectorFromIndex(entity,
+	// if (isDirectPathBetweenPoints(vec3,
+	// currentPath.getVectorFromIndex(entity,
 	// i1), j1, k1, l)) {
 	// currentPath.setCurrentPathIndex(i1);
 	// break;
