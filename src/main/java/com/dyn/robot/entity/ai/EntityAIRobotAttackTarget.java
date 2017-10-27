@@ -1,7 +1,7 @@
 package com.dyn.robot.entity.ai;
 
-import com.dyn.rjm.network.CodeEvent;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.network.CodeEvent;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

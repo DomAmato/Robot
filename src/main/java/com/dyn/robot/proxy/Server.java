@@ -92,7 +92,6 @@ public class Server implements Proxy {
 
 	@Override
 	public void preInit() {
-		RobotAPI.registerCommands();
 		NetworkRegistry.INSTANCE.registerGuiHandler(RobotMod.instance, new RobotGuiHandler());
 	}
 

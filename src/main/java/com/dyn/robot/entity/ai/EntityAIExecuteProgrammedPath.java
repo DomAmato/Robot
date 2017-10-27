@@ -1,8 +1,8 @@
 package com.dyn.robot.entity.ai;
 
-import com.dyn.rjm.network.CodeEvent;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.utils.HelperFunctions;
 
 import net.minecraft.entity.ai.EntityAIBase;

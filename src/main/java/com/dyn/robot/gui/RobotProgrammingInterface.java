@@ -2,6 +2,7 @@ package com.dyn.robot.gui;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -31,11 +32,13 @@ import com.rabbit.gui.show.Show;
 import com.rabbit.gui.utils.DefaultTextures;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 
 public class RobotProgrammingInterface extends Show {
 
@@ -61,7 +64,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
-		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
+		termText = "#Welcome to the progamming interface!\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		robot = null;
@@ -70,7 +73,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!\n\nfrom api.ext.robot import *\n\nrobo = Robot()";
+		termText = "#Welcome to the progamming interface!\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		btnStatus = true;
@@ -104,14 +107,14 @@ public class RobotProgrammingInterface extends Show {
 		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")
 				|| error.contains("AttributeError")) {
 			// some errors dont seem to have the same offset as other errors
-			codeWindow.notifyError(line - 1, code, error);
+			codeWindow.notifyError(line - 3, code, error);
 		} else {
-			codeWindow.notifyError(line - 2, code, error);
+			codeWindow.notifyError(line - 4, code, error);
 		}
-		// Minecraft.getMinecraft().getSoundHandler()
-		// .playSound(PositionedSoundRecord.create(new
-		// ResourceLocation("robotrobot:robot.error"), 1.0F));
-		// onClose();
+		runButton.setIsEnabled(true);
+		btnStatus = true;
+		Minecraft.getMinecraft().player.world.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_ERROR, SoundCategory.PLAYERS, 1, 1);
+
 	}
 
 	@Override
@@ -124,17 +127,12 @@ public class RobotProgrammingInterface extends Show {
 	public void setup() {
 		super.setup();
 
-		if (sdCard != robot.robot_inventory.getStackInSlot(0)) {
-			sdCard = robot.robot_inventory.getStackInSlot(0);
-			if ((sdCard != null) && sdCard.hasTagCompound()) {
-				termText = sdCard.getTagCompound().getString("text");
-			}
-		}
+		sdCard = robot.robot_inventory.getSDCard();
 
-		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true);
+		Panel mainPanel = new Panel((int) (width * .55), 0, (int) (width * .45), height).setFocused(true).setCanDrag(true)/*.setCanResize(true)*/;
 
 		Panel savePanel = new Panel((int) (width * .33), (int) (height * .33), (int) (width * .45),
-				(int) (height * .33)).setVisible(false).setFocused(false).setZ(1000);
+				(int) (height * .33)).setVisible(false).setFocused(false).setCanDrag(true).setZ(1000);
 
 		registerComponent(savePanel);
 
@@ -276,7 +274,7 @@ public class RobotProgrammingInterface extends Show {
 
 		// The Panel background
 		mainPanel.registerComponent(
-				new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()), DefaultTextures.BACKGROUND2));
+				new Picture(0, 0, (mainPanel.getWidth()), (mainPanel.getHeight()), DefaultTextures.RESIZINGBACKGROUND2));
 
 		mainPanel.registerComponent(
 				(codeWindow = new CodeInterface(10, 15, mainPanel.getWidth() - 20, mainPanel.getHeight() - 35))
@@ -319,9 +317,9 @@ public class RobotProgrammingInterface extends Show {
 				new Button((mainPanel.getWidth() - 15) / 4, 0, (mainPanel.getWidth() - 15) / 4, 15, "Load")
 						.setClickListener(btn -> {
 							if (sdCard.hasTagCompound()) {
-								codeWindow.setText(sdCard.getTagCompound().getString("text"));
+								codeWindow.setTextWithEvent(sdCard.getTagCompound().getString("text"));
 							}
-						}).setIsEnabled((sdCard != null) && sdCard.hasTagCompound()));
+						}).setIsEnabled(!sdCard.isEmpty() && sdCard.hasTagCompound()));
 
 		mainPanel.registerComponent(
 				new Button((mainPanel.getWidth() - 15) / 2, 0, (mainPanel.getWidth() - 15) / 4, 15, "Save")
@@ -330,7 +328,7 @@ public class RobotProgrammingInterface extends Show {
 							savePanel.setFocused(true);
 							mainPanel.setDimming(false);
 							mainPanel.setFocused(false);
-						}).setIsEnabled(sdCard != null));
+						}).setIsEnabled(!sdCard.isEmpty()));
 
 		mainPanel.registerComponent(runButton = new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0,
 				(mainPanel.getWidth() - 15) / 4, 15, "Run").setIsEnabled(btnStatus).setClickListener(btn -> {
@@ -354,15 +352,7 @@ public class RobotProgrammingInterface extends Show {
 						codeWindow.clearError();
 						errorPanel.setVisible(false);
 
-						// if(!termText.contains("robo = Robot()")){
-						// termText = "robo = Robot()\n" + termText;
-						// }
-						// if(!termText.contains("from api.ext.robot
-						// import *")){
-						// termText = "from api.ext.robot import *\n" +
-						// termText;
-						// }
-						NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+						NetworkManager.sendToServer(new MessageRunRobotScript("from api.robot import *\nrobot = Robot()\n" +termText, robot.getEntityId(), true));
 						((PictureTab) followTab)
 								.setPicture(new ResourceLocation("robot", "textures/gui/robot_follow.png"));
 						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
@@ -377,7 +367,7 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(errorPanel = new Panel(0, (int) (mainPanel.getHeight() * .8), mainPanel.getWidth(),
-				(int) (mainPanel.getHeight() * .2)).setVisible(showError));
+				(int) (mainPanel.getHeight() * .2)).setVisible(showError).setCanDrag(true));
 
 		errorPanel.registerComponent(
 				new Picture(0, 0, (errorPanel.getWidth()), (errorPanel.getHeight()), DefaultTextures.BACKGROUND2));
@@ -386,7 +376,7 @@ public class RobotProgrammingInterface extends Show {
 				errorLabel = new TextLabel(10, 20, errorPanel.getWidth() - 20, errorPanel.getHeight() - 20, errorText)
 						.setMultilined(true));
 
-		errorPanel.registerComponent(new TextLabel(10, 5, errorPanel.getWidth() - 20, 10, "Error Description:"));
+		errorPanel.registerComponent(new Picture(10, 5, (errorPanel.getWidth()/10), (errorPanel.getHeight()/4), new ResourceLocation("robot", "textures/gui/error2.png")));
 
 		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10,
 				new ResourceLocation("robot", "textures/gui/exit.png")).setDrawsButton(false).setClickListener(btn -> {
@@ -400,17 +390,41 @@ public class RobotProgrammingInterface extends Show {
 		List<String> robotMembers = Lists.newArrayList();
 		robotMembers.add("forward()");
 		robotMembers.add("backward()");
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 4))) {
 		robotMembers.add("inspect()");
+		}
 		robotMembers.add("left()");
 		robotMembers.add("right()");
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 2))) {
 		robotMembers.add("mine()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 3))) {
 		robotMembers.add("place()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 1))) {
 		robotMembers.add("jump()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 15))) {
 		robotMembers.add("say()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))) {
 		robotMembers.add("interact()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
+			robotMembers.add("detect()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 7))) {
+			robotMembers.add("attack()");
+		}
+		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 0))) {
+			robotMembers.add("climb()");
+			robotMembers.add("descend()");
+		}
+		
+		Collections.sort(robotMembers);
 
 		codeWindow.addClassMembers("Robot", robotMembers);
-
+		codeWindow.addPredefinedUserVariables("robot", "Robot");
 	}
 
 }
