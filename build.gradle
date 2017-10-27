@@ -21,7 +21,7 @@ repositories {
 
 version = "0.8"
 group = "com.dom.robot" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PyBot"
+archivesBaseName = "Roboticraft"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
