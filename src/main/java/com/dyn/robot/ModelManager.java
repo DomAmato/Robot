@@ -2,14 +2,10 @@ package com.dyn.robot;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.ToIntFunction;
 
-import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
@@ -17,7 +13,6 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fluids.Fluid;
@@ -70,12 +65,32 @@ public class ModelManager {
 	 * @param metadata
 	 *            The item metadata to register the model for
 	 */
+	private void registerBlockItemModel(final IBlockState state) {
+		final Block block = state.getBlock();
+		final Item item = Item.getItemFromBlock(block);
+
+		if (item != Items.AIR) {
+			registerItemModel(item, new ModelResourceLocation(block.getRegistryName(),
+					propertyStringMapper.getPropertyString(state.getProperties())));
+		}
+
+	}
+
+	/**
+	 * Register a model for a metadata value of the {@link Block}'s {@link Item}.
+	 * <p>
+	 * Uses the registry name as the domain/path and the {@link IBlockState} as the
+	 * variant.
+	 *
+	 * @param state
+	 *            The state to use as the variant
+	 * @param metadata
+	 *            The item metadata to register the model for
+	 */
 	private void registerBlockItemModelForMeta(final IBlockState state, final int metadata) {
 		final Block block = state.getBlock();
 		final Item item = Item.getItemFromBlock(block);
 
-		RobotMod.logger.info("Registering Block " + block.getLocalizedName() + " with meta " + metadata);
-		
 		if (item != Items.AIR) {
 			registerItemModel(item, new ModelResourceLocation(block.getRegistryName(),
 					propertyStringMapper.getPropertyString(state.getProperties())));
@@ -87,9 +102,8 @@ public class ModelManager {
 	 * Register this mod's {@link Block} models.
 	 */
 	private void registerBlockModels() {
-		registerVariantBlockItemModels(RobotMod.robot_block.getDefaultState(), BlockRobot.FACING, EnumFacing::getHorizontalIndex);
-		registerVariantBlockItemModels(RobotMod.robot_magent.getDefaultState(), BlockHorizontal.FACING,
-				EnumFacing::getHorizontalIndex);
+		registerBlockItemModel(RobotMod.robot_block.getDefaultState());
+		registerBlockItemModel(RobotMod.robot_magent.getDefaultState());
 	}
 
 	/**
@@ -129,8 +143,9 @@ public class ModelManager {
 	 *            The full model location
 	 */
 	private void registerItemModel(final Item item, final ModelResourceLocation fullModelLocation) {
-		ModelBakery.registerItemVariants(item, fullModelLocation); // Ensure the custom model is loaded and prevent the
-																	// default model from being loaded
+		ModelBakery.registerItemVariants(item, fullModelLocation);
+		// Ensure the custom model is loaded and prevent the
+		// default model from being loaded
 		registerItemModel(item, stack -> fullModelLocation);
 	}
 
@@ -177,7 +192,8 @@ public class ModelManager {
 				new ModelResourceLocation(Reference.MOD_ID + ":robot_spawn_plus", "inventory"));
 		registerItemModelForMeta(RobotMod.robot_spawner, 1,
 				new ModelResourceLocation(Reference.MOD_ID + ":robot_spawn", "inventory"));
-		// registerItemModel(RobotMod.expChip, Reference.MOD_ID+":expansion_chip");
+		// registerItemModel(RobotMod.expChip,
+		// Reference.MOD_ID+":expansion_chip");
 		for (int i = 0; i < 16; i++) {
 			registerItemModelForMeta(RobotMod.expChip, i,
 					new ModelResourceLocation(Reference.MOD_ID + ":expansion_chip_" + i, "inventory"));
@@ -193,34 +209,6 @@ public class ModelManager {
 		registerItemModel(RobotMod.robot_wrench);
 		registerItemModel(RobotMod.whistle);
 		registerItemModel(RobotMod.neuralyzer);
-		registerItemModel(RobotMod.printer);
 		registerItemModel(RobotMod.manual);
-	}
-
-	/**
-	 * Register a model for each metadata value of the {@link Block}'s {@link Item}
-	 * corresponding to the values of an {@link IProperty}.
-	 * <p>
-	 * For each value:
-	 * <li>The domain/path is the registry name</li>
-	 * <li>The variant is {@code baseState} with the {@link IProperty} set to the
-	 * value</li>
-	 * <p>
-	 * The {@code getMeta} function is used to get the metadata of each value.
-	 *
-	 * @param baseState
-	 *            The base state to use for the variant
-	 * @param property
-	 *            The property whose values should be used
-	 * @param getMeta
-	 *            A function to get the metadata of each value
-	 * @param <T>
-	 *            The value type
-	 */
-	private <T extends Comparable<T>> void registerVariantBlockItemModels(final IBlockState baseState,
-			final IProperty<T> property, final ToIntFunction<T> getMeta) {
-		property.getAllowedValues()
-				.forEach(value -> registerBlockItemModelForMeta(baseState.withProperty(property, value),
-						getMeta.applyAsInt(value)));
 	}
 }
