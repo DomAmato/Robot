@@ -7,6 +7,7 @@ import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.reference.Reference;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 
@@ -85,6 +87,7 @@ public class ItemRemote extends Item {
 			}
 
 		}
+		worldIn.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
 		return new ActionResult<>(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
 	}
 

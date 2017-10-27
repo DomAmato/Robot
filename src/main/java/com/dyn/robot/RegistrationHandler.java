@@ -1,15 +1,13 @@
 package com.dyn.robot;
 
 import com.dyn.robot.entity.SimpleRobotEntity;
-import com.dyn.robot.items.ItemSimpleRobotBlock;
 import com.dyn.robot.reference.Reference;
-import com.google.common.base.Preconditions;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -42,17 +40,10 @@ public class RegistrationHandler {
 
 	@SubscribeEvent
 	public static void registerItemBlocks(final RegistryEvent.Register<Item> event) {
-		ItemSimpleRobotBlock roblock = new ItemSimpleRobotBlock(RobotMod.robot_block);
-		final Block block = roblock.getBlock();
-		final ResourceLocation registryName = Preconditions.checkNotNull(block.getRegistryName(),
-				"Block %s has null registry name", block);
-		event.getRegistry().register(roblock.setRegistryName(registryName));
+		// instead of using the static instance create a new block instance instead?
+		event.getRegistry().register(RobotMod.robot_block.getItemBlock());
 
-		ItemBlock robmag = new ItemBlock(RobotMod.robot_magent);
-		final Block robmagblock = robmag.getBlock();
-		final ResourceLocation robmagregistryName = Preconditions.checkNotNull(robmagblock.getRegistryName(),
-				"Block %s has null registry name", robmagblock);
-		event.getRegistry().register(robmag.setRegistryName(robmagregistryName));
+		event.getRegistry().register(RobotMod.robot_magent.getItemBlock());
 
 		RegistrationHandler.registerTileEntities();
 	}
@@ -67,11 +58,27 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.ram);
 		event.getRegistry().register(RobotMod.whistle);
 		event.getRegistry().register(RobotMod.neuralyzer);
-		event.getRegistry().register(RobotMod.printer);
 		event.getRegistry().register(RobotMod.manual);
 	}
 
 	private static void registerTileEntities() {
 
 	}
+	
+	/**
+	 * Register this mod's {@link SoundEvent}s.
+	 *
+	 * @param event The event
+	 */
+	@SubscribeEvent
+	public static void registerSoundEvents(final RegistryEvent.Register<SoundEvent> event) {
+		event.getRegistry().register(RobotMod.ROBOT_ON);
+		event.getRegistry().register(RobotMod.ROBOT_REMOTE);
+		event.getRegistry().register(RobotMod.ROBOT_ERROR);
+		event.getRegistry().register(RobotMod.ROBOT_HARSH);
+		event.getRegistry().register(RobotMod.ROBOT_BEEP);
+		event.getRegistry().register(RobotMod.ROBOT_WHISTLE);
+	}
+
+	
 }

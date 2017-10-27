@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 
@@ -64,7 +65,7 @@ public class ItemRobotWhistle extends Item {
 	 */
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		// worldIn.playSound(playerIn, "dynrobot:robo.whistle", 1, 1);
+		worldIn.playSound(playerIn, playerIn.getPosition(), RobotMod.ROBOT_WHISTLE, SoundCategory.PLAYERS, 1, 1);
 		playerIn.setActiveHand(handIn);
 		return new ActionResult<>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
 	}

@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -35,9 +36,6 @@ public class RemoteInterface extends GuiContainer {
 		super(new RobotChipContainer(playerInv, robot.robot_inventory, robot, Minecraft.getMinecraft().player));
 		this.robot = robot;
 		allowUserInput = false;
-		// Minecraft.getMinecraft().getSoundHandler()
-		// .playSound(PositionedSoundRecord.create(new
-		// ResourceLocation("robot:robot.remote"), 1.0F));
 	}
 
 	/**

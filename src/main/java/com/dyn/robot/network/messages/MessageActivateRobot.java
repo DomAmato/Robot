@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -54,12 +55,13 @@ public class MessageActivateRobot implements IMessage {
 					new_robot.setRobotName(message.getName());
 					new_robot.rotate(HelperFunctions.getAngleFromFacing(dir));
 					new_robot.setIsFollowing(true);
+					new_robot.robot_inventory.setInventorySlotContents(new_robot.robot_inventory.getOpenExpansionSlot(), new ItemStack(RobotMod.expChip, 1, 15));
+					
+					//this currently doesnt play the sound
+//					world.playSound(player, message.getPosition(), RobotMod.ROBOT_ON, SoundCategory.AMBIENT, 1, 1);
+					
 					player.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), world, (int) new_robot.posX,
 							(int) new_robot.posY, (int) new_robot.posZ);
-
-					// NetworkManager.sendTo(new PlayCustomSoundMessage("dynrobot:robot.on"),
-					// player);
-
 				} else {
 					List<EntityRobot> robots = world.getEntitiesWithinAABB(EntityRobot.class,
 							new AxisAlignedBB(message.getPosition().getX() - 1, message.getPosition().getY() - 1,
