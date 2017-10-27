@@ -27,11 +27,11 @@ item.expansion_chip_12.name=#CORRUPTED CHIP#
 item.expansion_chip_13.name=Boolean Chip
 item.expansion_chip_14.name=Loop Chip 
 item.expansion_chip_15.name=Echo Chip
-item.expansion_chip_15.name=Echo Chip
 item.robot_wipe.name=Memory Wiper
-item.robot_printer_0.name=Recombobulator
-
+item.robot_manual.name=Python API Manual
 tile.robot_block.name=Robot
 tile.robot_magnet.name=Magnetic Block
 
 robot.inventory=Robot Inventory
+
+itemGroup.robotab=RobotiCraft

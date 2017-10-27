@@ -1,21 +1,8 @@
 {
-	"forge_marker": 1,
-	"defaults": {
-		"model": "robot:robot_block",
-		"uvlock": true
-	},
     "variants": {
-    	"facing": {
-			"north": { },
-			"south": {
-				"y": 180
-			},
-			"east": {
-				"y": 90
-			},
-			"west": {
-				"y": 270
-			}
-		}
+        "facing=north": { "model": "robot:robot_block", "y": 180},
+        "facing=south": { "model": "robot:robot_block" },
+        "facing=west":  { "model": "robot:robot_block", "y": 90 },
+        "facing=east":  { "model": "robot:robot_block", "y": 270 }
     }
 }

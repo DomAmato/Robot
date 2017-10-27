@@ -1,21 +1,22 @@
 {
-	"forge_marker": 1,
-    "defaults": {
-		"model": "robot:robot_magnet",
-		"uvlock": true
-	},
-    "variants": {
-    	"facing": {
-			"north": { },
-			"south": {
-				"y": 180
-			},
-			"east": {
-				"y": 90
-			},
-			"west": {
-				"y": 270
-			}
+	"variants": {
+		"normal": {
+			"model": "robot:robot_magnet"
+		},
+		"facing=north": {
+			"model": "robot:robot_magnet"
+		},
+		"facing=south": {
+			"model": "robot:robot_magnet",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "robot:robot_magnet",
+			"y": 270
+		},
+		"facing=east": {
+			"model": "robot:robot_magnet",
+			"y": 90
 		}
-    }
+	}
 }
