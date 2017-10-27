@@ -1,6 +1,7 @@
 package com.dyn.robot.entity.render;
 
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
@@ -16,9 +17,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 
-public class RenderSimpleRobot extends RenderLiving<EntityRobot> {
+public class RenderSimpleRobot extends RenderLiving<SimpleRobotEntity> {
 
 	RenderChatBubble chatBubble = new RenderChatBubble();
 
@@ -34,24 +36,24 @@ public class RenderSimpleRobot extends RenderLiving<EntityRobot> {
 					GlStateManager.pushMatrix();
 
 					((ModelSimpleRobot) getMainModel()).postRenderArm(0.0625F);
-					GlStateManager.translate(0F, 0.22F, 0.0625F);
+					GlStateManager.translate(0F, 0.275F, -0.0625F);
 
 					Item item = itemstack.getItem();
-					Minecraft minecraft = Minecraft.getMinecraft();
 
 					if ((item instanceof ItemBlock) && (Block.getBlockFromItem(item).getRenderType(
 							Block.getBlockFromItem(item).getDefaultState()) == EnumBlockRenderType.MODEL)) {
 						GlStateManager.translate(0.0F, 0.1875F, -0.3125F);
 						GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F);
 						GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
-						float f1 = 0.375F;
-						GlStateManager.scale(-f1, -f1, f1);
+						GlStateManager.scale(-0.375F, -0.375F, 0.375F);
 					} else {
 						GlStateManager.scale(-.5, -.5, .5);
 					}
 
-					minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack,
-							ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND);
+					GlStateManager.pushMatrix();
+		            GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
+		            Minecraft.getMinecraft().getItemRenderer().renderItemSide(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, false);
+		            GlStateManager.popMatrix();
 
 					GlStateManager.popMatrix();
 				}
@@ -60,7 +62,7 @@ public class RenderSimpleRobot extends RenderLiving<EntityRobot> {
 	}
 
 	@Override
-	protected ResourceLocation getEntityTexture(EntityRobot entity) {
+	protected ResourceLocation getEntityTexture(SimpleRobotEntity entity) {
 		entity.counter++;
 		entity.counter %= 101;
 		if ((entity.counter > entity.on1) && (entity.counter < entity.on2)) {
@@ -88,14 +90,14 @@ public class RenderSimpleRobot extends RenderLiving<EntityRobot> {
 	}
 
 	@Override
-	public void renderName(EntityRobot entity, double x, double y, double z) {
+	public void renderName(SimpleRobotEntity entity, double x, double y, double z) {
 		super.renderName(entity, x, y, z);
 		if ((entity.getMessages() != null) && (entity.getMessages().size() > 0)) {
 			float height = 1.6F;
 			float offset = entity.height
 					* (1.2f + (entity.getAlwaysRenderNameTag() ? (entity.hasCustomName() ? 0.15f : 0.25f) : 0.0f));
 			chatBubble.renderMessages(entity, x, y + offset, z, 0.666667f * height,
-					isInRange(entity, renderManager.pointedEntity, 4.0));
+					isInRange(entity, renderManager.renderViewEntity, 4.0));
 		}
 	}
 
