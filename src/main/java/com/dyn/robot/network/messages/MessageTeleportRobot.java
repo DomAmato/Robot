@@ -2,9 +2,12 @@ package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.utils.HelperFunctions;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.block.BlockHorizontal;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -20,16 +23,14 @@ public class MessageTeleportRobot implements IMessage {
 				EntityPlayerMP player = ctx.getServerHandler().player;
 				World world = player.world;
 				EntityRobot robot = (EntityRobot) world.getEntityByID(message.getEntityId());
-				BlockPos pos = player.getPosition().offset(player.getHorizontalFacing());
+				BlockPos pos = message.getPos();
 
 				if (robot.dimension != player.dimension) {
 					robot.changeDimension(player.dimension);
 				}
-				robot.posX = pos.getX();
-				robot.posY = pos.getY();
-				robot.posZ = pos.getZ();
-				robot.setPositionAndUpdate(pos.getX(), pos.getY(), pos.getZ());
+				
 				robot.setPosition(pos.getX(), pos.getY(), pos.getZ());
+				robot.rotate(HelperFunctions.getAngleFromFacing(message.getFacing() ));
 				robot.getNavigator().clearPathEntity();
 			});
 			return null;
@@ -37,19 +38,33 @@ public class MessageTeleportRobot implements IMessage {
 	}
 
 	private int entityId;
+	private BlockPos pos;
+	EnumFacing facing;
 
 	// The basic, no-argument constructor MUST be included for
 	// automated handling
 	public MessageTeleportRobot() {
 	}
 
-	public MessageTeleportRobot(int id) {
+	public MessageTeleportRobot(int id, BlockPos pos, EnumFacing facing) {
 		entityId = id;
+		this.pos = pos;
+		this.facing = facing;
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
 		entityId = buf.readInt();
+		pos = BlockPos.fromLong(buf.readLong());
+		facing = EnumFacing.getHorizontal(buf.readInt());
+	}
+
+	public BlockPos getPos() {
+		return pos;
+	}
+
+	public EnumFacing getFacing() {
+		return facing;
 	}
 
 	public int getEntityId() {
@@ -59,5 +74,7 @@ public class MessageTeleportRobot implements IMessage {
 	@Override
 	public void toBytes(ByteBuf buf) {
 		buf.writeInt(entityId);
+		buf.writeLong(pos.toLong());
+		buf.writeInt(facing.getHorizontalIndex());
 	}
 }
