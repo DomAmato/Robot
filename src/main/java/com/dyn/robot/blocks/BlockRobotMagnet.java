@@ -1,5 +1,6 @@
 package com.dyn.robot.blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dyn.robot.RobotMod;
@@ -96,12 +97,22 @@ public class BlockRobotMagnet extends BlockHorizontal {
 			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		List<EntityRobot> list = worldIn.getEntitiesWithinAABB(EntityRobot.class, new AxisAlignedBB(pos.getX() - 10,
 				pos.getY() - 10, pos.getZ() - 10, pos.getX() + 10, pos.getY() + 10, pos.getZ() + 10));
+		
+		List<EntityRobot> ownedRobots = new ArrayList();
+		
 		for (EntityRobot robot : list) {
-			if (robot.getOwner() == playerIn) {
-				robot.setPosition(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);
-				robot.rotate(HelperFunctions.getAngleFromFacing(state.getValue(BlockHorizontal.FACING)));
+			if (robot.isOwner(playerIn)) {
+				ownedRobots.add(robot);
 			}
 		}
+		
+		if(ownedRobots.size() == 1) {
+			ownedRobots.get(0).setPosition(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);
+			ownedRobots.get(0).rotate(HelperFunctions.getAngleFromFacing(state.getValue(BlockHorizontal.FACING)));
+		} else if (worldIn.isRemote && ownedRobots.size() > 1) {
+			RobotMod.proxy.openMagnetGui(pos, state, ownedRobots);
+		}
+		
 		return true;
 	}
 
