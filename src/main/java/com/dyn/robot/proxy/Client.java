@@ -1,5 +1,7 @@
 package com.dyn.robot.proxy;
 
+import java.util.List;
+
 import org.lwjgl.input.Keyboard;
 
 import com.dyn.robot.RobotMod;
@@ -9,6 +11,8 @@ import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.entity.render.ModelSimpleRobot;
 import com.dyn.robot.entity.render.RenderSimpleRobot;
 import com.dyn.robot.gui.ActivationScreen;
+import com.dyn.robot.gui.MagnetScreen;
+import com.dyn.robot.gui.RemoteScreen;
 import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.gui.RobotProgrammingInterface;
 import com.rabbit.gui.RabbitGui;
@@ -17,6 +21,7 @@ import com.rabbit.gui.component.display.tabs.Tab;
 import com.rabbit.gui.component.notification.NotificationsManager;
 import com.rabbit.gui.component.notification.types.GenericNotification;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -27,6 +32,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -119,6 +126,15 @@ public class Client implements Proxy {
 	}
 
 	@SubscribeEvent
+	public void clientWorldEvent(EntityJoinWorldEvent event) {
+		if (event.getEntity() instanceof EntityRobot) {
+			if(((EntityRobot) event.getEntity()).isOwner(Minecraft.getMinecraft().player)) {
+				RobotMod.currentRobots.add((EntityRobot) event.getEntity());
+			}
+		}
+	}
+
+	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
 			return;
@@ -204,5 +220,15 @@ public class Client implements Proxy {
 		} else {
 			showRobotProgrammer = false;
 		}
+	}
+
+	@Override
+	public void openRemoteGui() {
+		RabbitGui.proxy.display(new RemoteScreen());
+	}
+
+	@Override
+	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
+		RabbitGui.proxy.display(new MagnetScreen(pos, state, robots));
 	}
 }
