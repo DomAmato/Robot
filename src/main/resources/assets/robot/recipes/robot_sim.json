@@ -1,0 +1,27 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"QQQ",
+		"RGR",
+		"QRQ"
+	],
+	"key": {
+		"G": {
+			"item": "minecraft:gold_nugget",
+			"data": 0
+		},
+		"R": {
+			"item": "minecraft:redstone",
+			"data": 0
+		},
+		"Q": {
+			"item": "minecraft:quartz",
+			"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:robot_sim",
+		"data": 0,
+		"count": 1
+	}
+}

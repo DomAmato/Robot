@@ -54,7 +54,9 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.robot_wrench);
 		event.getRegistry().register(RobotMod.robot_spawner);
 		event.getRegistry().register(RobotMod.expChip);
+		event.getRegistry().register(RobotMod.meter);
 		event.getRegistry().register(RobotMod.card);
+		event.getRegistry().register(RobotMod.sim_card);
 		event.getRegistry().register(RobotMod.ram);
 		event.getRegistry().register(RobotMod.whistle);
 		event.getRegistry().register(RobotMod.neuralyzer);

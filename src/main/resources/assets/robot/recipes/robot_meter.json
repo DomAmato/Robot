@@ -1,0 +1,31 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"III",
+		"RQR",
+		"IRI"
+	],
+	"key": {
+		"G": {
+			"item": "minecraft:gold_nugget",
+			"data": 0
+		},
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		},
+		"R": {
+			"item": "minecraft:redstone",
+			"data": 0
+		},
+		"Q": {
+			"item": "minecraft:quartz",
+			"data": 0
+		}
+	},
+	"result": {
+		"item": "robot:robot_meter",
+		"data": 0,
+		"count": 1
+	}
+}

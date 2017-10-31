@@ -20,9 +20,11 @@ import com.dyn.robot.items.ItemExpansionChip;
 import com.dyn.robot.items.ItemMemoryCard;
 import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemMemoryWipe;
+import com.dyn.robot.items.ItemRedstoneMeter;
 import com.dyn.robot.items.ItemReferenceManual;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemRobotWhistle;
+import com.dyn.robot.items.ItemSIMCard;
 import com.dyn.robot.items.ItemSimpleRobotSpawner;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.items.RoboTab;
@@ -48,6 +50,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -80,6 +83,8 @@ public class RobotMod {
 	public static final ItemSimpleRobotSpawner robot_spawner = new ItemSimpleRobotSpawner();
 	public static final ItemExpansionChip expChip = new ItemExpansionChip();
 	public static final ItemMemoryCard card = new ItemMemoryCard();
+	public static final ItemSIMCard sim_card = new ItemSIMCard();
+	public static final ItemRedstoneMeter meter = new ItemRedstoneMeter();
 	public static final ItemMemoryStick ram = new ItemMemoryStick();
 	public static final ItemRobotWhistle whistle = new ItemRobotWhistle();
 	public static final ItemMemoryWipe neuralyzer = new ItemMemoryWipe();
@@ -123,7 +128,7 @@ public class RobotMod {
 	public static BiMap<Integer, EntityPlayer> robotid2player = HashBiMap.create();
 
 	// client
-	public static EntityRobot currentRobot;
+	public static List<EntityRobot> currentRobots = new ArrayList();
 
 	/**
 	 * Create a {@link SoundEvent}.
@@ -344,12 +349,5 @@ public class RobotMod {
 			}
 		}
 		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
-	}
-
-	@SubscribeEvent
-	public void spawnEvent(LivingSpawnEvent event) {
-		if (event.getEntity() instanceof EntityRobot) {
-			System.out.println(event.getWorld().isRemote + " - " + ((EntityRobot) event.getEntity()).getOwnerId());
-		}
 	}
 }

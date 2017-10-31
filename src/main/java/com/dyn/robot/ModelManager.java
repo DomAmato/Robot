@@ -183,6 +183,8 @@ public class ModelManager {
 		}
 
 		registerItemModel(RobotMod.card);
+		registerItemModel(RobotMod.sim_card);
+		registerItemModel(RobotMod.meter);
 		registerItemModel(RobotMod.robot_remote);
 		registerItemModel(RobotMod.robot_wrench);
 		registerItemModel(RobotMod.whistle);
