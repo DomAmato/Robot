@@ -1,8 +1,11 @@
 package com.dyn.robot.proxy;
 
+import java.util.List;
+
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.IThreadListener;
 import net.minecraft.util.math.BlockPos;
@@ -28,7 +31,11 @@ public interface Proxy {
 
 	public void openActivationInterface(World world, BlockRobot robot, BlockPos pos);
 
+	public void openRemoteGui();
+	
 	public void openRobotGui();
+	
+	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots);
 
 	public void openRobotProgrammingWindow();
 

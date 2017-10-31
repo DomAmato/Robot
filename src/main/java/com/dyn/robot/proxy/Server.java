@@ -1,10 +1,13 @@
 package com.dyn.robot.proxy;
 
+import java.util.List;
+
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.IThreadListener;
 import net.minecraft.util.math.BlockPos;
@@ -98,6 +101,18 @@ public class Server implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void openRemoteGui() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
