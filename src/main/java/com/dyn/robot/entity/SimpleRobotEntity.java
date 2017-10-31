@@ -25,7 +25,7 @@ public class SimpleRobotEntity extends EntityRobot {
 		super(worldIn);
 
 		if (player != null) {
-			setOwnerId(player.getUniqueID());
+			setOwner(player);
 		}
 
 		((PathNavigateGround) getNavigator()).setCanSwim(true);

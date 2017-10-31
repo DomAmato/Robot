@@ -1,8 +1,12 @@
 package com.dyn.robot.network.messages;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.SimpleRobotEntity;
@@ -48,10 +52,9 @@ public class MessageActivateRobot implements IMessage {
 					new_robot.renderYawOffset = new_robot.rotationYaw;
 					new_robot.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(new_robot)),
 							(IEntityLivingData) null);
-					world.spawnEntity(new_robot);
-					new_robot.playLivingSound();
 					new_robot.setOwner(player);
 					new_robot.setRobotName(message.getName());
+					world.spawnEntity(new_robot);
 					new_robot.rotate(HelperFunctions.getAngleFromFacing(dir));
 					new_robot.setIsFollowing(true);
 					new_robot.robot_inventory.setInventorySlotContents(new_robot.robot_inventory.getOpenExpansionSlot(),
@@ -60,9 +63,9 @@ public class MessageActivateRobot implements IMessage {
 					// this currently doesnt play the sound
 					// world.playSound(player, message.getPosition(), RobotMod.ROBOT_ON,
 					// SoundCategory.AMBIENT, 1, 1);
-
-					player.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), world, (int) new_robot.posX,
-							(int) new_robot.posY, (int) new_robot.posZ);
+						player.openGui(RobotMod.instance, new_robot.getEntityId(), world, (int) new_robot.posX,
+								(int) new_robot.posY, (int) new_robot.posZ);
+					
 				} else {
 					List<EntityRobot> robots = world.getEntitiesWithinAABB(EntityRobot.class,
 							new AxisAlignedBB(message.getPosition().getX() - 1, message.getPosition().getY() - 1,

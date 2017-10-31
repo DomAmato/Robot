@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.network.NetworkManager;
-import com.dyn.robot.network.messages.MessageOpenRobotInterface;
+import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.dyn.robot.network.messages.MessageReplaceSDCardItemStack;
 import com.dyn.robot.network.messages.MessageRunRobotScript;
 import com.dyn.robot.network.messages.MessageToggleRobotFollow;
@@ -77,9 +77,6 @@ public class RobotProgrammingInterface extends Show {
 		showError = false;
 		btnStatus = true;
 		this.robot = robot;
-		if ((RobotMod.currentRobot == null) || (RobotMod.currentRobot != robot)) {
-			RobotMod.currentRobot = robot;
-		}
 	}
 
 	public String getConsoleText() {
@@ -246,7 +243,7 @@ public class RobotProgrammingInterface extends Show {
 		mainPanel.registerComponent(invTab = new ItemTab(0, 50, 40, 40, "", 90, Blocks.CHEST)
 				.setHoverText(Lists.newArrayList("Open Robot", "Inventory")).setDrawHoverText(true)
 				.setClickListener(tab -> {
-					NetworkManager.sendToServer(new MessageOpenRobotInterface(RobotMod.currentRobot.getEntityId()));
+					NetworkManager.sendToServer(new MessageOpenRobotInventory(robot.getEntityId()));
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 				}));
 
@@ -258,14 +255,14 @@ public class RobotProgrammingInterface extends Show {
 								.setDrawHoverText(true).setClickListener(tab -> {
 									if (!robot.getIsFollowing()) {
 										NetworkManager.sendToServer(new MessageToggleRobotFollow(
-												RobotMod.currentRobot.getEntityId(), true));
+												robot.getEntityId(), true));
 										((PictureTab) tab).setPicture(
 												new ResourceLocation("robot", "textures/gui/robot_stand.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
 										robot.setIsFollowing(true);
 									} else {
 										NetworkManager.sendToServer(new MessageToggleRobotFollow(
-												RobotMod.currentRobot.getEntityId(), false));
+												robot.getEntityId(), false));
 										((PictureTab) tab).setPicture(
 												new ResourceLocation("robot", "textures/gui/robot_follow.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));

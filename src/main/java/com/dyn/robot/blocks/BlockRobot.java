@@ -30,7 +30,7 @@ public class BlockRobot extends BlockFalling {
 
 	public BlockRobot() {
 		super(Material.IRON);
-		setDefaultState(blockState.getBaseState().withProperty(BlockRobot.FACING, EnumFacing.SOUTH));
+		setDefaultState(blockState.getBaseState().withProperty(BlockRobot.FACING, EnumFacing.NORTH));
 		setRegistryName(Reference.MOD_ID, "robot_block");
 		setUnlocalizedName("robot_block");
 		setCreativeTab(RobotMod.roboTab);

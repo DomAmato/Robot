@@ -60,11 +60,7 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	public static int robotId = 0;
 
-	// its likely that we might get some concurrency issues with this if
-	// players simultaneously run code where the robot id is not set
-	// to the correct robot... we
-
-	public static Entity getRobotEntityFromID(int id) {
+	public static EntityRobot getRobotEntityFromID(int id) {
 		EntityRobot robot = (EntityRobot) Python2MinecraftApi.getServerEntityByID(id);
 		if ((robot == null) || robot.isDead) {
 			Python2MinecraftApi.fail("Robot is dead or no longer exists");
@@ -237,17 +233,17 @@ public class RobotAPI extends Python2MinecraftApi {
 					Python2MinecraftApi.fail("Robot does not know the breakBlock command");
 					return;
 				}
-				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
-					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
-					if (player != null) {
-						NetworkManager.sendTo(new RobotSpeakMessage("Break", id), player);
-					}
-				}
 				if (robot.robot_inventory.getStackInSlot(2).isEmpty()
 						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemSword)
 						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemHoe)) {
 					Python2MinecraftApi.fail("Robot has no tool to break block with");
 					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Mining", id), player);
+					}
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos breakBlock = curLoc.offset(robot.getProgrammedDirection());
@@ -272,6 +268,10 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 
 				if (robot.world.getBlockState(breakBlock).getBlock() != Blocks.AIR) {
+					if(robot.getPosition().down().equals(breakBlock)) {
+						//we are mining straight down so update the robots position since he will fall at least one space
+						robot.InsertToProgramPath(0, breakBlock);
+					}
 					IBlockState state = robot.world.getBlockState(breakBlock);
 					float speed = Math
 							.min(state.getBlockHardness(robot.world, breakBlock) / robot.getDigSpeed(state) / 10f, 2);

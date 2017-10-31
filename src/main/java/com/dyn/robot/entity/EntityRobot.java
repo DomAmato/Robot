@@ -1,12 +1,19 @@
 package com.dyn.robot.entity;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
@@ -16,11 +23,14 @@ import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.robot.items.ItemMemoryWipe;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemWrench;
+import com.dyn.robot.python.RunPythonShell;
+import com.dyn.robot.utils.FileUtils;
 import com.dyn.robot.utils.HelperFunctions;
 import com.google.common.base.Optional;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -35,6 +45,7 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
@@ -52,7 +63,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.relauncher.Side;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable, IEntityAdditionalSpawnData {
 	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager
@@ -84,7 +97,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public int counter = 0;
 
 	private EnumFacing programDir;
-	private boolean buildSchematic;
 
 	protected boolean shouldSwingArm;
 
@@ -95,7 +107,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		shouldFollow = false;
 		executeCode = false;
 		isTamable = false;
-		robot_inventory = new RobotInventory("Robot Inventory", 30, this);
+		robot_inventory = new RobotInventory("Robot Inventory", 32, this);
 		dataManager.register(EntityRobot.OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");// robot name
 
@@ -522,6 +534,55 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			swingArm(getActiveHand());
 		}
 		updateArmSwingProgress();
+		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER && this.getOwner() != null) {
+			if (this.robot_inventory.getStackInSlot(4) != ItemStack.EMPTY && detectRedstoneSignal()
+					&& !shouldExecuteCode() && this.robot_inventory.hasSDCard()) {
+				clearProgramPath();
+				startExecutingCode();
+
+				File scriptFile = new File(RobotMod.scriptsLoc, this.getRobotName() + "/" + LocalDate.now() + "/"
+						+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
+				try {
+					FileUtils.writeFile(scriptFile, "from api.robot import *\nrobot = Robot()\n"
+							+ robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
+				} catch (IOException e) {
+					RobotMod.logger.error(
+							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
+				}
+
+				RobotAPI.setRobotId(this.getEntityId(), this.getOwner());
+
+				RobotMod.proxy.addScheduledTask(
+						() -> RunPythonShell.run(Arrays.asList(("from api.robot import *\nrobot = Robot()\n"
+								+ robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+										.split(Pattern.quote("\n"))),
+								getOwner(), true, getEntityId()));
+			}
+		}
+	}
+
+	protected boolean detectRedstoneSignal() {
+		int ret = 0;
+		IBlockState iblockstate = world.getBlockState(getPosition());
+		if (iblockstate.getBlock() == Blocks.REDSTONE_WIRE) {
+			return ((Integer) iblockstate.getValue(BlockRedstoneWire.POWER)).intValue() > 1;
+		}
+		for (EnumFacing facing : EnumFacing.values()) {
+			BlockPos blockpos = getPosition().offset(facing);
+			int i = world.getRedstonePower(blockpos, facing);
+
+			if (i >= 15) {
+				return true;
+			} else {
+				iblockstate = world.getBlockState(blockpos);
+				ret = Math.max(ret,
+						Math.max(i,
+								iblockstate.getBlock() == Blocks.REDSTONE_WIRE
+										? ((Integer) iblockstate.getValue(BlockRedstoneWire.POWER)).intValue()
+										: 0));
+			}
+		}
+		return ret > 0;
 	}
 
 	public void pauseCodeExecution() {
@@ -639,10 +700,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		programDir = EnumFacing.fromAngle(yaw);
 	}
 
-	public void setBuildSchematic(boolean buildSchematic) {
-		this.buildSchematic = buildSchematic;
-	}
-
 	public void setIsFollowing(boolean shouldFollow) {
 		this.shouldFollow = shouldFollow;
 	}
@@ -651,14 +708,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		setOwnerId(player.getUniqueID());
 	}
 
-	public void setOwner(UUID playerId) {
+	private void setOwner(UUID playerId) {
 		owner = world.getPlayerEntityByUUID(playerId);
-		if (world.isRemote) {
-
-		}
 	}
 
-	public void setOwnerId(UUID ownerUuid) {
+	private void setOwnerId(UUID ownerUuid) {
 		dataManager.set(EntityRobot.OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
 		tasks.removeTask(wanderTask);
 		setOwner(ownerUuid);
@@ -676,12 +730,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void setTamable(boolean isTamable) {
 		this.isTamable = isTamable;
-	}
-
-	// I think its ok if we don't sync this variable, it should only happen in
-	// code and doesnt need persistence
-	public boolean shouldBuildSchematic() {
-		return buildSchematic;
 	}
 
 	public boolean shouldExecuteCode() {
