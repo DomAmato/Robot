@@ -16,7 +16,7 @@ public class RobotInventory extends InventoryBasic {
 			return null;
 		}
 
-		for (int a = 12; a < getSizeInventory(); a++) {
+		for (int a = 14; a < getSizeInventory(); a++) {
 			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
 				setInventorySlotContents(a, is);
 				return null;
@@ -63,12 +63,12 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public int getOpenExpansionSlot() {
-		for (int a = 3; a < 12; a++) {
+		for (int a = 5; a < 14; a++) {
 			if ((getStackInSlot(a).isEmpty())) {
 				return a;
 			}
 		}
-		return 11;
+		return 13;
 	}
 
 	public int getQuantityOfItem(ItemStack is) {
@@ -105,7 +105,7 @@ public class RobotInventory extends InventoryBasic {
 
 	public boolean hasExpansionChip(ItemStack chip) {
 		if (!chip.isEmpty()) {
-			for (int i = 3; i < 12; i++) {
+			for (int i = 5; i < 14; i++) {
 				ItemStack is2 = getStackInSlot(i);
 				if (!is2.isEmpty()) {
 					if ((is2.getItem() == chip.getItem()) && ((is2.getItemDamage() == chip.getItemDamage()))) {
@@ -118,11 +118,11 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean hasSDCard() {
-		return (getStackInSlot(0).isEmpty());
+		return !(getStackInSlot(0).isEmpty());
 	}
 
 	public boolean isInventoryEmpty() {
-		for (int a = 12; a < getSizeInventory(); a++) {
+		for (int a = 14; a < getSizeInventory(); a++) {
 			if (!getStackInSlot(a).isEmpty()) {
 				return false;
 			}
@@ -131,7 +131,7 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean isInventoryFull() {
-		for (int a = 12; a < getSizeInventory(); a++) {
+		for (int a = 14; a < getSizeInventory(); a++) {
 			if (getStackInSlot(a).isEmpty()) {
 				removeStackFromSlot(a);
 			}

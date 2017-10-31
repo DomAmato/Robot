@@ -77,6 +77,30 @@ public class RobotChipContainer extends Container {
 			}
 
 		});
+		
+		addSlotToContainer(new Slot(robotInventory, slot++, 80, 18) {
+			/**
+			 * Check if the stack is a valid item for this slot. Always true beside for the
+			 * armor slots.
+			 */
+			@Override
+			public boolean isItemValid(ItemStack stack) {
+				return super.isItemValid(stack) && (stack.getItem() == RobotMod.sim_card) && !getHasStack();
+			}
+
+		});
+
+		addSlotToContainer(new Slot(robotInventory, slot++, 80, 36) {
+			/**
+			 * Check if the stack is a valid item for this slot. Always true beside for the
+			 * armor slots.
+			 */
+			@Override
+			public boolean isItemValid(ItemStack stack) {
+				return super.isItemValid(stack) && (stack.getItem() == RobotMod.meter) && !getHasStack();
+			}
+
+		});
 
 		for (int i1 = 0; i1 < 3; ++i1) {
 			for (int k1 = 0; k1 < 3; ++k1) {
@@ -143,7 +167,7 @@ public class RobotChipContainer extends Container {
 	 */
 	@Override
 	public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-		ItemStack itemstack = null;
+		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = inventorySlots.get(index);
 
 		if ((slot != null) && slot.getHasStack()) {
@@ -152,26 +176,34 @@ public class RobotChipContainer extends Container {
 
 			if (index < robotInventory.getSizeInventory()) {
 				if (!mergeItemStack(itemstack1, robotInventory.getSizeInventory(), inventorySlots.size(), true)) {
-					return null;
+					return ItemStack.EMPTY;
 				}
 			} else if (getSlot(0).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 0, 1, false)) {
-					return null;
+					return ItemStack.EMPTY;
 				}
 			} else if (getSlot(1).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 1, 2, false)) {
-					return null;
+					return ItemStack.EMPTY;
 				}
 			} else if (getSlot(2).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 2, 3, false)) {
-					return null;
+					return ItemStack.EMPTY;
+				}
+			}else if (getSlot(3).isItemValid(itemstack1)) {
+				if (!mergeItemStack(itemstack1, 3, 4, false)) {
+					return ItemStack.EMPTY;
+				}
+			}else if (getSlot(4).isItemValid(itemstack1)) {
+				if (!mergeItemStack(itemstack1, 4, 5, false)) {
+					return ItemStack.EMPTY;
 				}
 			} else if (getSlot(((RobotInventory) robotInventory).getOpenExpansionSlot()).isItemValid(itemstack1)) {
-				if (!mergeItemStack(itemstack1, 3, 12, false)) {
-					return null;
+				if (!mergeItemStack(itemstack1, 5, 14, false)) {
+					return ItemStack.EMPTY;
 				}
-			} else if (!mergeItemStack(itemstack1, 12, robotInventory.getSizeInventory(), false)) {
-				return null;
+			} else if (!mergeItemStack(itemstack1, 14, robotInventory.getSizeInventory(), false)) {
+				return ItemStack.EMPTY;
 			}
 
 			if (itemstack1.isEmpty()) {
