@@ -21,8 +21,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class RemoteInterface extends GuiContainer {
-	private static final ResourceLocation guiTex = new ResourceLocation("robot", "textures/gui/robot_container.png");
+public class RobotInventoryScreen extends GuiContainer {
+	private static final ResourceLocation guiTex = new ResourceLocation("robot", "textures/gui/robot_container2.png");
 
 	private EntityRobot robot;
 
@@ -31,7 +31,7 @@ public class RemoteInterface extends GuiContainer {
 	/** The mouse y-position recorded during the last renderered frame. */
 	private float mousePosY;
 
-	public RemoteInterface(IInventory playerInv, EntityRobot robot) {
+	public RobotInventoryScreen(IInventory playerInv, EntityRobot robot) {
 		super(new RobotChipContainer(playerInv, robot.robot_inventory, robot, Minecraft.getMinecraft().player));
 		this.robot = robot;
 		allowUserInput = false;
@@ -56,7 +56,7 @@ public class RemoteInterface extends GuiContainer {
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-		mc.getTextureManager().bindTexture(RemoteInterface.guiTex);
+		mc.getTextureManager().bindTexture(RobotInventoryScreen.guiTex);
 
 		this.drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 

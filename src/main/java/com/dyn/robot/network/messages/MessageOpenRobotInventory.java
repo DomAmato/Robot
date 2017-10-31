@@ -10,16 +10,16 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class MessageOpenRobotInterface implements IMessage {
+public class MessageOpenRobotInventory implements IMessage {
 
-	public static class Handler implements IMessageHandler<MessageOpenRobotInterface, IMessage> {
+	public static class Handler implements IMessageHandler<MessageOpenRobotInventory, IMessage> {
 		@Override
-		public IMessage onMessage(final MessageOpenRobotInterface message, final MessageContext ctx) {
+		public IMessage onMessage(final MessageOpenRobotInventory message, final MessageContext ctx) {
 			RobotMod.proxy.addScheduledTask(() -> {
 				EntityPlayerMP player = ctx.getServerHandler().player;
 				EntityRobot robot = (EntityRobot) ctx.getServerHandler().player.world
 						.getEntityByID(message.getEntityId());
-				player.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), player.world, (int) robot.posX,
+				player.openGui(RobotMod.instance, robot.getEntityId(), robot.world, (int) robot.posX,
 						(int) robot.posY, (int) robot.posZ);
 			});
 			return null;
@@ -30,10 +30,10 @@ public class MessageOpenRobotInterface implements IMessage {
 
 	// The basic, no-argument constructor MUST be included for
 	// automated handling
-	public MessageOpenRobotInterface() {
+	public MessageOpenRobotInventory() {
 	}
 
-	public MessageOpenRobotInterface(int id) {
+	public MessageOpenRobotInventory(int id) {
 		entityId = id;
 	}
 
