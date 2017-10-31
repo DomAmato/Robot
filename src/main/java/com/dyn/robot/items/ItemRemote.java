@@ -5,6 +5,8 @@ import java.util.List;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.gui.RobotGuiHandler;
+import com.dyn.robot.network.NetworkManager;
+import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.client.Minecraft;
@@ -73,19 +75,14 @@ public class ItemRemote extends Item {
 	 */
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (!worldIn.isRemote) {
-			if ((RobotMod.currentRobot != null) && !RobotMod.currentRobot.isDead
-					&& (playerIn.getPosition().distanceSq(RobotMod.currentRobot.getPosition()) < (64 * 64))) {
+		if (worldIn.isRemote) {
+			if ((RobotMod.currentRobots.size() == 1) && !RobotMod.currentRobots.get(0).isDead
+					&& (playerIn.getPosition().distanceSq(RobotMod.currentRobots.get(0).getPosition()) < (64 * 64))) {
 				RobotMod.logger.info("Opening current robot window");
-				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getActivationGuiID(), playerIn.world,
-						(int) RobotMod.currentRobot.posX, (int) RobotMod.currentRobot.posY,
-						(int) RobotMod.currentRobot.posZ);
+				NetworkManager.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobots.get(0).getEntityId()));
 			} else {
-				RobotMod.logger.info("Searching for closest robot");
-				playerIn.openGui(RobotMod.instance, RobotGuiHandler.getSearchingGuiID(), playerIn.world,
-						(int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
+				RobotMod.proxy.openRemoteGui();
 			}
-
 		}
 		worldIn.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(),
 				RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
