@@ -3,7 +3,6 @@ package com.dyn.robot.gui;
 import java.util.List;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.inventory.RobotChipContainer;
 
@@ -20,6 +19,21 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
  * per mod.
  */
 public class RobotGuiHandler implements IGuiHandler {
+	@Override
+	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		EntityRobot robot = (EntityRobot) world.getEntityByID(ID);
+		// the problem of checking if this is the owner is on activation that data has
+		// not synced yet
+		// and causing a crash in the GL context
+		if (robot != null) {
+			return new RobotInventoryScreen(player.inventory, robot);
+		}
+		RobotMod.logger.error("<Client> Invalid ID: Could not find robot with id " + ID);
+
+		return null;
+
+	}
+
 	// Gets the client side element for the given gui id this should return a
 	// gui
 	public List<EntityRobot> getEntitiesInRadius(World world, double x, double y, double z, int radius) {
@@ -27,27 +41,13 @@ public class RobotGuiHandler implements IGuiHandler {
 				new AxisAlignedBB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
 		return list;
 	}
-	
-	@Override
-	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		EntityRobot robot = (EntityRobot) world.getEntityByID(ID);
-		//the problem of checking if this is the owner is on activation that data has not synced yet
-		//and causing a crash in the GL context
-		if (robot != null) {
-			return new RobotInventoryScreen(player.inventory, robot);
-		}
-		RobotMod.logger.error("<Client> Invalid ID: Could not find robot with id " + ID);
-		
-		return null;
-
-	}
 
 	// Gets the server side element for the given gui id this should return a
 	// container
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		EntityRobot robot = (EntityRobot) world.getEntityByID(ID);
-		if (robot != null && robot.getOwner() == player) {
+		if ((robot != null) && (robot.getOwner() == player)) {
 			return new RobotChipContainer(player.inventory, robot.robot_inventory, robot, player);
 		}
 		RobotMod.logger.error("<Server> Invalid ID: Could not find robot with that id");

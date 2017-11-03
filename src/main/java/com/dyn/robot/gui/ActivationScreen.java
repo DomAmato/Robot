@@ -2,7 +2,6 @@ package com.dyn.robot.gui;
 
 import java.awt.Color;
 
-import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.MessageActivateRobot;
@@ -14,7 +13,6 @@ import com.rabbit.gui.component.display.TextLabel;
 import com.rabbit.gui.show.Show;
 import com.rabbit.gui.utils.DefaultTextures;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 

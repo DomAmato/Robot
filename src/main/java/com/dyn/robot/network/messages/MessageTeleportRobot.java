@@ -5,7 +5,6 @@ import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.utils.HelperFunctions;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.block.BlockHorizontal;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -28,9 +27,9 @@ public class MessageTeleportRobot implements IMessage {
 				if (robot.dimension != player.dimension) {
 					robot.changeDimension(player.dimension);
 				}
-				
-				robot.setPosition(pos.getX(), pos.getY(), pos.getZ());
-				robot.rotate(HelperFunctions.getAngleFromFacing(message.getFacing() ));
+
+				robot.setPosition(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
+				robot.rotate(HelperFunctions.getAngleFromFacing(message.getFacing()));
 				robot.getNavigator().clearPathEntity();
 			});
 			return null;
@@ -59,16 +58,16 @@ public class MessageTeleportRobot implements IMessage {
 		facing = EnumFacing.getHorizontal(buf.readInt());
 	}
 
-	public BlockPos getPos() {
-		return pos;
+	public int getEntityId() {
+		return entityId;
 	}
 
 	public EnumFacing getFacing() {
 		return facing;
 	}
 
-	public int getEntityId() {
-		return entityId;
+	public BlockPos getPos() {
+		return pos;
 	}
 
 	@Override

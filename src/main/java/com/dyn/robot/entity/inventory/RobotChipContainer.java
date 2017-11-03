@@ -77,7 +77,7 @@ public class RobotChipContainer extends Container {
 			}
 
 		});
-		
+
 		addSlotToContainer(new Slot(robotInventory, slot++, 80, 18) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
@@ -190,11 +190,11 @@ public class RobotChipContainer extends Container {
 				if (!mergeItemStack(itemstack1, 2, 3, false)) {
 					return ItemStack.EMPTY;
 				}
-			}else if (getSlot(3).isItemValid(itemstack1)) {
+			} else if (getSlot(3).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 3, 4, false)) {
 					return ItemStack.EMPTY;
 				}
-			}else if (getSlot(4).isItemValid(itemstack1)) {
+			} else if (getSlot(4).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 4, 5, false)) {
 					return ItemStack.EMPTY;
 				}

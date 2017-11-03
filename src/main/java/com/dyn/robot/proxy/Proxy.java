@@ -31,11 +31,11 @@ public interface Proxy {
 
 	public void openActivationInterface(World world, BlockRobot robot, BlockPos pos);
 
-	public void openRemoteGui();
-	
-	public void openRobotGui();
-	
 	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots);
+
+	public void openRemoteGui();
+
+	public void openRobotGui();
 
 	public void openRobotProgrammingWindow();
 

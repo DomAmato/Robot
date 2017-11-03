@@ -3,14 +3,10 @@ package com.dyn.robot.items;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.reference.Reference;
 
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ItemSIMCard extends Item {
 

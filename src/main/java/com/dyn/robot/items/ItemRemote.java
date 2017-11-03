@@ -4,12 +4,10 @@ import java.util.List;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.dyn.robot.reference.Reference;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -84,8 +82,7 @@ public class ItemRemote extends Item {
 				RobotMod.proxy.openRemoteGui();
 			}
 		}
-		worldIn.playSound(Minecraft.getMinecraft().player, Minecraft.getMinecraft().player.getPosition(),
-				RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
+		worldIn.playSound(playerIn, playerIn.getPosition(), RobotMod.ROBOT_REMOTE, SoundCategory.PLAYERS, 0.2f, 1);
 		return new ActionResult<>(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
 	}
 

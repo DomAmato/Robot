@@ -42,7 +42,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
@@ -50,9 +49,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -245,7 +242,7 @@ public class RobotMod {
 
 		if (!RobotMod.useSystemPath && PathUtility.isWindows()) {
 			if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-				File localpath = Minecraft.getMinecraft().mcDataDir;
+				File localpath = net.minecraft.client.Minecraft.getMinecraft().mcDataDir;
 				File path = new File(localpath, RobotMod.pythonEmbeddedLocation);
 				if (!path.exists()) {
 					path.mkdirs();

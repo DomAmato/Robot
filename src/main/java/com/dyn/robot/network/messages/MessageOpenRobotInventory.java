@@ -2,7 +2,6 @@ package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.gui.RobotGuiHandler;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -19,8 +18,8 @@ public class MessageOpenRobotInventory implements IMessage {
 				EntityPlayerMP player = ctx.getServerHandler().player;
 				EntityRobot robot = (EntityRobot) ctx.getServerHandler().player.world
 						.getEntityByID(message.getEntityId());
-				player.openGui(RobotMod.instance, robot.getEntityId(), robot.world, (int) robot.posX,
-						(int) robot.posY, (int) robot.posZ);
+				player.openGui(RobotMod.instance, robot.getEntityId(), robot.world, (int) robot.posX, (int) robot.posY,
+						(int) robot.posZ);
 			});
 			return null;
 		}

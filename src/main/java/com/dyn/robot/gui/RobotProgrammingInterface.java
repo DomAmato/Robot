@@ -254,15 +254,15 @@ public class RobotProgrammingInterface extends Show {
 										: Lists.newArrayList("Make Robot", "Follow Me"))
 								.setDrawHoverText(true).setClickListener(tab -> {
 									if (!robot.getIsFollowing()) {
-										NetworkManager.sendToServer(new MessageToggleRobotFollow(
-												robot.getEntityId(), true));
+										NetworkManager
+												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), true));
 										((PictureTab) tab).setPicture(
 												new ResourceLocation("robot", "textures/gui/robot_stand.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
 										robot.setIsFollowing(true);
 									} else {
-										NetworkManager.sendToServer(new MessageToggleRobotFollow(
-												robot.getEntityId(), false));
+										NetworkManager
+												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), false));
 										((PictureTab) tab).setPicture(
 												new ResourceLocation("robot", "textures/gui/robot_follow.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));

@@ -33,7 +33,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -57,6 +56,15 @@ public class Client implements Proxy {
 	@Override
 	public void addScheduledTask(Runnable runnable) {
 		Minecraft.getMinecraft().addScheduledTask(runnable);
+	}
+
+	@SubscribeEvent
+	public void clientWorldEvent(EntityJoinWorldEvent event) {
+		if ((event.getEntity() instanceof EntityRobot) && event.getWorld().isRemote) {
+			if (((EntityRobot) event.getEntity()).isOwner(Minecraft.getMinecraft().player)) {
+				RobotMod.currentRobots.add((EntityRobot) event.getEntity());
+			}
+		}
 	}
 
 	@Override
@@ -126,15 +134,6 @@ public class Client implements Proxy {
 	}
 
 	@SubscribeEvent
-	public void clientWorldEvent(EntityJoinWorldEvent event) {
-		if (event.getEntity() instanceof EntityRobot) {
-			if(((EntityRobot) event.getEntity()).isOwner(Minecraft.getMinecraft().player)) {
-				RobotMod.currentRobots.add((EntityRobot) event.getEntity());
-			}
-		}
-	}
-
-	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
 			return;
@@ -174,6 +173,16 @@ public class Client implements Proxy {
 	@Override
 	public void openActivationInterface(World world, BlockRobot robot, BlockPos pos) {
 		RabbitGui.proxy.display(new ActivationScreen(robot, Minecraft.getMinecraft().player, pos));
+	}
+
+	@Override
+	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
+		RabbitGui.proxy.display(new MagnetScreen(pos, state, robots));
+	}
+
+	@Override
+	public void openRemoteGui() {
+		RabbitGui.proxy.display(new RemoteScreen());
 	}
 
 	@Override
@@ -220,15 +229,5 @@ public class Client implements Proxy {
 		} else {
 			showRobotProgrammer = false;
 		}
-	}
-
-	@Override
-	public void openRemoteGui() {
-		RabbitGui.proxy.display(new RemoteScreen());
-	}
-
-	@Override
-	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
-		RabbitGui.proxy.display(new MagnetScreen(pos, state, robots));
 	}
 }

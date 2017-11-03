@@ -76,6 +76,18 @@ public class Server implements Proxy {
 	}
 
 	@Override
+	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void openRemoteGui() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void openRobotGui() {
 		// TODO Auto-generated method stub
 
@@ -101,18 +113,6 @@ public class Server implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public void openRemoteGui() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

@@ -1,16 +1,11 @@
 package com.dyn.robot.network.messages;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.SimpleRobotEntity;
-import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.HelperFunctions;
 
@@ -23,7 +18,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -46,8 +40,7 @@ public class MessageActivateRobot implements IMessage {
 					SimpleRobotEntity new_robot = (SimpleRobotEntity) EntityList
 							.createEntityByIDFromName(new ResourceLocation(Reference.MOD_ID, "robot"), world);
 					new_robot.setLocationAndAngles(message.getPosition().getX() + 0.5, message.getPosition().getY(),
-							message.getPosition().getZ() + 0.5, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F),
-							0.0F);
+							message.getPosition().getZ() + 0.5, HelperFunctions.getAngleFromFacing(dir), 0.0F);
 					new_robot.rotationYawHead = new_robot.rotationYaw;
 					new_robot.renderYawOffset = new_robot.rotationYaw;
 					new_robot.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(new_robot)),
@@ -55,7 +48,6 @@ public class MessageActivateRobot implements IMessage {
 					new_robot.setOwner(player);
 					new_robot.setRobotName(message.getName());
 					world.spawnEntity(new_robot);
-					new_robot.rotate(HelperFunctions.getAngleFromFacing(dir));
 					new_robot.setIsFollowing(true);
 					new_robot.robot_inventory.setInventorySlotContents(new_robot.robot_inventory.getOpenExpansionSlot(),
 							new ItemStack(RobotMod.expChip, 1, 15));
@@ -63,9 +55,9 @@ public class MessageActivateRobot implements IMessage {
 					// this currently doesnt play the sound
 					// world.playSound(player, message.getPosition(), RobotMod.ROBOT_ON,
 					// SoundCategory.AMBIENT, 1, 1);
-						player.openGui(RobotMod.instance, new_robot.getEntityId(), world, (int) new_robot.posX,
-								(int) new_robot.posY, (int) new_robot.posZ);
-					
+					player.openGui(RobotMod.instance, new_robot.getEntityId(), world, (int) new_robot.posX,
+							(int) new_robot.posY, (int) new_robot.posZ);
+
 				} else {
 					List<EntityRobot> robots = world.getEntitiesWithinAABB(EntityRobot.class,
 							new AxisAlignedBB(message.getPosition().getX() - 1, message.getPosition().getY() - 1,

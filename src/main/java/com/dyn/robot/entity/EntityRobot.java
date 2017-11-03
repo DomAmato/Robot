@@ -247,6 +247,30 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return true;
 	}
 
+	protected boolean detectRedstoneSignal() {
+		int ret = 0;
+		IBlockState iblockstate = world.getBlockState(getPosition());
+		if (iblockstate.getBlock() == Blocks.REDSTONE_WIRE) {
+			return iblockstate.getValue(BlockRedstoneWire.POWER).intValue() > 1;
+		}
+		for (EnumFacing facing : EnumFacing.values()) {
+			BlockPos blockpos = getPosition().offset(facing);
+			int i = world.getRedstonePower(blockpos, facing);
+
+			if (i >= 15) {
+				return true;
+			} else {
+				iblockstate = world.getBlockState(blockpos);
+				ret = Math.max(ret,
+						Math.max(i,
+								iblockstate.getBlock() == Blocks.REDSTONE_WIRE
+										? iblockstate.getValue(BlockRedstoneWire.POWER).intValue()
+										: 0));
+			}
+		}
+		return ret > 0;
+	}
+
 	public boolean filterItemToGet(ItemStack is) {
 		return true;
 	}
@@ -534,13 +558,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			swingArm(getActiveHand());
 		}
 		updateArmSwingProgress();
-		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER && this.getOwner() != null) {
-			if (this.robot_inventory.getStackInSlot(4) != ItemStack.EMPTY && detectRedstoneSignal()
-					&& !shouldExecuteCode() && this.robot_inventory.hasSDCard()) {
+		if ((FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) && (getOwner() != null)) {
+			if ((robot_inventory.getStackInSlot(4) != ItemStack.EMPTY) && detectRedstoneSignal() && !shouldExecuteCode()
+					&& robot_inventory.hasSDCard()) {
 				clearProgramPath();
 				startExecutingCode();
 
-				File scriptFile = new File(RobotMod.scriptsLoc, this.getRobotName() + "/" + LocalDate.now() + "/"
+				File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
 						+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 				try {
 					FileUtils.writeFile(scriptFile, "from api.robot import *\nrobot = Robot()\n"
@@ -550,7 +574,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
 				}
 
-				RobotAPI.setRobotId(this.getEntityId(), this.getOwner());
+				RobotAPI.setRobotId(getEntityId(), getOwner());
 
 				RobotMod.proxy.addScheduledTask(
 						() -> RunPythonShell.run(Arrays.asList(("from api.robot import *\nrobot = Robot()\n"
@@ -559,30 +583,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 								getOwner(), true, getEntityId()));
 			}
 		}
-	}
-
-	protected boolean detectRedstoneSignal() {
-		int ret = 0;
-		IBlockState iblockstate = world.getBlockState(getPosition());
-		if (iblockstate.getBlock() == Blocks.REDSTONE_WIRE) {
-			return ((Integer) iblockstate.getValue(BlockRedstoneWire.POWER)).intValue() > 1;
-		}
-		for (EnumFacing facing : EnumFacing.values()) {
-			BlockPos blockpos = getPosition().offset(facing);
-			int i = world.getRedstonePower(blockpos, facing);
-
-			if (i >= 15) {
-				return true;
-			} else {
-				iblockstate = world.getBlockState(blockpos);
-				ret = Math.max(ret,
-						Math.max(i,
-								iblockstate.getBlock() == Blocks.REDSTONE_WIRE
-										? ((Integer) iblockstate.getValue(BlockRedstoneWire.POWER)).intValue()
-										: 0));
-			}
-		}
-		return ret > 0;
 	}
 
 	public void pauseCodeExecution() {
