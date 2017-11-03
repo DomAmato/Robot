@@ -47,8 +47,6 @@ public class MagnetScreen extends Show {
 
 		List<ListEntry> buttonEntries = new ArrayList();
 
-		Minecraft.getMinecraft();
-
 		buttonEntries.add(new MultiComponentListEntry()
 				.registerComponent(new Shape(0, 0, panel.getWidth() - 10, 30, ShapeType.RECT, Color.lightGray), 0, 0)
 				.registerComponent(new TextLabel(0, 0, panel.getWidth() - 10, 10, Color.black,

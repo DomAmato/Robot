@@ -110,6 +110,7 @@ public class Client implements Proxy {
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
 		if (showRobotProgrammer) {
+			RobotMod.logger.info(error);
 			NotificationsManager.addNotification(
 					new GenericNotification(new ResourceLocation("Minecraft", "textures/items/barrier.png"),
 							error.split(":")[0], error.split(":")[1].trim()));

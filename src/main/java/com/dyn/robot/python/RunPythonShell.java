@@ -123,9 +123,11 @@ public class RunPythonShell {
 										index = tempLine.indexOf("...");
 									}
 									// posts error to bus which is handled
-									// server side and
-									// translated to client
+									// server side and  translated to client
 									line = line.substring(line.lastIndexOf(".") + 1);
+									
+									RobotMod.logger.info(line);
+									
 									if (!RunPythonShell.isRobot) {
 										MinecraftForge.EVENT_BUS.post(new CodeEvent.ErrorEvent(RunPythonShell.codeLine,
 												line, lineLoc, entity));
