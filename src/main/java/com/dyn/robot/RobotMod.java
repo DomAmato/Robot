@@ -1,10 +1,18 @@
 package com.dyn.robot;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.logging.log4j.Logger;
 
@@ -104,7 +112,7 @@ public class RobotMod {
 	public static String pythonEmbeddedLocation = "emb-python";
 	public static boolean integrated = true;
 	public static volatile boolean apiActive = false;
-	public static String mcpiLocation = "mcpy/";
+	public static String apiLocation = "robot/api";
 
 	// websocket stuff
 	public static int portNumber = 4711;
@@ -161,8 +169,8 @@ public class RobotMod {
 				"python", "Python interpreter");
 		RobotMod.globalChatMessages = RobotMod.configFile.getBoolean("Messages Go To All",
 				Configuration.CATEGORY_GENERAL, true, "Messages go to all");
-		RobotMod.mcpiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
-				Configuration.CATEGORY_GENERAL, "mcpy/", "Relative to .minecraft folder or server jar");
+		RobotMod.apiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
+				Configuration.CATEGORY_GENERAL, "robot/api", "Relative to .minecraft folder or server jar");
 
 		if (RobotMod.configFile.hasChanged()) {
 			RobotMod.configFile.save();
@@ -329,6 +337,43 @@ public class RobotMod {
 			if (!RobotMod.scriptsLoc.exists()) {
 				RobotMod.scriptsLoc.mkdir();
 			}
+
+			File api = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
+					apiLocation);
+
+			if (!api.exists()) {
+				api.mkdirs();
+			}
+
+			try {
+				JarFile roboMod = new JarFile(getJarFile(
+						FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory().getAbsolutePath()));
+				Enumeration<JarEntry> resources = roboMod.entries();
+				while (resources.hasMoreElements()) {
+					JarEntry entry = resources.nextElement();
+					if (entry.getName().startsWith("assets/robot/api")) {
+						RobotMod.logger.info(entry.getName());
+						File file = new File(api, entry.getName().replace("assets/robot/api", ""));
+						if (!file.exists()) {
+							if (entry.isDirectory()) {
+								file.mkdir();
+								continue;
+							}
+							InputStream is = roboMod.getInputStream(entry);
+							FileOutputStream fos = new FileOutputStream(file);
+							while (is.available() > 0) { // write contents of 'is' to 'fos'
+								fos.write(is.read());
+							}
+							fos.close();
+							is.close();
+						}
+					}
+				}
+				roboMod.close();
+			} catch (IOException e) {
+				RobotMod.logger.error("Could not create API folder", e);
+			}
+
 		}
 
 		RobotMod.proxy.preInit();
@@ -346,5 +391,19 @@ public class RobotMod {
 			}
 		}
 		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
+	}
+
+	private File getJarFile(String dir) {
+		String path = RobotMod.class.getResource("/assets/robot").getPath();
+
+		dir = dir.replace("\\", "/");
+		if (dir.endsWith(".")) {
+			dir = dir.substring(0, dir.length() - 1);
+		}
+
+		path = path.substring(path.indexOf(dir));
+		path = path.substring(0, path.lastIndexOf('!'));
+
+		return new File(path);
 	}
 }

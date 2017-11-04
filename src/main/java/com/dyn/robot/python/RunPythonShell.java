@@ -194,8 +194,10 @@ public class RunPythonShell {
 
 			ProcessBuilder builder = new ProcessBuilder(RunPythonShell.scriptProcessorPath, "-i");
 
-			// builder.directory(new File(RobotMod.mcpiLocation));
-			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
+			builder.directory(new File(RobotMod.apiLocation));
+			//this only works in dev environments the build process cannot
+			//access the jar directory
+//			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
 
 			Map<String, String> environment = builder.environment();
 			environment.put("MINECRAFT_PLAYER_NAME", player.getName());
@@ -246,6 +248,7 @@ public class RunPythonShell {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
+			RobotMod.logger.info(e);
 			MinecraftForge.EVENT_BUS
 					.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine, e.getMessage(), 0, player, robotId));
 		}

@@ -567,8 +567,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
 						+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 				try {
-					FileUtils.writeFile(scriptFile, "from api.robot import *\nrobot = Robot()\n"
-							+ robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
+					FileUtils.writeFile(scriptFile,  robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
 				} catch (IOException e) {
 					RobotMod.logger.error(
 							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
@@ -577,8 +576,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				RobotAPI.setRobotId(getEntityId(), getOwner());
 
 				RobotMod.proxy.addScheduledTask(
-						() -> RunPythonShell.run(Arrays.asList(("from api.robot import *\nrobot = Robot()\n"
-								+ robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+						() -> RunPythonShell.run(Arrays.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
 										.split(Pattern.quote("\n"))),
 								getOwner(), true, getEntityId()));
 			}

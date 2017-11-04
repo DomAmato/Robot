@@ -63,7 +63,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
-		termText = "#Welcome to the progamming interface!\n\nrobot.say(\"hello world\")\n";
+		termText = "#Welcome to the progamming interface!\nfrom robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		robot = null;
@@ -72,7 +72,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!\n\nrobot.say(\"hello world\")\n";
+		termText = "#Welcome to the progamming interface!\nfrom robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		btnStatus = true;
@@ -103,9 +103,9 @@ public class RobotProgrammingInterface extends Show {
 		if (error.contains("NameError") || error.contains("RequestError") || error.contains("TypeError")
 				|| error.contains("AttributeError")) {
 			// some errors dont seem to have the same offset as other errors
-			codeWindow.notifyError(line - 3, code, error);
+			codeWindow.notifyError(line - 1, code, error);
 		} else {
-			codeWindow.notifyError(line - 4, code, error);
+			codeWindow.notifyError(line - 2, code, error);
 		}
 		runButton.setIsEnabled(true);
 		btnStatus = true;
@@ -351,7 +351,7 @@ public class RobotProgrammingInterface extends Show {
 						errorPanel.setVisible(false);
 
 						NetworkManager.sendToServer(new MessageRunRobotScript(
-								"from api.robot import *\nrobot = Robot()\n" + termText, robot.getEntityId(), true));
+								termText, robot.getEntityId(), true));
 						((PictureTab) followTab)
 								.setPicture(new ResourceLocation("robot", "textures/gui/robot_follow.png"));
 						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
