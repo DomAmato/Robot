@@ -103,6 +103,7 @@ public class RobotMod {
 	public static final SoundEvent ROBOT_WHISTLE = RobotMod.createSoundEvent("robot.whistle");
 
 	public static File scriptsLoc;
+	public static File apiFileLocation;
 
 	// config options
 	public static Configuration configFile;
@@ -338,11 +339,11 @@ public class RobotMod {
 				RobotMod.scriptsLoc.mkdir();
 			}
 
-			File api = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
+			apiFileLocation = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
 					apiLocation);
 
-			if (!api.exists()) {
-				api.mkdirs();
+			if (!apiFileLocation.exists()) {
+				apiFileLocation.mkdirs();
 			}
 
 			try {
@@ -353,7 +354,7 @@ public class RobotMod {
 					JarEntry entry = resources.nextElement();
 					if (entry.getName().startsWith("assets/robot/api")) {
 						RobotMod.logger.info(entry.getName());
-						File file = new File(api, entry.getName().replace("assets/robot/api", ""));
+						File file = new File(apiFileLocation, entry.getName().replace("assets/robot/api", ""));
 						if (!file.exists()) {
 							if (entry.isDirectory()) {
 								file.mkdir();

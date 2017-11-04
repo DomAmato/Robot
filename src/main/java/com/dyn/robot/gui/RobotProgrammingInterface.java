@@ -63,7 +63,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
-		termText = "#Welcome to the progamming interface!\nfrom robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
+		termText = "#Welcome to the progamming interface!\nfrom api.robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		robot = null;
@@ -72,7 +72,7 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!\nfrom robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
+		termText = "#Welcome to the progamming interface!\nfrom api.robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
 		btnStatus = true;
@@ -422,9 +422,6 @@ public class RobotProgrammingInterface extends Show {
 		}
 
 		Collections.sort(robotMembers);
-
-		codeWindow.addClassMembers("Robot", robotMembers);
-		codeWindow.addPredefinedUserVariables("robot", "Robot");
 	}
 
 }

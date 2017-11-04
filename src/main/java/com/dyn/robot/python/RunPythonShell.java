@@ -194,7 +194,7 @@ public class RunPythonShell {
 
 			ProcessBuilder builder = new ProcessBuilder(RunPythonShell.scriptProcessorPath, "-i");
 
-			builder.directory(new File(RobotMod.apiLocation));
+			builder.directory(RobotMod.apiFileLocation.getParentFile());
 			//this only works in dev environments the build process cannot
 			//access the jar directory
 //			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
