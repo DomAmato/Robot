@@ -422,6 +422,8 @@ public class RobotProgrammingInterface extends Show {
 		}
 
 		Collections.sort(robotMembers);
+
+		codeWindow.addClassMembers("Robot", robotMembers);
 	}
 
 }
