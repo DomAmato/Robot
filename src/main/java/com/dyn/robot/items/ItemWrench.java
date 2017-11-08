@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 
 public class ItemWrench extends Item {
 
-	Entity entity;
+	EntityRobot entity;
 
 	public ItemWrench() {
 		super();
@@ -28,7 +28,7 @@ public class ItemWrench extends Item {
 		setCreativeTab(RobotMod.roboTab);
 	}
 
-	public Entity getEntity() {
+	public EntityRobot getEntity() {
 		return entity;
 	}
 
@@ -71,7 +71,7 @@ public class ItemWrench extends Item {
 	// called when the player starts holding right click;
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if ((entity != null) && !entity.isDead) {
+		if ((entity != null) && !entity.isDead && entity.isOwner(playerIn)) {
 			playerIn.setActiveHand(handIn);
 		}
 		return new ActionResult<>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
@@ -133,7 +133,7 @@ public class ItemWrench extends Item {
 		}
 	}
 
-	public void setEntity(Entity entity) {
+	public void setEntity(EntityRobot entity) {
 		if ((entity != null) && !entity.isDead) {
 			this.entity = entity;
 		}
