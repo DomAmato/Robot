@@ -52,6 +52,7 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
@@ -330,6 +331,12 @@ public class RobotMod {
 			if (!RobotMod.scriptsLoc.exists()) {
 				RobotMod.scriptsLoc.mkdir();
 			}
+
+			apiFileLocation = new File(net.minecraft.client.Minecraft.getMinecraft().mcDataDir, apiLocation);
+
+			if (!apiFileLocation.exists()) {
+				apiFileLocation.mkdirs();
+			}
 		} else {
 			// only do this server side
 			RobotMod.scriptsLoc = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
@@ -345,10 +352,13 @@ public class RobotMod {
 			if (!apiFileLocation.exists()) {
 				apiFileLocation.mkdirs();
 			}
+		}
 
+		if(!(boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
 			try {
-				JarFile roboMod = new JarFile(getJarFile(
-						FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory().getAbsolutePath()));
+				JarFile roboMod = new JarFile(getJarFile(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT
+						? net.minecraft.client.Minecraft.getMinecraft().mcDataDir.getAbsolutePath()
+						: FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory().getAbsolutePath()));
 				Enumeration<JarEntry> resources = roboMod.entries();
 				while (resources.hasMoreElements()) {
 					JarEntry entry = resources.nextElement();
@@ -374,8 +384,8 @@ public class RobotMod {
 			} catch (IOException e) {
 				RobotMod.logger.error("Could not create API folder", e);
 			}
-
 		}
+		
 
 		RobotMod.proxy.preInit();
 	}
