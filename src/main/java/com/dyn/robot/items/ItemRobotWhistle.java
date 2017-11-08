@@ -74,7 +74,7 @@ public class ItemRobotWhistle extends Item {
 	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase playerIn) {
 		if (!worldIn.isRemote) {
 			for (EntityRobot robot : getEntitiesInRadius(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, 32)) {
-				if (robot.getOwner() == playerIn) {
+				if (robot.isOwner((EntityPlayer) playerIn)) {
 					// if (robot.getIsFollowing()) {
 					// robot.getNavigator().clearPathEntity();
 					// }
