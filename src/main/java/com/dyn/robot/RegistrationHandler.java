@@ -5,9 +5,12 @@ import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.init.Biomes;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.world.biome.Biome;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -34,7 +37,7 @@ public class RegistrationHandler {
 	@SubscribeEvent
 	public static void registerEntities(final RegistryEvent.Register<EntityEntry> event) {
 		EntityEntry result = RegistrationHandler.createBuilder("robot").entity(SimpleRobotEntity.class)
-				.tracker(64, 3, false).build();
+				.tracker(64, 3, false).spawn(EnumCreatureType.CREATURE, 1, 1, 3, Biomes.MESA).build();
 		event.getRegistry().register(result);
 	}
 

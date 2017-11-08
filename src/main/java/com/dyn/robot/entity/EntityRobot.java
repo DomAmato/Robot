@@ -12,6 +12,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
@@ -106,7 +108,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		width = 0.5f;
 		shouldFollow = false;
 		executeCode = false;
-		isTamable = false;
+		isTamable = true;
 		robot_inventory = new RobotInventory("Robot Inventory", 32, this);
 		dataManager.register(EntityRobot.OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");// robot name
@@ -206,8 +208,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Deals damage to the entity. If its a EntityPlayer then will take damage from
-	 * the armor first and then health second with the reduced value. Args:
+	 * Deals damage to the entity. If its a EntityPlayer then will take damage
+	 * from the armor first and then health second with the reduced value. Args:
 	 * damageAmount
 	 */
 	@Override
@@ -261,11 +263,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				return true;
 			} else {
 				iblockstate = world.getBlockState(blockpos);
-				ret = Math.max(ret,
-						Math.max(i,
-								iblockstate.getBlock() == Blocks.REDSTONE_WIRE
-										? iblockstate.getValue(BlockRedstoneWire.POWER).intValue()
-										: 0));
+				ret = Math.max(ret, Math.max(i, iblockstate.getBlock() == Blocks.REDSTONE_WIRE
+						? iblockstate.getValue(BlockRedstoneWire.POWER).intValue() : 0));
 			}
 		}
 		return ret > 0;
@@ -369,8 +368,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public int getMemorySize() {
 		return (int) (robot_inventory.getStackInSlot(1) != null
-				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage()))
-				: 8);
+				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage())) : 8);
 	}
 
 	public Map<Long, String> getMessages() {
@@ -421,7 +419,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Get number of ticks, at least during which the living entity will be silent.
+	 * Get number of ticks, at least during which the living entity will be
+	 * silent.
 	 */
 	@Override
 	public int getTalkInterval() {
@@ -567,7 +566,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
 						+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 				try {
-					FileUtils.writeFile(scriptFile,  robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
+					FileUtils.writeFile(scriptFile,
+							robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
 				} catch (IOException e) {
 					RobotMod.logger.error(
 							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
@@ -575,10 +575,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 				RobotAPI.setRobotId(getEntityId(), getOwner());
 
-				RobotMod.proxy.addScheduledTask(
-						() -> RunPythonShell.run(Arrays.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
-										.split(Pattern.quote("\n"))),
-								getOwner(), true, getEntityId()));
+				RobotMod.proxy.addScheduledTask(() -> RunPythonShell
+						.run(Arrays.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+								.split(Pattern.quote("\n"))), getOwner(), true, getEntityId()));
 			}
 		}
 	}
@@ -593,8 +592,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
-	 * into the saddle on a pig.
+	 * Called when a player interacts with a mob. e.g. gets milk from a cow,
+	 * gets into the saddle on a pig.
 	 */
 	@Override
 	public boolean processInteract(EntityPlayer player, EnumHand hand) {
@@ -602,13 +601,16 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (world.isRemote) {
 			if (itemstack != null) {
 				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
-					if (isOwner(player) || ((owner == null) && isTamable)) {
+					if (isOwner(player)) {
 						RobotMod.proxy.openRobotProgrammingWindow(this);
 					} else {
 						if (owner != null) {
 							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
+						} else if (((owner == null) && isTamable)) {
+							RobotMod.proxy.openActivationInterface(this);
 						} else {
-							player.sendMessage(new TextComponentString("Robot is not compatible with remote"));
+							player.sendMessage(
+									new TextComponentString("Robot is not compatible with remote frequency"));
 						}
 					}
 					return true;
@@ -651,15 +653,16 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		if (robotName.length() > 0) {
 			setRobotName(robotName);
 		}
-		UUID ownerID = nbttagcompound.getUniqueId("OwnerUUID");
-		if (ownerID != null) {
-			setOwnerId(ownerID);
+		if (nbttagcompound.hasUniqueId("OwnerUUID")) {
+			UUID ownerID = nbttagcompound.getUniqueId("OwnerUUID");
+				setOwnerId(ownerID);
 		}
+
 	}
 
 	/**
-	 * Called by the client when it receives a Entity spawn packet. Data should be
-	 * read out of the stream in the same way as it was written.
+	 * Called by the client when it receives a Entity spawn packet. Data should
+	 * be read out of the stream in the same way as it was written.
 	 *
 	 * @param data
 	 *            The packet data stream
@@ -710,7 +713,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		owner = world.getPlayerEntityByUUID(playerId);
 	}
 
-	private void setOwnerId(UUID ownerUuid) {
+	private void setOwnerId(@Nullable UUID ownerUuid) {
 		dataManager.set(EntityRobot.OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
 		tasks.removeTask(wanderTask);
 		setOwner(ownerUuid);
@@ -765,16 +768,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		nbttagcompound.setBoolean("follow", shouldFollow);
 		nbttagcompound.setBoolean("tame", isTamable);
 
-		if (getOwnerId() == null) {
-			nbttagcompound.setString("OwnerUUID", "");
-		} else {
+		if (getOwnerId() != null) {
 			nbttagcompound.setUniqueId("OwnerUUID", getOwnerId());
 		}
 	}
 
 	/**
-	 * Called by the server when constructing the spawn packet. Data should be added
-	 * to the provided stream.
+	 * Called by the server when constructing the spawn packet. Data should be
+	 * added to the provided stream.
 	 *
 	 * @param buffer
 	 *            The packet data stream

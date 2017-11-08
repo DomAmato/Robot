@@ -44,4 +44,6 @@ public interface Proxy {
 	public void preInit();
 
 	public void toggleRenderRobotProgramInterface(boolean state);
+
+	public void openActivationInterface(EntityRobot entityRobot);
 }

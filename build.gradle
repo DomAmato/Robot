@@ -19,7 +19,7 @@ repositories {
 	}
 }
 
-version = "0.8"
+version = "0.9.1"
 group = "com.dom.robot" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Roboticraft"
 

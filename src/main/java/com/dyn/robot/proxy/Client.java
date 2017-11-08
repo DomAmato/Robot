@@ -231,4 +231,10 @@ public class Client implements Proxy {
 			showRobotProgrammer = false;
 		}
 	}
+
+	@Override
+	public void openActivationInterface(EntityRobot entityRobot) {
+		RabbitGui.proxy.display(new ActivationScreen(entityRobot, Minecraft.getMinecraft().player));
+		
+	}
 }

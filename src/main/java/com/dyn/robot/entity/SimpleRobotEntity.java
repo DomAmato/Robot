@@ -21,6 +21,12 @@ public class SimpleRobotEntity extends EntityRobot {
 		this(worldIn, null);
 	}
 
+	@Override
+	public boolean getCanSpawnHere() {
+		// dont spawn robots
+		return false;
+	}
+	
 	public SimpleRobotEntity(World worldIn, EntityPlayer player) {
 		super(worldIn);
 

@@ -115,4 +115,10 @@ public class Server implements Proxy {
 
 	}
 
+	@Override
+	public void openActivationInterface(EntityRobot entityRobot) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
