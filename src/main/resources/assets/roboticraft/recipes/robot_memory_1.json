@@ -1,0 +1,18 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients": [
+		{
+			"item": "roboticraft:robot_memory",
+      		"data": 0
+		},
+		{
+			"item": "roboticraft:robot_memory",
+      		"data": 0
+		}
+	],
+	"result": {
+		"item": "roboticraft:robot_memory",
+      	"data": 1,
+		"count": 1
+	}
+}

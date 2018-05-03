@@ -1,0 +1,14 @@
+{
+	"parent": "roboticraft:item/common",
+	"textures": {
+		"layer0": "roboticraft:items/neuralyzer_off"
+	},
+	"display": {
+        "thirdperson_righthand": {
+            "rotation": [ 0, 0, 0 ],
+            "translation": [ 0, 1.5, 1 ],
+            "scale": [ 0.35, 0.45, 1.0 ]
+        }
+    }
+}
+

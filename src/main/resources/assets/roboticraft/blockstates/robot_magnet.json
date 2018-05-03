@@ -1,0 +1,22 @@
+{
+	"variants": {
+		"normal": {
+			"model": "roboticraft:robot_magnet"
+		},
+		"facing=north": {
+			"model": "roboticraft:robot_magnet"
+		},
+		"facing=south": {
+			"model": "roboticraft:robot_magnet",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "roboticraft:robot_magnet",
+			"y": 270
+		},
+		"facing=east": {
+			"model": "roboticraft:robot_magnet",
+			"y": 90
+		}
+	}
+}

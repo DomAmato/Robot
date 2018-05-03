@@ -1,0 +1,23 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients": [
+		{
+			"item": "roboticraft:robot_block"
+		},
+		{
+			"item": "minecraft:dye",
+			"data": 0
+		},
+		{
+			"item": "minecraft:redstone"
+		},
+		{
+			"item": "minecraft:writable_book"
+		}
+	],
+	"result": {
+		"item": "roboticraft:robot_manual",
+		"data": 0,
+		"count": 1
+	}
+}

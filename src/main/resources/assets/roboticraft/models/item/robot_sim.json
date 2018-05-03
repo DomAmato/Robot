@@ -1,0 +1,19 @@
+{
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "roboticraft:items/sim_card"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [ 0, 0, 0 ],
+            "translation": [ 0, 1.5, 1 ],
+			"scale": [ 0.2, 0.2, 0.2 ]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [ 0, 0, 0 ],
+            "translation": [ 0, 1.5, 1 ],
+			"scale": [ 0.2, 0.2, 0.2 ]
+		}
+	}
+}
+

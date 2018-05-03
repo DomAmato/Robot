@@ -1,0 +1,48 @@
+{
+	"robot.on": {
+		"category": "neutral",
+		"sounds": [
+			"roboticraft:robot/robot_on"
+		]
+	},
+	"robot.remote": {
+		"category": "player",
+		"sounds": [
+			"roboticraft:robot/robot_beeps_up"
+		]
+	},
+	"robot.error": {
+		"category": "player",
+		"sounds": [
+			"roboticraft:robot/error"
+		]
+	},
+	"robot.harsh": {
+		"category": "master",
+		"sounds": [
+			"roboticraft:robot/harsh_chime"
+		]
+	},
+	"robot.beep": {
+		"category": "neutral",
+		"sounds": [
+			"roboticraft:robot/beep1",
+			"roboticraft:robot/beep2",
+			"roboticraft:robot/beep3",
+			"roboticraft:robot/beep4",
+			"roboticraft:robot/beep5",
+			"roboticraft:robot/beep6",
+			"roboticraft:robot/beep7",
+			"roboticraft:robot/beep8",
+			"roboticraft:robot/beep9",
+			"roboticraft:robot/beep10",
+			"roboticraft:robot/beep11"
+		]
+	},
+	"robo.whistle": {
+	"category": "player",
+		"sounds": [
+			"roboticraft:robot/whistle"
+		]
+	}
+}
