@@ -57,7 +57,7 @@ public class ItemReferenceManual extends ItemWrittenBook {
 
 				JsonObject robotDocJson = parser
 						.parse(new JsonReader(new InputStreamReader(
-								ItemReferenceManual.class.getResourceAsStream("/assets/robot/manual.json"))))
+								ItemReferenceManual.class.getResourceAsStream("/assets/roboticraft/manual.json"))))
 						.getAsJsonObject();
 
 				JsonArray funcArray = robotDocJson.get("functions").getAsJsonArray();
@@ -113,7 +113,7 @@ public class ItemReferenceManual extends ItemWrittenBook {
 
 			JsonObject robotDocJson = parser
 					.parse(new JsonReader(new InputStreamReader(
-							ItemReferenceManual.class.getResourceAsStream("/assets/robot/manual.json"))))
+							ItemReferenceManual.class.getResourceAsStream("/assets/roboticraft/manual.json"))))
 					.getAsJsonObject();
 
 			JsonArray funcArray = robotDocJson.get("functions").getAsJsonArray();

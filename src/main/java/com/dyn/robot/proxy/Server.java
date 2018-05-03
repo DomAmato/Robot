@@ -70,6 +70,12 @@ public class Server implements Proxy {
 	}
 
 	@Override
+	public void openActivationInterface(EntityRobot entityRobot) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void openActivationInterface(World world, BlockRobot robot, BlockPos pos) {
 		// TODO Auto-generated method stub
 
@@ -113,12 +119,6 @@ public class Server implements Proxy {
 	public void toggleRenderRobotProgramInterface(boolean state) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public void openActivationInterface(EntityRobot entityRobot) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

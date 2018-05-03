@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.inventory.RobotChipContainer;
+import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.utils.ColourHelper;
 
 import net.minecraft.client.Minecraft;
@@ -22,7 +23,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class RobotInventoryScreen extends GuiContainer {
-	private static final ResourceLocation guiTex = new ResourceLocation("robot", "textures/gui/robot_container2.png");
+	private static final ResourceLocation guiTex = new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_container2.png");
 
 	private EntityRobot robot;
 

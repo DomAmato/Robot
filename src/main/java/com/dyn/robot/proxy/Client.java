@@ -15,6 +15,7 @@ import com.dyn.robot.gui.MagnetScreen;
 import com.dyn.robot.gui.RemoteScreen;
 import com.dyn.robot.gui.RobotGuiHandler;
 import com.dyn.robot.gui.RobotProgrammingInterface;
+import com.dyn.robot.reference.Reference;
 import com.rabbit.gui.RabbitGui;
 import com.rabbit.gui.component.display.tabs.PictureTab;
 import com.rabbit.gui.component.display.tabs.Tab;
@@ -110,7 +111,7 @@ public class Client implements Proxy {
 	@Override
 	public void handleErrorMessage(String error, String code, int line) {
 		if (showRobotProgrammer) {
-			RobotMod.logger.info(error);
+			RobotMod.logger.info("Encountered Error: " + error);
 			NotificationsManager.addNotification(
 					new GenericNotification(new ResourceLocation("Minecraft", "textures/items/barrier.png"),
 							error.split(":")[0], error.split(":")[1].trim()));
@@ -141,7 +142,6 @@ public class Client implements Proxy {
 		}
 
 		if (scriptKey.isPressed() && showRobotProgrammer) {
-			RobotMod.logger.info("Program Gui Toggled");
 			showRobotProgrammer = false;
 			RabbitGui.proxy.display(robotProgramInterface);
 		}
@@ -157,7 +157,7 @@ public class Client implements Proxy {
 					if (windowWidth != scaledresolution.getScaledWidth()) {
 						windowWidth = scaledresolution.getScaledWidth();
 						programTab = new PictureTab(windowWidth, 0, 45, 50, "(P)", 90,
-								new ResourceLocation("robot",
+								new ResourceLocation(Reference.MOD_NAME,
 										robotProgramInterface.getRobot().getIsFollowing()
 												? "textures/gui/robot_follow.png"
 												: "textures/gui/robot_stand.png")).setHidden(false);
@@ -169,6 +169,12 @@ public class Client implements Proxy {
 				RabbitGui.proxy.getCurrentStage().close();
 			}
 		}
+	}
+
+	@Override
+	public void openActivationInterface(EntityRobot entityRobot) {
+		RabbitGui.proxy.display(new ActivationScreen(entityRobot, Minecraft.getMinecraft().player));
+
 	}
 
 	@Override
@@ -222,7 +228,7 @@ public class Client implements Proxy {
 				ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
 				windowWidth = scaledresolution.getScaledWidth();
 				programTab = new PictureTab(windowWidth, 0, 50, 50, "(P)", 90,
-						new ResourceLocation("robot",
+						new ResourceLocation(Reference.MOD_NAME,
 								robotProgramInterface.getRobot().getIsFollowing() ? "textures/gui/robot_follow.png"
 										: "textures/gui/robot_stand.png")).setHidden(false);
 				;
@@ -230,11 +236,5 @@ public class Client implements Proxy {
 		} else {
 			showRobotProgrammer = false;
 		}
-	}
-
-	@Override
-	public void openActivationInterface(EntityRobot entityRobot) {
-		RabbitGui.proxy.display(new ActivationScreen(entityRobot, Minecraft.getMinecraft().player));
-		
 	}
 }
