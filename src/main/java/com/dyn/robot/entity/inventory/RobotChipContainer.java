@@ -150,7 +150,7 @@ public class RobotChipContainer extends Container {
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
 		return robotInventory.isUsableByPlayer(playerIn) && robot.isEntityAlive()
-				&& (robot.getDistanceToEntity(playerIn) < 8.0F);
+				&& (robot.getDistanceSq(playerIn) < 8.0F);
 	}
 
 	/**

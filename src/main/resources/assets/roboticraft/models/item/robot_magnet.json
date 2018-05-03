@@ -1,0 +1,31 @@
+{
+    "parent": "roboticraft:block/robot_magnet",
+    "display": {
+    	"ground": {
+            "rotation": [ 0, 0, 0 ],
+            "translation": [ 0, 2, 0],
+            "scale":[ 0.5, 0.5, 0.5 ]
+        },
+    	"gui": {
+            "rotation": [30, 150, 0 ],
+            "translation": [ 0, 0, 0],
+            "scale":[ 0.6, 0.6, 0.6 ]
+        },
+        "thirdperson_righthand": {
+            "rotation": [ 45, 33, 0 ],
+            "translation": [ 0, 2, 1 ],
+            "scale": [ 0.33, 0.33, 0.33 ]
+        },
+        "firstperson_righthand": {
+            "rotation": [ 30, 30, 15 ],
+            "translation": [0.38, 4, 0],
+            "scale": [ 0.45, 0.55, 0.45 ]
+        },
+        "firstperson_lefthand": {
+            "rotation": [ 30, 15, 15 ],
+            "translation": [ 0, 3.2, 0],
+            "scale": [ 0.45, 0.55, 0.45 ]
+        }
+        
+    }
+}

@@ -2,6 +2,7 @@ package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -38,7 +39,7 @@ public class MessageClaimRobot implements IMessage {
 
 	public MessageClaimRobot(String robotName, int id) {
 		this.robotName = robotName;
-		this.robotId = id;
+		robotId = id;
 	}
 
 	@Override

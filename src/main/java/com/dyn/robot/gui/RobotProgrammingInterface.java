@@ -13,6 +13,7 @@ import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.dyn.robot.network.messages.MessageReplaceSDCardItemStack;
 import com.dyn.robot.network.messages.MessageRunRobotScript;
 import com.dyn.robot.network.messages.MessageToggleRobotFollow;
+import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.rabbit.gui.component.code.CodeInterface;
@@ -95,6 +96,9 @@ public class RobotProgrammingInterface extends Show {
 	public void handleErrorMessage(String error, String code, int line) {
 		// we have to subtract 2 since lines start at 0 and the error produces
 		// an extra space
+		RobotMod.logger.info("Handling Error in Interface");
+		runButton.setIsEnabled(true);
+		btnStatus = true;
 		errorPanel.setVisible(true);
 		errorPanel.setFocused(true);
 		errorLabel.setText(error);
@@ -107,8 +111,7 @@ public class RobotProgrammingInterface extends Show {
 		} else {
 			codeWindow.notifyError(line - 2, code, error);
 		}
-		runButton.setIsEnabled(true);
-		btnStatus = true;
+
 		Minecraft.getMinecraft().player.world.playSound(Minecraft.getMinecraft().player,
 				Minecraft.getMinecraft().player.getPosition(), RobotMod.ROBOT_ERROR, SoundCategory.PLAYERS, 1, 1);
 
@@ -157,6 +160,8 @@ public class RobotProgrammingInterface extends Show {
 										FileUtils.writeFile(new File(RobotMod.scriptsLoc, fileName + ".py"),
 												Arrays.asList(termText.split(Pattern.quote("\n"))));
 									} catch (Exception e) {
+										handleErrorMessage("Could not create script file: " + e.getLocalizedMessage(),
+												"", 0);
 										RobotMod.logger.error("Could not create script file", e);
 									}
 
@@ -248,8 +253,8 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(followTab = new PictureTab(0, mainPanel.getHeight() - 40, 40, 40, "", 90,
-				robot.getIsFollowing() ? new ResourceLocation("robot", "textures/gui/robot_stand.png")
-						: new ResourceLocation("robot", "textures/gui/robot_follow.png"))
+				robot.getIsFollowing() ? new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_stand.png")
+						: new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"))
 								.setHoverText(robot.getIsFollowing() ? Lists.newArrayList("Make Robot", "Stand still")
 										: Lists.newArrayList("Make Robot", "Follow Me"))
 								.setDrawHoverText(true).setClickListener(tab -> {
@@ -257,14 +262,14 @@ public class RobotProgrammingInterface extends Show {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), true));
 										((PictureTab) tab).setPicture(
-												new ResourceLocation("robot", "textures/gui/robot_stand.png"));
+												new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_stand.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
 										robot.setIsFollowing(true);
 									} else {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), false));
 										((PictureTab) tab).setPicture(
-												new ResourceLocation("robot", "textures/gui/robot_follow.png"));
+												new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 										robot.setIsFollowing(false);
 									}
@@ -350,10 +355,9 @@ public class RobotProgrammingInterface extends Show {
 						codeWindow.clearError();
 						errorPanel.setVisible(false);
 
-						NetworkManager.sendToServer(new MessageRunRobotScript(
-								termText, robot.getEntityId(), true));
+						NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
 						((PictureTab) followTab)
-								.setPicture(new ResourceLocation("robot", "textures/gui/robot_follow.png"));
+								.setPicture(new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));
 						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 						robot.setIsFollowing(false);
 					}
@@ -376,7 +380,7 @@ public class RobotProgrammingInterface extends Show {
 						.setMultilined(true));
 
 		errorPanel.registerComponent(new Picture(10, 5, (errorPanel.getWidth() / 10), (errorPanel.getHeight() / 4),
-				new ResourceLocation("robot", "textures/gui/error2.png")));
+				new ResourceLocation(Reference.MOD_NAME, "textures/gui/error2.png")));
 
 		errorPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 10, 0, 10, 10, DefaultTextures.EXIT)
 				.setDrawsButton(false).setClickListener(btn -> {

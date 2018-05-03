@@ -169,7 +169,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public void clearProgramPath() {
 		// clear the robots current path too
-		navigator.clearPathEntity();
+		navigator.clearPath();
 		programPath.clear();
 	}
 
@@ -208,8 +208,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Deals damage to the entity. If its a EntityPlayer then will take damage
-	 * from the armor first and then health second with the reduced value. Args:
+	 * Deals damage to the entity. If its a EntityPlayer then will take damage from
+	 * the armor first and then health second with the reduced value. Args:
 	 * damageAmount
 	 */
 	@Override
@@ -263,8 +263,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				return true;
 			} else {
 				iblockstate = world.getBlockState(blockpos);
-				ret = Math.max(ret, Math.max(i, iblockstate.getBlock() == Blocks.REDSTONE_WIRE
-						? iblockstate.getValue(BlockRedstoneWire.POWER).intValue() : 0));
+				ret = Math.max(ret,
+						Math.max(i,
+								iblockstate.getBlock() == Blocks.REDSTONE_WIRE
+										? iblockstate.getValue(BlockRedstoneWire.POWER).intValue()
+										: 0));
 			}
 		}
 		return ret > 0;
@@ -301,7 +304,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public float getDigSpeed(IBlockState state) {
-		float f = robot_inventory.getStackInSlot(2).getStrVsBlock(state);
+		float f = robot_inventory.getStackInSlot(2).getDestroySpeed(state);
 
 		if (f > 1.0F) {
 			int i = EnchantmentHelper.getEfficiencyModifier(this);
@@ -368,7 +371,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public int getMemorySize() {
 		return (int) (robot_inventory.getStackInSlot(1) != null
-				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage())) : 8);
+				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage()))
+				: 8);
 	}
 
 	public Map<Long, String> getMessages() {
@@ -419,8 +423,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Get number of ticks, at least during which the living entity will be
-	 * silent.
+	 * Get number of ticks, at least during which the living entity will be silent.
 	 */
 	@Override
 	public int getTalkInterval() {
@@ -592,8 +595,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Called when a player interacts with a mob. e.g. gets milk from a cow,
-	 * gets into the saddle on a pig.
+	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets
+	 * into the saddle on a pig.
 	 */
 	@Override
 	public boolean processInteract(EntityPlayer player, EnumHand hand) {
@@ -655,14 +658,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 		if (nbttagcompound.hasUniqueId("OwnerUUID")) {
 			UUID ownerID = nbttagcompound.getUniqueId("OwnerUUID");
-				setOwnerId(ownerID);
+			setOwnerId(ownerID);
 		}
 
 	}
 
 	/**
-	 * Called by the client when it receives a Entity spawn packet. Data should
-	 * be read out of the stream in the same way as it was written.
+	 * Called by the client when it receives a Entity spawn packet. Data should be
+	 * read out of the stream in the same way as it was written.
 	 *
 	 * @param data
 	 *            The packet data stream
@@ -774,8 +777,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	/**
-	 * Called by the server when constructing the spawn packet. Data should be
-	 * added to the provided stream.
+	 * Called by the server when constructing the spawn packet. Data should be added
+	 * to the provided stream.
 	 *
 	 * @param buffer
 	 *            The packet data stream

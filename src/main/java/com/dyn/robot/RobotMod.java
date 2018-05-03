@@ -1,12 +1,9 @@
 package com.dyn.robot;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -205,6 +202,20 @@ public class RobotMod {
 		}
 	}
 
+	private File getJarFile(String dir) {
+		String path = RobotMod.class.getResource("/assets/roboticraft").getPath();
+
+		dir = dir.replace("\\", "/");
+		if (dir.endsWith(".")) {
+			dir = dir.substring(0, dir.length() - 1);
+		}
+
+		path = path.substring(path.indexOf(dir));
+		path = path.substring(0, path.lastIndexOf('!'));
+
+		return new File(path);
+	}
+
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		RobotMod.proxy.init();
@@ -332,10 +343,11 @@ public class RobotMod {
 				RobotMod.scriptsLoc.mkdir();
 			}
 
-			apiFileLocation = new File(net.minecraft.client.Minecraft.getMinecraft().mcDataDir, apiLocation);
+			RobotMod.apiFileLocation = new File(net.minecraft.client.Minecraft.getMinecraft().mcDataDir,
+					RobotMod.apiLocation);
 
-			if (!apiFileLocation.exists()) {
-				apiFileLocation.mkdirs();
+			if (!RobotMod.apiFileLocation.exists()) {
+				RobotMod.apiFileLocation.mkdirs();
 			}
 		} else {
 			// only do this server side
@@ -346,25 +358,26 @@ public class RobotMod {
 				RobotMod.scriptsLoc.mkdir();
 			}
 
-			apiFileLocation = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
-					apiLocation);
+			RobotMod.apiFileLocation = new File(
+					FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(), RobotMod.apiLocation);
 
-			if (!apiFileLocation.exists()) {
-				apiFileLocation.mkdirs();
+			if (!RobotMod.apiFileLocation.exists()) {
+				RobotMod.apiFileLocation.mkdirs();
 			}
 		}
 
-		if(!(boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
+		if (!(boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
 			try {
 				JarFile roboMod = new JarFile(getJarFile(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT
 						? net.minecraft.client.Minecraft.getMinecraft().mcDataDir.getAbsolutePath()
-						: FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory().getAbsolutePath()));
+						: FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory()
+								.getAbsolutePath()));
 				Enumeration<JarEntry> resources = roboMod.entries();
 				while (resources.hasMoreElements()) {
 					JarEntry entry = resources.nextElement();
-					if (entry.getName().startsWith("assets/robot/api")) {
+					if (entry.getName().startsWith("assets/roboticraft/api")) {
 						RobotMod.logger.info(entry.getName());
-						File file = new File(apiFileLocation, entry.getName().replace("assets/robot/api", ""));
+						File file = new File(RobotMod.apiFileLocation, entry.getName().replace("assets/roboticraft/api", ""));
 						if (!file.exists()) {
 							if (entry.isDirectory()) {
 								file.mkdir();
@@ -385,7 +398,6 @@ public class RobotMod {
 				RobotMod.logger.error("Could not create API folder", e);
 			}
 		}
-		
 
 		RobotMod.proxy.preInit();
 	}
@@ -402,19 +414,5 @@ public class RobotMod {
 			}
 		}
 		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
-	}
-
-	private File getJarFile(String dir) {
-		String path = RobotMod.class.getResource("/assets/robot").getPath();
-
-		dir = dir.replace("\\", "/");
-		if (dir.endsWith(".")) {
-			dir = dir.substring(0, dir.length() - 1);
-		}
-
-		path = path.substring(path.indexOf(dir));
-		path = path.substring(0, path.lastIndexOf('!'));
-
-		return new File(path);
 	}
 }

@@ -29,6 +29,8 @@ public interface Proxy {
 
 	public void init();
 
+	public void openActivationInterface(EntityRobot entityRobot);
+
 	public void openActivationInterface(World world, BlockRobot robot, BlockPos pos);
 
 	public void openMagnetGui(BlockPos pos, IBlockState state, List<EntityRobot> robots);
@@ -44,6 +46,4 @@ public interface Proxy {
 	public void preInit();
 
 	public void toggleRenderRobotProgramInterface(boolean state);
-
-	public void openActivationInterface(EntityRobot entityRobot);
 }

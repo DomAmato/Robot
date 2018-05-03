@@ -16,7 +16,6 @@ import com.rabbit.gui.component.display.TextLabel;
 import com.rabbit.gui.show.Show;
 import com.rabbit.gui.utils.DefaultTextures;
 
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 
@@ -57,14 +56,15 @@ public class ActivationScreen extends Show {
 
 		panel.registerComponent(new Button((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .6),
 				(int) (panel.getWidth() * .25), 20, "Activate").setClickListener(btn -> {
-					if(entityRobot != null && !entityRobot.isDead){
+					if ((entityRobot != null) && !entityRobot.isDead) {
 						RobotMod.currentRobots.add(entityRobot);
 						NetworkManager.sendToServer(new MessageClaimRobot(
-							(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName), entityRobot.getEntityId()));
+								(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName),
+								entityRobot.getEntityId()));
 					} else {
-					NetworkManager.sendToServer(new MessageActivateRobot(
-							(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName), robotBlockPos,
-							player.dimension, true));
+						NetworkManager.sendToServer(new MessageActivateRobot(
+								(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName),
+								robotBlockPos, player.dimension, true));
 					}
 					getStage().close();
 				}));

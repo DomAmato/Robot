@@ -1,7 +1,0 @@
-{
-	"parent": "robot:item/common",
-	"textures": {
-		"layer0": "robot:items/bot_face"
-	}
-}
-

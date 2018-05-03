@@ -35,6 +35,28 @@ public class RobotInventory extends InventoryBasic {
 		return is;
 	}
 
+	public boolean canAddToInventory(ItemStack is) {
+		if ((is == null) || (is.isEmpty())) {
+			return false;
+		}
+
+		int addAmount = is.getCount();
+
+		for (int a = 14; a < getSizeInventory(); a++) {
+			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
+				return true;
+			}
+			ItemStack is2 = getStackInSlot(a);
+			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
+				addAmount -= Math.min(is.getCount(), is2.getMaxStackSize() - is2.getCount());
+			}
+			if (addAmount <= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean containsItem(ItemStack is) {
 		if (!is.isEmpty()) {
 			for (int i = 0; i < getSizeInventory(); i++) {

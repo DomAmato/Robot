@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "roboticraft:robot_block"
+		},
+		"facing=south": {
+			"model": "roboticraft:robot_block",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "roboticraft:robot_block",
+			"y": 270
+		},
+		"facing=east": {
+			"model": "roboticraft:robot_block",
+			"y": 90
+		}
+	}
+}

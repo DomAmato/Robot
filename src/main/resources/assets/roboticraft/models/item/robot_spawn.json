@@ -1,0 +1,7 @@
+{
+	"parent": "roboticraft:item/common",
+	"textures": {
+		"layer0": "roboticraft:items/bot_face"
+	}
+}
+

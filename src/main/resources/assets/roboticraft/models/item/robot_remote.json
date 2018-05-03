@@ -1,0 +1,14 @@
+{
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "roboticraft:items/robot_remote"
+	},
+	"display": {
+	"firstperson_righthand": {
+            "rotation": [ 0, -70, -17 ],
+            "translation": [ 1.13, 4.2, 0],
+            "scale": [ 0.68, 0.68, 0.68 ]
+        }
+	}
+}
+

@@ -1,0 +1,30 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		" T ",
+		"IGI",
+		"IRI"
+	],
+	"key": {
+		"T": {
+			"item": "minecraft:redstone_torch",
+      		"data": 0
+		},
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		},
+		"G": {
+			"item": "minecraft:stained_glass_pane",
+      		"data": 15
+		},
+		"R": {
+			"item": "minecraft:redstone",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "roboticraft:robot_remote",
+		"count": 1
+	}
+}

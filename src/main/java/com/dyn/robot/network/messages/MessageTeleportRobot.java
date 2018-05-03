@@ -30,7 +30,7 @@ public class MessageTeleportRobot implements IMessage {
 
 				robot.setPosition(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
 				robot.rotate(HelperFunctions.getAngleFromFacing(message.getFacing()));
-				robot.getNavigator().clearPathEntity();
+				robot.getNavigator().clearPath();
 			});
 			return null;
 		}

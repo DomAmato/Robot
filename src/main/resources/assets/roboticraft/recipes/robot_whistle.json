@@ -1,0 +1,22 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"II ",
+		"IIR",
+		"  I"
+	],
+	"key": {
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		},
+		"R": {
+			"item": "minecraft:redstone",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "roboticraft:robot_whistle",
+		"count": 1
+	}
+}
