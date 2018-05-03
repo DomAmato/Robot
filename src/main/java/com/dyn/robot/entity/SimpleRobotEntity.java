@@ -21,12 +21,6 @@ public class SimpleRobotEntity extends EntityRobot {
 		this(worldIn, null);
 	}
 
-	@Override
-	public boolean getCanSpawnHere() {
-		// dont spawn robots
-		return false;
-	}
-	
 	public SimpleRobotEntity(World worldIn, EntityPlayer player) {
 		super(worldIn);
 
@@ -56,6 +50,12 @@ public class SimpleRobotEntity extends EntityRobot {
 
 	public void dropItem(ItemStack is) {
 		entityDropItem(is, 0.6F);
+	}
+
+	@Override
+	public boolean getCanSpawnHere() {
+		// dont spawn robots
+		return false;
 	}
 
 	@Override

@@ -48,7 +48,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public void resetTask() {
-		entityPath.clearPathEntity();
+		entityPath.clearPath();
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 	 */
 	@Override
 	public boolean shouldContinueExecuting() {
-		return !entityPath.noPath() && (follower.getDistanceSqToEntity(follower.getOwner()) > (maxDist * maxDist));
+		return !entityPath.noPath() && (follower.getDistanceSq(follower.getOwner()) > (maxDist * maxDist));
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 			return false;
 		} else if ((follower.getOwner() instanceof EntityPlayer) && follower.getOwner().isSpectator()) {
 			return false;
-		} else if (follower.getDistanceSqToEntity(follower.getOwner()) < (minDist * minDist)) {
+		} else if (follower.getDistanceSq(follower.getOwner()) < (minDist * minDist)) {
 			return false;
 		}
 		return true;
@@ -94,7 +94,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 		if (--ticks <= 0) {
 			ticks = 10;
 			if (!entityPath.tryMoveToEntityLiving(follower.getOwner(), followSpeed)) {
-				if (follower.getDistanceSqToEntity(follower.getOwner()) >= 144.0D) {
+				if (follower.getDistanceSq(follower.getOwner()) >= 144.0D) {
 					int i = MathHelper.floor(follower.getOwner().posX) - 2;
 					int j = MathHelper.floor(follower.getOwner().posZ) - 2;
 					int k = MathHelper.floor(follower.getOwner().getEntityBoundingBox().minY);
@@ -105,7 +105,7 @@ public class EntityAIFollowsOwnerEX extends EntityAIBase {
 									&& isTeleportFriendlyBlock(i, j, k, l, i1)) {
 								follower.setLocationAndAngles(i + l + 0.5F, k, j + i1 + 0.5F, follower.rotationYaw,
 										follower.rotationPitch);
-								entityPath.clearPathEntity();
+								entityPath.clearPath();
 								return;
 							}
 						}

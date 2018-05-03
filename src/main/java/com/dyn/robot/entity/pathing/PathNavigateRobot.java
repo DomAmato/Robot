@@ -43,7 +43,7 @@ public class PathNavigateRobot extends PathNavigateGround {
 			if (positionVec3.squareDistanceTo(lastPosCheck) < 2.25D) {
 				// we probably can adapt this to handle code vs typical AI
 				// pathing
-				clearPathEntity();
+				clearPath();
 			}
 
 			ticksAtLastPos = totalTicks;

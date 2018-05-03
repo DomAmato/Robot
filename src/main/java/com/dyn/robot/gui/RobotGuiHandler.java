@@ -1,13 +1,10 @@
 package com.dyn.robot.gui;
 
-import java.util.List;
-
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.inventory.RobotChipContainer;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 
@@ -19,6 +16,9 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
  * per mod.
  */
 public class RobotGuiHandler implements IGuiHandler {
+	// Gets the client side element for the given gui id this should return a
+	// gui
+
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		EntityRobot robot = (EntityRobot) world.getEntityByID(ID);
@@ -32,14 +32,6 @@ public class RobotGuiHandler implements IGuiHandler {
 
 		return null;
 
-	}
-
-	// Gets the client side element for the given gui id this should return a
-	// gui
-	public List<EntityRobot> getEntitiesInRadius(World world, double x, double y, double z, int radius) {
-		List<EntityRobot> list = world.getEntitiesWithinAABB(EntityRobot.class,
-				new AxisAlignedBB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
-		return list;
 	}
 
 	// Gets the server side element for the given gui id this should return a

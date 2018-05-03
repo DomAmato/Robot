@@ -58,7 +58,7 @@ public class ItemSimpleRobotSpawner extends Item {
 		SimpleRobotEntity robot = (SimpleRobotEntity) ItemMonsterPlacer.spawnCreature(worldIn,
 				new ResourceLocation(Reference.MOD_ID, "RobotEntity"), pos.getX() + 0.5, pos.getY() + 1.3,
 				pos.getZ() + 0.5);
-		if(robot == null){
+		if (robot == null) {
 			return EnumActionResult.FAIL;
 		}
 		if (player.getHeldItemMainhand().getMetadata() == 0) {
@@ -67,6 +67,6 @@ public class ItemSimpleRobotSpawner extends Item {
 			robot.setTamable(false);
 		}
 		return EnumActionResult.SUCCESS;
-		
+
 	}
 }

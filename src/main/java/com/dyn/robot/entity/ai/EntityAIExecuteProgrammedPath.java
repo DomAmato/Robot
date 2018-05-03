@@ -61,7 +61,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					notifySuccess = false;
-					entityPath.clearPathEntity();
+					entityPath.clearPath();
 					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
 					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
@@ -143,7 +143,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 			} else {
 				// only update when execution is not paused
 				if (!entity.getProgramPath().isEmpty()) {
-					RobotMod.logger.info("Executing next part of Program Path");
+					RobotMod.logger.debug("Executing next part of Program Path");
 					clampX = clampZ = isVertical = false;
 					notifySuccess = true;
 					watchDog = 30;
@@ -164,7 +164,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 
 					if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()), (destination.getZ()),
 							speed)) {
-						RobotMod.logger.info("Could not get path to: " + destination);
+						RobotMod.logger.debug("Could not get path to: " + destination);
 						if (entity.getPosition().getY() != destination.getY()) {
 							entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY() + 0.5D,
 									(destination.getZ()) + 0.5D, speed);
@@ -176,19 +176,19 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 							entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 									prevDestination.getZ() + .5);
 							entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
-							RobotMod.logger.info("Stopping Code from path");
+							RobotMod.logger.debug("Stopping Code from path");
 							entity.stopExecutingCode();
 							entity.clearProgramPath();
 						}
 					}
 				} else if (notifySuccess) {
-					RobotMod.logger.info("Notifying Success");
+					RobotMod.logger.debug("Notifying Success");
 					// the program path is empty lets send a 1 time event
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
 					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
 
-					entityPath.clearPathEntity();
+					entityPath.clearPath();
 					notifySuccess = false;
 				}
 			}

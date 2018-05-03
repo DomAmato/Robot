@@ -123,11 +123,11 @@ public class RunPythonShell {
 										index = tempLine.indexOf("...");
 									}
 									// posts error to bus which is handled
-									// server side and  translated to client
+									// server side and translated to client
 									line = line.substring(line.lastIndexOf(".") + 1);
-									
+
 									RobotMod.logger.info(line);
-									
+
 									if (!RunPythonShell.isRobot) {
 										MinecraftForge.EVENT_BUS.post(new CodeEvent.ErrorEvent(RunPythonShell.codeLine,
 												line, lineLoc, entity));
@@ -195,9 +195,6 @@ public class RunPythonShell {
 			ProcessBuilder builder = new ProcessBuilder(RunPythonShell.scriptProcessorPath, "-i");
 
 			builder.directory(RobotMod.apiFileLocation.getParentFile());
-			//this only works in dev environments the build process cannot
-			//access the jar directory
-//			builder.directory(new File(RunPythonShell.class.getResource("/assets/robot").getPath()));
 
 			Map<String, String> environment = builder.environment();
 			environment.put("MINECRAFT_PLAYER_NAME", player.getName());

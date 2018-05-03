@@ -35,7 +35,7 @@ public class APIRegistry {
 			return false;
 		}
 		try {
-			RobotMod.logger.info("Running Cmd: " + name + ", " + args);
+			RobotMod.logger.debug("Running Cmd: " + name + ", " + args);
 			APIRegistry.commands.get(name).execute(args, scan);
 		} catch (Exception e) {
 			RobotMod.logger.error("Failed Executing Command: " + name, e);

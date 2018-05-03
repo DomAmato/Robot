@@ -59,7 +59,7 @@ public class EntityAIRobotAttackTarget extends EntityAIBase {
 	 */
 	@Override
 	public void resetTask() {
-		robot.getNavigator().clearPathEntity();
+		robot.getNavigator().clearPath();
 	}
 
 	/**
