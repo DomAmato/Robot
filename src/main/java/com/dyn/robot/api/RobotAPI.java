@@ -23,6 +23,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlockSpecial;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemHoe;
@@ -30,10 +31,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 public class RobotAPI extends Python2MinecraftApi {
 
@@ -41,22 +46,28 @@ public class RobotAPI extends Python2MinecraftApi {
 
 	private static final String GETROBOTID = "robot.id";
 
+	// Movement
 	private static final String ROBOTMOVE = "robot.moveTo";
-	private static final String ROBOTPLACE = "robot.place";
-	private static final String ROBOTBREAK = "robot.break";
-	private static final String ROBOTINTERACT = "robot.interact";
+	private static final String ROBOTORIENT = "robot.reorient";
 	private static final String ROBOTTURN = "robot.turn";
 	private static final String ROBOTFORWARD = "robot.forward";
 	private static final String ROBOTCLIMB = "robot.climb";
 	private static final String ROBOTDESCEND = "robot.descend";
 	private static final String ROBOTBACKWARD = "robot.backward";
-	private static final String ROBOTINSPECT = "robot.inspect";
 	private static final String ROBOTJUMP = "robot.jump";
+	private static final String ROBOTFACE = "robot.face";
+
+	// Interactions
+	private static final String ROBOTPLACE = "robot.place";
+	private static final String ROBOTBREAK = "robot.break";
+	private static final String ROBOTINTERACT = "robot.interact";
+	private static final String ROBOTINSPECT = "robot.inspect";
 	private static final String ROBOTSAY = "robot.say";
 	private static final String ROBOTNAME = "robot.name";
-	private static final String ROBOTFACE = "robot.face";
 	private static final String ROBOTDETECT = "robot.detect";
 	private static final String ROBOTATTACK = "robot.attack";
+	private static final String ROBOTUSEITEM = "robot.useItem";
+	private static final String ROBOTUSETOOL = "robot.useTool";
 
 	public static int robotId = 0;
 
@@ -106,6 +117,24 @@ public class RobotAPI extends Python2MinecraftApi {
 				robot.addToProgramPath(new BlockPos(x, y, z));
 			}
 		});
+		APIRegistry.registerCommand(RobotAPI.ROBOTORIENT, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Reorienting", id), player);
+					}
+				}
+				robot.clearProgramPath();
+			}
+		});
 		APIRegistry.registerCommand(RobotAPI.ROBOTNAME, (String args, Scanner scan) -> {
 			int id = scan.nextInt();
 			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
@@ -150,35 +179,31 @@ public class RobotAPI extends Python2MinecraftApi {
 					placeBlock = curLoc.add(temp);
 				}
 				if (robot.world.getBlockState(placeBlock).getBlock().canPlaceBlockAt(robot.world, placeBlock)) {
+					int slot = 0;
+					ItemStack inventorySlot = null;
 					if (scan.hasNext()) {
 						short blockId = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
-						if (!robot.robot_inventory.containsItem(new ItemStack(Block.getBlockById(blockId), 1, meta))) {
+						if (Block.getBlockById(blockId) == Blocks.AIR) {
+							inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
+						} else {
+							inventorySlot = new ItemStack(Block.getBlockById(blockId), 1, meta);
+						}
+						if (!robot.robot_inventory.containsItem(inventorySlot)) {
 							Python2MinecraftApi.fail("Block not Found in Inventory");
 							return;
 						}
-
-						final BlockPos immutablePlaceBlock = placeBlock;
-						RobotMod.proxy.addScheduledTask(() -> {
-							IBlockState oldState = robot.world.getBlockState(immutablePlaceBlock);
-							Block oldBlock = oldState.getBlock();
-
-							if ((Block.getIdFromBlock(oldBlock) != blockId)
-									|| (oldBlock.getMetaFromState(oldState) != meta)) {
-								if (null != robot.world.getTileEntity(immutablePlaceBlock)) {
-									robot.world.removeTileEntity(immutablePlaceBlock);
-								}
-								robot.world.setBlockState(immutablePlaceBlock,
-										RobotAPI.safeGetStateFromMeta(Block.getBlockById(blockId), meta), 3);
+						for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
+							if ((robot.robot_inventory.getStackInSlot(i) != null)
+									&& (robot.robot_inventory.getStackInSlot(i) == inventorySlot)) {
+								slot = i;
+								break;
 							}
-						});
-						MinecraftForge.EVENT_BUS.post(
-								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						}
+
 					} else {
 						if (!robot.robot_inventory.isInventoryEmpty()) {
-							int slot = 0;
-							ItemStack inventorySlot = null;
 							for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
 								if ((robot.robot_inventory.getStackInSlot(i) != null) && ((Block
 										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
@@ -190,30 +215,33 @@ public class RobotAPI extends Python2MinecraftApi {
 									break;
 								}
 							}
-
-							if (inventorySlot != null) {
-								if (inventorySlot.getItem().onItemUse(robot.getOwner(), robot.world, placeBlock,
-										robot.getActiveHand(),
-										(inventorySlot.getItem() instanceof ItemDoor) ? EnumFacing.UP
-												: robot.getProgrammedDirection().getOpposite(),
-										0, 0, 0) == EnumActionResult.FAIL) {
-									Python2MinecraftApi.fail("Cannot place block at location");
-								} else {
-									if (robot.robot_inventory.getStackInSlot(slot).isEmpty()) {
-										robot.robot_inventory.removeStackFromSlot(slot);
-									}
-									robot.swingArm(robot.getActiveHand());
-									MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotSuccessEvent("Success",
-											robot.getEntityId(), robot.getOwner()));
-								}
-							} else {
-								Python2MinecraftApi.fail("No Valid Block Found in Inventory");
-								return;
-							}
 						} else {
 							Python2MinecraftApi.fail("No Block in Inventory");
 							return;
 						}
+					}
+
+					if (inventorySlot != null) {
+						FakePlayer fakeplayer = FakePlayerFactory
+								.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
+						fakeplayer.setHeldItem(robot.getActiveHand(), inventorySlot);
+						if (inventorySlot.getItem().onItemUse(fakeplayer, robot.world, placeBlock,
+								robot.getActiveHand(),
+								(inventorySlot.getItem() instanceof ItemDoor) ? EnumFacing.UP
+										: robot.getProgrammedDirection().getOpposite(),
+								0, 0, 0) == EnumActionResult.FAIL) {
+							Python2MinecraftApi.fail("Cannot place block at location");
+						} else {
+							if (robot.robot_inventory.getStackInSlot(slot).isEmpty()) {
+								robot.robot_inventory.removeStackFromSlot(slot);
+							}
+							robot.swingArm(robot.getActiveHand());
+							MinecraftForge.EVENT_BUS.post(
+									new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						}
+					} else {
+						Python2MinecraftApi.fail("No Valid Block Found in Inventory");
+						return;
 					}
 				} else {
 					Python2MinecraftApi.fail("Cannot place block at location");
@@ -230,7 +258,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					return;
 				}
 				if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 2))) {
-					Python2MinecraftApi.fail("Robot does not know the breakBlock command");
+					Python2MinecraftApi.fail("Robot does not know the mine command");
 					return;
 				}
 				if (robot.robot_inventory.getStackInSlot(2).isEmpty()
@@ -267,37 +295,49 @@ public class RobotAPI extends Python2MinecraftApi {
 					breakBlock = curLoc.add(temp);
 				}
 
-				if (robot.world.getBlockState(breakBlock).getBlock() != Blocks.AIR) {
+				// blocks with hardness less than 0 are unbreakable
+				if ((robot.world.getBlockState(breakBlock).getBlock() != Blocks.AIR)
+						&& (robot.world.getBlockState(breakBlock).getBlock().getBlockHardness(null, null, null) >= 0)) {
 					if (robot.getPosition().down().equals(breakBlock)) {
-						// we are mining straight down so update the robots position since he will fall
+						// we are mining straight down so update the robots position since it will fall
 						// at least one space
 						robot.InsertToProgramPath(0, breakBlock);
 					}
-					IBlockState state = robot.world.getBlockState(breakBlock);
-					float speed = Math
+					final IBlockState state = robot.world.getBlockState(breakBlock);
+					final float speed = Math
 							.min(state.getBlockHardness(robot.world, breakBlock) / robot.getDigSpeed(state) / 10f, 2);
 					final BlockPos immutableBreakBlock = breakBlock;
 					robot.makeSwingArm(true);
 					RobotAPI.scheduler.schedule(() -> {
-						robot.makeSwingArm(false);
-						if (!robot.robot_inventory.isInventoryFull()) {
-							IBlockState broken = robot.world.getBlockState(immutableBreakBlock);
-							robot.robot_inventory.addItemStackToInventory(
-									new ItemStack(broken.getBlock(), 1, broken.getBlock().getMetaFromState(broken)));
-						} else {
-							robot.world.getBlockState(immutableBreakBlock).getBlock().dropBlockAsItem(robot.world,
-									immutableBreakBlock, robot.world.getBlockState(immutableBreakBlock), 1);
-						}
-						BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(robot.world, immutableBreakBlock, state,
-								robot.getOwner());
-						MinecraftForge.EVENT_BUS.post(event);
-						robot.world.setBlockToAir(immutableBreakBlock);
-						MinecraftForge.EVENT_BUS.post(
-								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						// we need this to happen on the server not client
+						FMLCommonHandler.instance().getMinecraftServerInstance().addScheduledTask(() -> {
+							robot.makeSwingArm(false);
+							NonNullList<ItemStack> drops = NonNullList.create();
+							state.getBlock().getDrops(drops, robot.world, immutableBreakBlock, state, 1);
+							boolean dropBlock = false;
+							for (ItemStack is : drops) {
+								if (!robot.robot_inventory.canAddToInventory(is)) {
+									dropBlock = true;
+								}
+							}
+							if (!dropBlock) {
+								for (ItemStack is : drops) {
+									robot.robot_inventory.addItemStackToInventory(is);
+								}
+							}
+							final boolean immutableDrop = dropBlock;
+
+							BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(robot.world, immutableBreakBlock,
+									state, robot.getOwner());
+							MinecraftForge.EVENT_BUS.post(event);
+							robot.world.destroyBlock(immutableBreakBlock, immutableDrop);
+							MinecraftForge.EVENT_BUS.post(
+									new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						});
 					}, (long) Math.max(100, 1000 * speed), TimeUnit.MILLISECONDS);
 
 				} else {
-					Python2MinecraftApi.fail("Nothing to break");
+					Python2MinecraftApi.fail("Nothing to break or block is unbreakable");
 				}
 			}
 		});
@@ -330,8 +370,22 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				if (robot.world.getBlockState(interactBlock).getBlock() != Blocks.AIR) {
 					robot.swingArm(robot.getActiveHand());
+					ItemStack inventorySlot = null;
+					for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
+						if ((robot.robot_inventory.getStackInSlot(i) != null)
+								&& ((Block.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
+										|| (robot.robot_inventory.getStackInSlot(i)
+												.getItem() instanceof ItemBlockSpecial)
+										|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemDoor))) {
+							inventorySlot = robot.robot_inventory.getStackInSlot(i);
+							break;
+						}
+					}
+					FakePlayer fakeplayer = FakePlayerFactory
+							.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
+					fakeplayer.setHeldItem(robot.getActiveHand(), inventorySlot);
 					robot.world.getBlockState(interactBlock).getBlock().onBlockActivated(robot.world, interactBlock,
-							robot.world.getBlockState(interactBlock), robot.getOwner(), robot.getActiveHand(),
+							robot.world.getBlockState(interactBlock), fakeplayer, robot.getActiveHand(),
 							robot.getProgrammedDirection().getOpposite(), 0, 0, 0);
 				}
 			}
@@ -508,9 +562,9 @@ public class RobotAPI extends Python2MinecraftApi {
 			EntityPlayer player = (EntityPlayer) RobotAPI.getServerEntityByID(playerid);
 			int id = player != null ? RobotMod.robotid2player.inverse().get(player) : RobotAPI.robotId;
 			if (player != null) {
-				RobotMod.logger.info("Getting Id For Player: " + player.getName());
+				RobotMod.logger.debug("Getting Id For Player: " + player.getName());
 			} else {
-				RobotMod.logger.info("Player Id was null using stored RobotID: " + RobotAPI.robotId);
+				RobotMod.logger.debug("Player Id was null using stored RobotID: " + RobotAPI.robotId);
 			}
 			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
 			robot.setIsFollowing(false);
@@ -596,14 +650,153 @@ public class RobotAPI extends Python2MinecraftApi {
 				robot.setShouldJump(true);
 			}
 		});
-	}
+		APIRegistry.registerCommand(RobotAPI.ROBOTUSEITEM, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 5))) {
+					Python2MinecraftApi.fail("Robot does not know the interact command");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Using Item", id), player);
+					}
+				}
+				BlockPos curLoc = robot.getPosition();
+				BlockPos interactBlock = curLoc.offset(robot.getProgrammedDirection()).down();
+				if (scan.hasNext()) {
+					// this rotation is the problem
+					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
+							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
 
-	private static IBlockState safeGetStateFromMeta(Block b, int meta) {
-		try {
-			return b.getStateFromMeta(meta);
-		} catch (Exception e) {
-			return b.getStateFromMeta(0);
-		}
+					if (RobotAPI.sqVectorLength(temp) == 0) {
+						Python2MinecraftApi.fail("Coordinates cannot equal 0");
+						return;
+					}
+
+					if ((RobotAPI.sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
+							|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
+						Python2MinecraftApi
+								.fail("Distance is greater than robots reach: " + String.format("(%d, %d, %d) = %d",
+										temp.getX(), temp.getY(), temp.getZ(), RobotAPI.sqVectorLength(temp)));
+						return;
+					}
+					interactBlock = curLoc.add(temp);
+				}
+				ItemStack inventorySlot = null;
+				int slot = 0;
+				if (scan.hasNext()) {
+					short blockId = scan.nextShort();
+					short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+
+					if (Block.getBlockById(blockId) == Blocks.AIR) {
+						inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
+					} else {
+						inventorySlot = new ItemStack(Block.getBlockById(blockId), 1, meta);
+					}
+					if (!robot.robot_inventory.containsItem(inventorySlot)) {
+						Python2MinecraftApi.fail("Item not Found in Inventory");
+						return;
+					}
+					for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
+						if ((robot.robot_inventory.getStackInSlot(i) != null)
+								&& (robot.robot_inventory.getStackInSlot(i) == inventorySlot)) {
+							slot = i;
+							break;
+						}
+					}
+
+				} else {
+					if (!robot.robot_inventory.isInventoryEmpty()) {
+						for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
+							if ((robot.robot_inventory.getStackInSlot(i) != null) && ((Block
+									.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
+									|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemBlockSpecial)
+									|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemDoor))) {
+								inventorySlot = robot.robot_inventory.getStackInSlot(i);
+								slot = i;
+								break;
+							}
+						}
+					} else {
+						Python2MinecraftApi.fail("No Items in Inventory");
+						return;
+					}
+				}
+				robot.swingArm(robot.getActiveHand());
+
+				FakePlayer fakeplayer = FakePlayerFactory
+						.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
+				fakeplayer.setHeldItem(robot.getActiveHand(), inventorySlot);
+				if (inventorySlot
+						.onItemUse(fakeplayer, robot.world, interactBlock, robot.getActiveHand(),
+								interactBlock.getY() < robot.getPosition().getY() ? EnumFacing.UP
+										: robot.getProgrammedDirection().getOpposite(),
+								0, 0, 0) == EnumActionResult.PASS) {
+					robot.robot_inventory.decrStackSize(slot, 1);
+				}
+			}
+		});
+		APIRegistry.registerCommand(RobotAPI.ROBOTUSETOOL, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 5))) {
+					Python2MinecraftApi.fail("Robot does not know the interact command");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Using Tool", id), player);
+					}
+				}
+				BlockPos curLoc = robot.getPosition();
+				BlockPos interactBlock = curLoc.offset(robot.getProgrammedDirection()).down();
+				if (scan.hasNext()) {
+					// this rotation is the problem
+					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
+							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+
+					if (RobotAPI.sqVectorLength(temp) == 0) {
+						Python2MinecraftApi.fail("Coordinates cannot equal 0");
+						return;
+					}
+
+					if ((RobotAPI.sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
+							|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
+						Python2MinecraftApi
+								.fail("Distance is greater than robots reach: " + String.format("(%d, %d, %d) = %d",
+										temp.getX(), temp.getY(), temp.getZ(), RobotAPI.sqVectorLength(temp)));
+						return;
+					}
+					interactBlock = curLoc.add(temp);
+				}
+
+				ItemStack heldItem = robot.getHeldItemMainhand();
+				robot.swingArm(robot.getActiveHand());
+
+				FakePlayer fakeplayer = FakePlayerFactory
+						.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
+				fakeplayer.setHeldItem(robot.getActiveHand(), heldItem);
+				heldItem.onItemUse(fakeplayer, robot.world, interactBlock, robot.getActiveHand(),
+						interactBlock.getY() < robot.getPosition().getY() ? EnumFacing.UP
+								: robot.getProgrammedDirection().getOpposite(),
+						0, 0, 0);
+				MinecraftForge.EVENT_BUS
+						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+			}
+		});
 	}
 
 	public static void setRobotId(int id, EntityPlayer player) {
@@ -614,10 +807,10 @@ public class RobotAPI extends Python2MinecraftApi {
 				RobotMod.robotid2player.remove(oldId);
 			}
 			RobotMod.logger
-					.info("Replacing robot id " + oldId + " with new id " + id + " for player " + player.getName());
+					.debug("Replacing robot id " + oldId + " with new id " + id + " for player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
 		} else {
-			RobotMod.logger.info("Attaching robot " + id + " to player " + player.getName());
+			RobotMod.logger.debug("Attaching robot " + id + " to player " + player.getName());
 			RobotMod.robotid2player.put(id, player);
 		}
 	}
