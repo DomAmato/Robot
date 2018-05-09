@@ -1,6 +1,5 @@
 package com.dyn.robot.network;
 
-import com.dyn.robot.network.messages.CodeExecutionEndedMessage;
 import com.dyn.robot.network.messages.MessageActivateRobot;
 import com.dyn.robot.network.messages.MessageClaimRobot;
 import com.dyn.robot.network.messages.MessageOpenRobotInventory;
@@ -8,7 +7,7 @@ import com.dyn.robot.network.messages.MessageReplaceSDCardItemStack;
 import com.dyn.robot.network.messages.MessageRunRobotScript;
 import com.dyn.robot.network.messages.MessageTeleportRobot;
 import com.dyn.robot.network.messages.MessageToggleRobotFollow;
-import com.dyn.robot.network.messages.RawErrorMessage;
+import com.dyn.robot.network.messages.RobotErrorMessage;
 import com.dyn.robot.network.messages.RobotSpeakMessage;
 import com.dyn.robot.reference.Reference;
 
@@ -100,9 +99,7 @@ public class NetworkManager {
 				Side.SERVER);
 
 		// CLIENT
-		NetworkManager.registerMessage(RawErrorMessage.class, RawErrorMessage.Handler.class, Side.CLIENT);
-		NetworkManager.registerMessage(CodeExecutionEndedMessage.class, CodeExecutionEndedMessage.Handler.class,
-				Side.CLIENT);
+		NetworkManager.registerMessage(RobotErrorMessage.class, RobotErrorMessage.Handler.class, Side.CLIENT);
 
 	}
 	// ========================================================//

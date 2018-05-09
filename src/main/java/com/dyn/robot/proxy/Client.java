@@ -101,14 +101,6 @@ public class Client implements Proxy {
 	}
 
 	@Override
-	public void handleCodeExecutionEnded() {
-		if (showRobotProgrammer || ((RabbitGui.proxy.getCurrentStage() != null)
-				&& (RabbitGui.proxy.getCurrentStage().getShow() instanceof RobotProgrammingInterface))) {
-			robotProgramInterface.handleCompletion();
-		}
-	}
-
-	@Override
 	public void handleErrorMessage(String error, String code, int line) {
 		if (showRobotProgrammer) {
 			RobotMod.logger.info("Encountered Error: " + error);

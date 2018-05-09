@@ -1,6 +1,8 @@
 package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.RobotAPI;
+import com.dyn.robot.entity.EntityRobot;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
@@ -8,14 +10,15 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class RawErrorMessage implements IMessage {
-	public static class Handler implements IMessageHandler<RawErrorMessage, IMessage> {
+public class RobotErrorMessage implements IMessage {
+	public static class Handler implements IMessageHandler<RobotErrorMessage, IMessage> {
 
 		@Override
-		public IMessage onMessage(RawErrorMessage message, MessageContext ctx) {
+		public IMessage onMessage(RobotErrorMessage message, MessageContext ctx) {
 			RobotMod.proxy.addScheduledTask(() -> {
 				RobotMod.proxy.handleErrorMessage(message.getError(), message.getCode(), message.getLine());
-
+				EntityRobot robot = RobotAPI.getRobotEntityFromID(message.getRobotId());
+				robot.stopExecutingCode();
 			});
 			return null;
 		}
@@ -26,14 +29,16 @@ public class RawErrorMessage implements IMessage {
 	private String error;
 
 	private int line;
+	private int robotid;
 
-	public RawErrorMessage() {
+	public RobotErrorMessage() {
 	}
 
-	public RawErrorMessage(String code, String error, int line) {
+	public RobotErrorMessage(String code, String error, int line, int robotid) {
 		this.code = code;
 		this.error = error;
 		this.line = line;
+		this.robotid = robotid;
 	}
 
 	@Override
@@ -41,6 +46,7 @@ public class RawErrorMessage implements IMessage {
 		code = ByteBufUtils.readUTF8String(buf);
 		error = ByteBufUtils.readUTF8String(buf);
 		line = buf.readInt();
+		robotid = buf.readInt();
 	}
 
 	public String getCode() {
@@ -55,10 +61,15 @@ public class RawErrorMessage implements IMessage {
 		return line;
 	}
 
+	public int getRobotId() {
+		return robotid;
+	}
+
 	@Override
 	public void toBytes(ByteBuf buf) {
 		ByteBufUtils.writeUTF8String(buf, code);
 		ByteBufUtils.writeUTF8String(buf, error);
 		buf.writeInt(line);
+		buf.writeInt(robotid);
 	}
 }

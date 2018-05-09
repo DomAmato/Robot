@@ -23,8 +23,6 @@ public interface Proxy {
 
 	public IThreadListener getThreadFromContext(MessageContext ctx);
 
-	public void handleCodeExecutionEnded();
-
 	public void handleErrorMessage(String error, String code, int line);
 
 	public void init();

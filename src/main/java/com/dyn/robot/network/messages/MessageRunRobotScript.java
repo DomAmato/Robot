@@ -49,7 +49,7 @@ public class MessageRunRobotScript implements IMessage {
 
 			RobotMod.proxy.addScheduledTask(
 					() -> RunPythonShell.run(Arrays.asList(message.getScript().split(Pattern.quote("\n"))),
-							ctx.getServerHandler().player, true, message.getId()));
+							ctx.getServerHandler().player, message.getId()));
 			return null;
 		}
 	}

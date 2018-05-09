@@ -27,7 +27,6 @@ import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.python.RunPythonShell;
 import com.dyn.robot.utils.FileUtils;
-import com.dyn.robot.utils.HelperFunctions;
 import com.google.common.base.Optional;
 
 import io.netty.buffer.ByteBuf;
@@ -70,11 +69,16 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
 
 public abstract class EntityRobot extends EntityCreature implements IEntityOwnable, IEntityAdditionalSpawnData {
-	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager
+	protected static final DataParameter<Optional<UUID>> ROBOT_OWNER_UNIQUE_ID = EntityDataManager
 			.<Optional<UUID>>createKey(EntityRobot.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 
 	protected static final DataParameter<String> ROBOT_NAME = EntityDataManager.<String>createKey(EntityRobot.class,
 			DataSerializers.STRING);
+
+	private static final DataParameter<Boolean> ROBOT_FOLLOWING = EntityDataManager
+			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> ROBOT_CODE_EXECUTING = EntityDataManager
+			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
 
 	public static List<EntityItem> getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class,
@@ -82,14 +86,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return list;
 	}
 
-	protected boolean shouldFollow;
 	protected boolean isTamable;
 	protected EntityPlayer owner;
 
 	public RobotInventory robot_inventory;
 	private List<BlockPos> programPath = new ArrayList();
 
-	private boolean executeCode = false;
 	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<>();
 	private boolean pauseCode = false;
@@ -106,12 +108,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		super(worldIn);
 		height = .9f;
 		width = 0.5f;
-		shouldFollow = false;
-		executeCode = false;
 		isTamable = true;
 		robot_inventory = new RobotInventory("Robot Inventory", 32, this);
-		dataManager.register(EntityRobot.OWNER_UNIQUE_ID, Optional.absent());
-		dataManager.register(EntityRobot.ROBOT_NAME, "");// robot name
+		dataManager.register(EntityRobot.ROBOT_OWNER_UNIQUE_ID, Optional.absent());
+		dataManager.register(EntityRobot.ROBOT_NAME, "");
+		dataManager.register(EntityRobot.ROBOT_FOLLOWING, Boolean.valueOf(false));
+		dataManager.register(EntityRobot.ROBOT_CODE_EXECUTING, Boolean.valueOf(false));
 
 		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
@@ -356,7 +358,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public boolean getIsFollowing() {
-		return shouldFollow;
+		return dataManager.get(EntityRobot.ROBOT_FOLLOWING);
 	}
 
 	@Override
@@ -403,7 +405,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	@Override
 	public UUID getOwnerId() {
-		return (UUID) ((Optional) dataManager.get(EntityRobot.OWNER_UNIQUE_ID)).orNull();
+		return (UUID) ((Optional) dataManager.get(EntityRobot.ROBOT_OWNER_UNIQUE_ID)).orNull();
 	}
 
 	public EnumFacing getProgrammedDirection() {
@@ -580,7 +582,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 				RobotMod.proxy.addScheduledTask(() -> RunPythonShell
 						.run(Arrays.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
-								.split(Pattern.quote("\n"))), getOwner(), true, getEntityId()));
+								.split(Pattern.quote("\n"))), getOwner(), getEntityId()));
 			}
 		}
 	}
@@ -649,7 +651,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 
-		shouldFollow = nbttagcompound.getBoolean("follow");
 		isTamable = nbttagcompound.getBoolean("tame");
 
 		String robotName = nbttagcompound.getString("robotName");
@@ -673,7 +674,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	public void readSpawnData(ByteBuf additionalData) {
 		isTamable = additionalData.readBoolean();
-		shouldFollow = additionalData.readBoolean();
 	}
 
 	public void reinitIdleAI() {
@@ -705,7 +705,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void setIsFollowing(boolean shouldFollow) {
-		this.shouldFollow = shouldFollow;
+		dataManager.set(EntityRobot.ROBOT_FOLLOWING, shouldFollow);
 	}
 
 	public void setOwner(EntityPlayer player) {
@@ -717,7 +717,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	private void setOwnerId(@Nullable UUID ownerUuid) {
-		dataManager.set(EntityRobot.OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
+		dataManager.set(EntityRobot.ROBOT_OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
 		tasks.removeTask(wanderTask);
 		setOwner(ownerUuid);
 	}
@@ -737,19 +737,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public boolean shouldExecuteCode() {
-		return executeCode;
+		return dataManager.get(EntityRobot.ROBOT_CODE_EXECUTING);
 	}
 
 	public void startExecutingCode() {
-		executeCode = true;
+		dataManager.set(EntityRobot.ROBOT_CODE_EXECUTING, true);
 		programDir = getHorizontalFacing();
 
 		setPosition(getPosition().getX() + .5, getPosition().getY(), getPosition().getZ() + .5);
-		rotate(HelperFunctions.getAngleFromFacing(programDir));
+		rotate(programDir.getHorizontalAngle());
 	}
 
 	public void stopExecutingCode() {
-		executeCode = false;
+		dataManager.set(EntityRobot.ROBOT_CODE_EXECUTING, false);
 	}
 
 	@Override
@@ -768,7 +768,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		nbttagcompound.setTag("Items", nbttaglist);
 
 		nbttagcompound.setString("robotName", dataManager.get(EntityRobot.ROBOT_NAME));
-		nbttagcompound.setBoolean("follow", shouldFollow);
 		nbttagcompound.setBoolean("tame", isTamable);
 
 		if (getOwnerId() != null) {
@@ -786,6 +785,5 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	@Override
 	public void writeSpawnData(ByteBuf buffer) {
 		buffer.writeBoolean(isTamable);
-		buffer.writeBoolean(shouldFollow);
 	}
 }

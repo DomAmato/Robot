@@ -60,7 +60,7 @@ public class RobotProgrammingInterface extends Show {
 	private Tab followTab;
 	private Tab invTab;
 	private Button runButton;
-	private boolean btnStatus;
+	private boolean runThread;
 
 	public RobotProgrammingInterface() {
 		title = "Robot Programmer";
@@ -68,7 +68,6 @@ public class RobotProgrammingInterface extends Show {
 		errorText = "";
 		showError = false;
 		robot = null;
-		btnStatus = true;
 	}
 
 	public RobotProgrammingInterface(EntityRobot robot) {
@@ -76,7 +75,6 @@ public class RobotProgrammingInterface extends Show {
 		termText = "#Welcome to the progamming interface!\nfrom api.robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
 		errorText = "";
 		showError = false;
-		btnStatus = true;
 		this.robot = robot;
 	}
 
@@ -88,17 +86,8 @@ public class RobotProgrammingInterface extends Show {
 		return robot;
 	}
 
-	public void handleCompletion() {
-		runButton.setIsEnabled(true);
-		btnStatus = true;
-	}
-
 	public void handleErrorMessage(String error, String code, int line) {
-		// we have to subtract 2 since lines start at 0 and the error produces
-		// an extra space
-		RobotMod.logger.info("Handling Error in Interface");
 		runButton.setIsEnabled(true);
-		btnStatus = true;
 		errorPanel.setVisible(true);
 		errorPanel.setFocused(true);
 		errorLabel.setText(error);
@@ -120,12 +109,15 @@ public class RobotProgrammingInterface extends Show {
 	@Override
 	public void onClose() {
 		super.onClose();
+		runThread = false;
 		RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 	}
 
 	@Override
 	public void setup() {
 		super.setup();
+
+		runThread = true;
 
 		sdCard = robot.robot_inventory.getSDCard();
 
@@ -261,15 +253,15 @@ public class RobotProgrammingInterface extends Show {
 									if (!robot.getIsFollowing()) {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), true));
-										((PictureTab) tab).setPicture(
-												new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_stand.png"));
+										((PictureTab) tab).setPicture(new ResourceLocation(Reference.MOD_NAME,
+												"textures/gui/robot_stand.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
 										robot.setIsFollowing(true);
 									} else {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), false));
-										((PictureTab) tab).setPicture(
-												new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));
+										((PictureTab) tab).setPicture(new ResourceLocation(Reference.MOD_NAME,
+												"textures/gui/robot_follow.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 										robot.setIsFollowing(false);
 									}
@@ -333,35 +325,38 @@ public class RobotProgrammingInterface extends Show {
 							mainPanel.setFocused(false);
 						}).setIsEnabled(!sdCard.isEmpty()));
 
-		mainPanel.registerComponent(runButton = new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0,
-				(mainPanel.getWidth() - 15) / 4, 15, "Run").setIsEnabled(btnStatus).setClickListener(btn -> {
-					List<String> codeLines = Lists.newArrayList();
-					for (String line : termText.split(Pattern.quote("\n"))) {
-						line.trim();
-						if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
-							continue;
-						}
-						codeLines.add(line);
-					}
-					if (codeLines.size() > robot.getMemorySize()) {
-						handleErrorMessage(
-								"Robot out of memory, can only process " + robot.getMemorySize()
-										+ " lines but program contains " + codeLines.size(),
-								termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length - 1],
-								termText.split(Pattern.quote("\n")).length);
-					} else {
-						btn.setIsEnabled(false);
-						btnStatus = false;
-						codeWindow.clearError();
-						errorPanel.setVisible(false);
+		mainPanel.registerComponent(
+				runButton = new Button(((mainPanel.getWidth() - 15) / 4) * 3, 0, (mainPanel.getWidth() - 15) / 4, 15,
+						"Run").setIsEnabled(!robot.shouldExecuteCode()).setClickListener(btn -> {
+							List<String> codeLines = Lists.newArrayList();
+							for (String line : termText.split(Pattern.quote("\n"))) {
+								line.trim();
+								if (line.isEmpty() || (line.charAt(0) == '#') || line.contains("import")) {
+									continue;
+								}
+								codeLines.add(line);
+							}
+							if (codeLines.size() > robot.getMemorySize()) {
+								handleErrorMessage(
+										"Robot out of memory, can only process " + robot.getMemorySize()
+												+ " lines but program contains " + codeLines.size(),
+										termText.split(Pattern.quote("\n"))[termText.split(Pattern.quote("\n")).length
+												- 1],
+										termText.split(Pattern.quote("\n")).length);
+							} else {
+								btn.setIsEnabled(false);
+								codeWindow.clearError();
+								errorPanel.setVisible(false);
 
-						NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
-						((PictureTab) followTab)
-								.setPicture(new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));
-						followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
-						robot.setIsFollowing(false);
-					}
-				}));
+								NetworkManager
+										.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+								robot.startExecutingCode();
+								((PictureTab) followTab).setPicture(
+										new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));
+								followTab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
+								robot.setIsFollowing(false);
+							}
+						}));
 
 		mainPanel.registerComponent(new PictureButton(mainPanel.getWidth() - 15, 0, 15, 15, DefaultTextures.EXIT)
 				.setDrawsButton(false).setClickListener(btn -> {
@@ -428,6 +423,22 @@ public class RobotProgrammingInterface extends Show {
 		Collections.sort(robotMembers);
 
 		codeWindow.addClassMembers("Robot", robotMembers);
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				while (runThread) {
+					runButton.setIsEnabled(!robot.shouldExecuteCode());
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		t.setDaemon(true);
+		t.start();
 	}
 
 }

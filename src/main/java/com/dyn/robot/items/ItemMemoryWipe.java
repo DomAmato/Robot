@@ -91,7 +91,6 @@ public class ItemMemoryWipe extends Item {
 				}
 			}
 		}
-		RobotMod.proxy.handleCodeExecutionEnded();
 		entity = null;
 		return stack;
 	}
