@@ -59,7 +59,8 @@ public class ActivationScreen extends Show {
 					if ((entityRobot != null) && !entityRobot.isDead) {
 						RobotMod.currentRobots.add(entityRobot);
 						NetworkManager.sendToServer(new MessageClaimRobot(
-								(robotName.isEmpty() ? "Robot" + (int) (65535 * Math.random()) : robotName),
+								(((robotName == null) || robotName.isEmpty()) ? "Robot" + (int) (65535 * Math.random())
+										: robotName),
 								entityRobot.getEntityId()));
 					} else {
 						NetworkManager.sendToServer(new MessageActivateRobot(

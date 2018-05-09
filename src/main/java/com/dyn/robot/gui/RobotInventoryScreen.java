@@ -23,7 +23,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class RobotInventoryScreen extends GuiContainer {
-	private static final ResourceLocation guiTex = new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_container2.png");
+	private static final ResourceLocation guiTex = new ResourceLocation(Reference.MOD_NAME,
+			"textures/gui/robot_container2.png");
 
 	private EntityRobot robot;
 

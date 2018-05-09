@@ -36,8 +36,7 @@ import com.dyn.robot.items.RoboTab;
 import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.SocketEvent;
-import com.dyn.robot.network.messages.CodeExecutionEndedMessage;
-import com.dyn.robot.network.messages.RawErrorMessage;
+import com.dyn.robot.network.messages.RobotErrorMessage;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
@@ -169,7 +168,7 @@ public class RobotMod {
 		RobotMod.globalChatMessages = RobotMod.configFile.getBoolean("Messages Go To All",
 				Configuration.CATEGORY_GENERAL, true, "Messages go to all");
 		RobotMod.apiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
-				Configuration.CATEGORY_GENERAL, "robot/api", "Relative to .minecraft folder or server jar");
+				Configuration.CATEGORY_GENERAL, "roboticraft/api", "Relative to .minecraft folder or server jar");
 
 		if (RobotMod.configFile.hasChanged()) {
 			RobotMod.configFile.save();
@@ -184,13 +183,12 @@ public class RobotMod {
 
 	@SubscribeEvent
 	public void codeError(CodeEvent.ErrorEvent event) {
-		if (event instanceof CodeEvent.RobotErrorEvent) {
-			EntityPlayer player = event.getPlayer();
-			World world = player.world;
-			EntityRobot robot = (EntityRobot) world.getEntityByID(((CodeEvent.RobotErrorEvent) event).getEntityId());
-			robot.stopExecutingCode();
-		}
-		NetworkManager.sendTo(new RawErrorMessage(event.getCode(), event.getError(), event.getLine()),
+		EntityPlayer player = event.getPlayer();
+		World world = player.world;
+		EntityRobot robot = (EntityRobot) world.getEntityByID(((CodeEvent.RobotErrorEvent) event).getEntityId());
+		robot.stopExecutingCode();
+		NetworkManager.sendTo(
+				new RobotErrorMessage(event.getCode(), event.getError(), event.getLine(), robot.getEntityId()),
 				(EntityPlayerMP) event.getPlayer());
 	}
 
@@ -377,7 +375,8 @@ public class RobotMod {
 					JarEntry entry = resources.nextElement();
 					if (entry.getName().startsWith("assets/roboticraft/api")) {
 						RobotMod.logger.info(entry.getName());
-						File file = new File(RobotMod.apiFileLocation, entry.getName().replace("assets/roboticraft/api", ""));
+						File file = new File(RobotMod.apiFileLocation,
+								entry.getName().replace("assets/roboticraft/api", ""));
 						if (!file.exists()) {
 							if (entry.isDirectory()) {
 								file.mkdir();
@@ -408,11 +407,10 @@ public class RobotMod {
 			World world = event.getPlayer().world;
 			EntityRobot robot = (EntityRobot) world
 					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
-			RobotMod.logger.info("Stop Executing Code from Socket Message for Player: " + event.getPlayer().getName());
+			RobotMod.logger.debug("Stop Executing Code from Socket Message for Player: " + event.getPlayer().getName());
 			if (robot != null) {
 				robot.stopExecutingCode();
 			}
 		}
-		NetworkManager.sendTo(new CodeExecutionEndedMessage("Complete"), (EntityPlayerMP) event.getPlayer());
 	}
 }

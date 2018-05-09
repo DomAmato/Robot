@@ -1,5 +1,6 @@
 package com.dyn.robot.entity.ai;
 
+import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.network.CodeEvent;
 
@@ -30,19 +31,20 @@ public class EntityAIJumpToward extends EntityAIBase {
 	public boolean shouldContinueExecuting() {
 		boolean doContinue = !leaper.onGround;
 		if (!doContinue) {
-			MinecraftForge.EVENT_BUS
-					.post(new CodeEvent.RobotSuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
 			if (leaper.getProgramPath().iterator().hasNext()) {
 				BlockPos prevLoc = leaper.getProgramPath().iterator().next();
 				leaper.getProgramPath().remove(prevLoc);
 			}
 			leaper.getNavigator().tryMoveToXYZ((leaper.getPosition().getX()) + 0.5D, leaper.getPosition().getY(),
 					(leaper.getPosition().getZ()) + 0.5D, 0.4F);
-			// leaper.setPosition(leaper.getPosition().getX() + .5,
-			// leaper.getPosition().getY(),
-			// leaper.getPosition().getZ() + .5);
-			// leaper.rotate(HelperFunctions.getAngleFromFacing(leaper.getProgrammedDirection()));
 			leaper.InsertToProgramPath(0, leaper.getPosition());
+			final float newYaw = MathHelper.wrapDegrees(leaper.getProgrammedDirection().getHorizontalAngle());
+			RobotMod.proxy.addScheduledTask(() -> {
+				leaper.moveToBlockPosAndAngles(leaper.getPosition(), newYaw, 0);
+				leaper.rotate(newYaw);
+			});
+			MinecraftForge.EVENT_BUS
+					.post(new CodeEvent.RobotSuccessEvent("Success", leaper.getEntityId(), leaper.getOwner()));
 			leaper.resumeExecution();
 		}
 		return doContinue;
