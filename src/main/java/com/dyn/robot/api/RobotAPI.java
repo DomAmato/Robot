@@ -12,7 +12,6 @@ import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.RobotSpeakMessage;
 import com.dyn.robot.utils.EnchantmentUtils;
-import com.dyn.robot.utils.HelperFunctions;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -161,9 +160,9 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos curLoc = robot.getPosition();
 				BlockPos placeBlock = curLoc.offset(robot.getProgrammedDirection());
 
-				if (scan.hasNext()) {
+				if (scan.nextBoolean()) {
 					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+							robot.getProgrammedDirection().getHorizontalAngle());
 
 					if ((RobotAPI.sqVectorLength(temp) == 0) || (RobotAPI.sqVectorLength(temp) > 3)
 							|| (Math.abs(temp.getX()) > 1) || (Math.abs(temp.getY()) > 1)
@@ -181,7 +180,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				if (robot.world.getBlockState(placeBlock).getBlock().canPlaceBlockAt(robot.world, placeBlock)) {
 					int slot = 0;
 					ItemStack inventorySlot = null;
-					if (scan.hasNext()) {
+					if (scan.nextBoolean()) {
 						short blockId = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
@@ -278,7 +277,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				if (scan.hasNext()) {
 					// this rotation is the problem
 					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+							robot.getProgrammedDirection().getHorizontalAngle());
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");
@@ -419,7 +418,7 @@ public class RobotAPI extends Python2MinecraftApi {
 						NetworkManager.sendTo(new RobotSpeakMessage("Facing", id), player);
 					}
 				}
-				robot.rotate(HelperFunctions.getAngleFromFacing(EnumFacing.getFront(scan.nextInt())));
+				robot.rotate(EnumFacing.getFront(scan.nextInt()).getHorizontalAngle());
 			}
 		});
 		APIRegistry.registerCommand(RobotAPI.ROBOTDETECT, (String args, Scanner scan) -> {
@@ -594,7 +593,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos inspectBlock = curLoc.offset(robot.getProgrammedDirection());
 				if (scan.hasNext()) {
 					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+							robot.getProgrammedDirection().getHorizontalAngle());
 
 					if ((RobotAPI.sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
 							|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
@@ -670,10 +669,11 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				BlockPos curLoc = robot.getPosition();
 				BlockPos interactBlock = curLoc.offset(robot.getProgrammedDirection()).down();
-				if (scan.hasNext()) {
+				if (scan.nextBoolean()) { // we were given a location
 					// this rotation is the problem
+					interactBlock = interactBlock.up();
 					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+							robot.getProgrammedDirection().getHorizontalAngle());
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");
@@ -691,17 +691,14 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				ItemStack inventorySlot = null;
 				int slot = 0;
-				if (scan.hasNext()) {
+				if (scan.nextBoolean()) {
 					short blockId = scan.nextShort();
 					short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
-					if (Block.getBlockById(blockId) == Blocks.AIR) {
-						inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
-					} else {
-						inventorySlot = new ItemStack(Block.getBlockById(blockId), 1, meta);
-					}
+					inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
+
 					if (!robot.robot_inventory.containsItem(inventorySlot)) {
-						Python2MinecraftApi.fail("Item not Found in Inventory");
+						Python2MinecraftApi.fail("Item not found in Inventory");
 						return;
 					}
 					for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
@@ -740,6 +737,11 @@ public class RobotAPI extends Python2MinecraftApi {
 										: robot.getProgrammedDirection().getOpposite(),
 								0, 0, 0) == EnumActionResult.PASS) {
 					robot.robot_inventory.decrStackSize(slot, 1);
+					MinecraftForge.EVENT_BUS
+							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+				} else {
+					Python2MinecraftApi.fail("Was unable to use item " + inventorySlot.getDisplayName()
+							+ " at location " + interactBlock);
 				}
 			}
 		});
@@ -766,7 +768,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				if (scan.hasNext()) {
 					// this rotation is the problem
 					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							HelperFunctions.getAngleFromFacing(robot.getProgrammedDirection()));
+							robot.getProgrammedDirection().getHorizontalAngle());
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");

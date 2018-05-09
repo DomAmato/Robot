@@ -3,7 +3,6 @@ package com.dyn.robot.entity.ai;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.network.CodeEvent;
-import com.dyn.robot.utils.HelperFunctions;
 
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathNavigate;
@@ -54,7 +53,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				entity.stopExecutingCode();
 				entity.clearProgramPath();
 				entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
-				entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+				entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
 			}
 			if (notifySuccess) {
 				if (entity.getPosition().equals(destination)) {
@@ -64,7 +63,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					entityPath.clearPath();
 					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
-					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
 				} else {
 					MinecraftForge.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination",
 							entity.getEntityId(), entity.getOwner()));
@@ -73,7 +72,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					entity.clearProgramPath();
 					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
-					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
 				}
 			}
 			RobotMod.logger.info("Stop AI Path Execution");
@@ -175,7 +174,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 							notifySuccess = false;
 							entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 									prevDestination.getZ() + .5);
-							entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+							entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
 							RobotMod.logger.debug("Stopping Code from path");
 							entity.stopExecutingCode();
 							entity.clearProgramPath();
@@ -186,7 +185,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					// the program path is empty lets send a 1 time event
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
-					entity.rotate(HelperFunctions.getAngleFromFacing(entity.getProgrammedDirection()));
+					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
 
 					entityPath.clearPath();
 					notifySuccess = false;

@@ -1,10 +1,10 @@
 package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -15,8 +15,7 @@ public class MessageToggleRobotFollow implements IMessage {
 		@Override
 		public IMessage onMessage(final MessageToggleRobotFollow message, final MessageContext ctx) {
 			RobotMod.proxy.addScheduledTask(() -> {
-				World world = ctx.getServerHandler().player.world;
-				EntityRobot robot = (EntityRobot) world.getEntityByID(message.getEntityId());
+				EntityRobot robot = RobotAPI.getRobotEntityFromID(message.getEntityId());
 				robot.setIsFollowing(message.shouldFollow());
 			});
 			return null;

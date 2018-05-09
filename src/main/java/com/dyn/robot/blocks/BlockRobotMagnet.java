@@ -6,7 +6,6 @@ import java.util.List;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.reference.Reference;
-import com.dyn.robot.utils.HelperFunctions;
 
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;
@@ -108,7 +107,7 @@ public class BlockRobotMagnet extends BlockHorizontal {
 
 		if (ownedRobots.size() == 1) {
 			ownedRobots.get(0).setPosition(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);
-			ownedRobots.get(0).rotate(HelperFunctions.getAngleFromFacing(state.getValue(BlockHorizontal.FACING)));
+			ownedRobots.get(0).rotate(state.getValue(BlockHorizontal.FACING).getHorizontalAngle());
 		} else if (worldIn.isRemote && (ownedRobots.size() > 1)) {
 			RobotMod.proxy.openMagnetGui(pos, state, ownedRobots);
 		}

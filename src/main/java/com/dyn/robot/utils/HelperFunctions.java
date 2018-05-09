@@ -3,8 +3,6 @@ package com.dyn.robot.utils;
 import java.io.File;
 import java.util.List;
 
-import net.minecraft.util.EnumFacing;
-
 public class HelperFunctions {
 
 	/**
@@ -53,20 +51,5 @@ public class HelperFunctions {
 			}
 		}
 
-	}
-
-	public static float getAngleFromFacing(EnumFacing dir) {
-		switch (dir) {
-		case SOUTH:
-			return 0;
-		case NORTH:
-			return 180;
-		case EAST:
-			return 270;
-		case WEST:
-			return 90;
-		default:
-			return 0;
-		}
 	}
 }

@@ -7,7 +7,6 @@ import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
-import com.dyn.robot.utils.HelperFunctions;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.EntityList;
@@ -40,7 +39,7 @@ public class MessageActivateRobot implements IMessage {
 					SimpleRobotEntity new_robot = (SimpleRobotEntity) EntityList
 							.createEntityByIDFromName(new ResourceLocation(Reference.MOD_ID, "robot"), world);
 					new_robot.setLocationAndAngles(message.getPosition().getX() + 0.5, message.getPosition().getY(),
-							message.getPosition().getZ() + 0.5, HelperFunctions.getAngleFromFacing(dir), 0.0F);
+							message.getPosition().getZ() + 0.5, dir.getHorizontalAngle(), 0.0F);
 					new_robot.rotationYawHead = new_robot.rotationYaw;
 					new_robot.renderYawOffset = new_robot.rotationYaw;
 					new_robot.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(new_robot)),

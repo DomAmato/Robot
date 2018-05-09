@@ -2,7 +2,6 @@ package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.utils.HelperFunctions;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,7 +28,7 @@ public class MessageTeleportRobot implements IMessage {
 				}
 
 				robot.setPosition(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
-				robot.rotate(HelperFunctions.getAngleFromFacing(message.getFacing()));
+				robot.rotate(message.getFacing().getHorizontalAngle());
 				robot.getNavigator().clearPath();
 			});
 			return null;
