@@ -2,8 +2,8 @@ from __future__ import absolute_import
 import re
 
 
-class Block:
-    """Minecraft Blocks"""
+class Item:
+    """Minecraft Items"""
     
     def __init__(self, id, data=0, name='', nbt=None):
         self.id = id
@@ -29,13 +29,13 @@ class Block:
             h ^= hash(self.nbt)
 
     def withData(self, data):
-        return Block(self.id, data)
+        return Item(self.id, data)
                 
     def getName(self):
-       return self.name
+        return self.name
 
     def __iter__(self):
-        """Allows a Block to be sent whenever id [and data] is needed"""
+        """Allows a Item to be sent whenever id [and data] is needed"""
         if self.nbt is not None:
            return iter((self.id, self.data, self.nbt))
         else:
@@ -46,9 +46,10 @@ class Block:
 
     def __repr__(self):
         if self.nbt is None:
-            return self.getName()  # + " Block(%d, %d)"%(self.id, self.data)
+            return self.getName()  # + " Item(%d, %d)"%(self.id, self.data)
         else:
-            return self.getName()  # + " Block(%d, %d, %s)"%(self.id, self.data, repr(self.nbt))
+            return self.getName()  # + " Item(%d, %d, %s)"%(self.id, self.data, repr(self.nbt))
 
     def __str__(self):
         return self.getName()
+        

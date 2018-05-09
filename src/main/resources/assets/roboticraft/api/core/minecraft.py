@@ -5,7 +5,7 @@ import math
 import atexit
 from os import environ
 
-""" Minecraft PI low level api v0.1_1
+""" Minecraft api v0.1_2
 
     Note: many methods have the parameter *arg. This solution makes it
     simple to allow different types, and variable number of arguments.
@@ -15,11 +15,8 @@ from os import environ
     (Because of this, it's possible to "erase" arguments. CmdPlayer removes
      entityId, by injecting [] that flattens to nothing)
 
-    @author: Aron Nieminen, Mojang AB"""
-
-
-#def strFloor(*args):
-#    return [str(int(math.floor(x))) for x in flatten(args)]
+    @author: Aron Nieminen, Mojang AB
+    @author: Dom Amato"""
 
 def fixPipe(s):
     return s.replace('&#124;', '|').replace('&amp;','&')
