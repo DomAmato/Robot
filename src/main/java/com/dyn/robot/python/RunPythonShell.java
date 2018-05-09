@@ -13,16 +13,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.APIHandler;
 import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.utils.PathUtility;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
 
 public class RunPythonShell {
 
@@ -33,54 +28,9 @@ public class RunPythonShell {
 
 	private static String codeLine = "";
 
-	private static boolean isRobot = false;
 	private static int robotId = 0;
 
-	private static void globalMessage(String msg) {
-		if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-			Minecraft.getMinecraft().player.sendMessage(new TextComponentString(msg));
-		} else {
-			APIHandler.globalMessage(msg);
-		}
-	}
-
-	private static void gobble(final InputStream stream, final EntityPlayer entity, final String label) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				BufferedReader br;
-
-				br = new BufferedReader(new InputStreamReader(stream));
-
-				String line;
-				try {
-					while (null != (line = br.readLine())) {
-						line = line.replaceAll(Pattern.quote(">>>"), "");
-						line = line.replaceAll(Pattern.quote("..."), "");
-						line = line.trim();
-						if (!line.contains("copyright") && !line.contains("Python") && !line.isEmpty()) {
-							if (entity == null) {
-								RunPythonShell.globalMessage(label + line);
-							} else {
-								entity.sendMessage(new TextComponentString(label + line));
-							}
-						}
-					}
-				} catch (IOException e) {
-				}
-
-				try {
-					br.close();
-				} catch (IOException e) {
-				}
-			}
-		};
-		t.setDaemon(true);
-		t.start();
-	}
-
-	private static void gobbleError(final InputStream stream, final EntityPlayer entity, final String label) {
+	private static void createErrorListenerDaemon(final InputStream stream, final EntityPlayer entity) {
 		Thread t = new Thread() {
 
 			@Override
@@ -128,14 +78,9 @@ public class RunPythonShell {
 
 									RobotMod.logger.info(line);
 
-									if (!RunPythonShell.isRobot) {
-										MinecraftForge.EVENT_BUS.post(new CodeEvent.ErrorEvent(RunPythonShell.codeLine,
-												line, lineLoc, entity));
-									} else {
-										MinecraftForge.EVENT_BUS
-												.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine, line,
-														lineLoc, entity, RunPythonShell.robotId));
-									}
+									MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine,
+											line, lineLoc, entity, RunPythonShell.robotId));
+
 									RunPythonShell.lineNum = "";
 									RunPythonShell.codeLine = "";
 									// kill the script if it hasnt been already
@@ -173,14 +118,9 @@ public class RunPythonShell {
 
 	}
 
-	public static void run(List<String> program, EntityPlayer player) {
-		RunPythonShell.run(program, player, false, 0);
-	}
-
-	public static void run(List<String> program, EntityPlayer player, boolean isRobot, int robotId) {
+	public static void run(List<String> program, EntityPlayer player, int robotId) {
 		try {
 			RunPythonShell.robotId = robotId;
-			RunPythonShell.isRobot = isRobot;
 			String path = PathUtility.getPythonExecutablePath();
 			if (path.contains("/") || path.contains(System.getProperty("file.separator"))) {
 				RunPythonShell.scriptProcessorPath = new File(path).getAbsolutePath().toString();
@@ -211,8 +151,7 @@ public class RunPythonShell {
 				RobotMod.playerProcesses.put(player, RunPythonShell.runningScript);
 			}
 
-			RunPythonShell.gobble(RunPythonShell.runningScript.getInputStream(), player, "");
-			RunPythonShell.gobbleError(RunPythonShell.runningScript.getErrorStream(), player, "[ERR] ");
+			RunPythonShell.createErrorListenerDaemon(RunPythonShell.runningScript.getErrorStream(), player);
 
 			OutputStream in = RunPythonShell.runningScript.getOutputStream();
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(in));

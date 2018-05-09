@@ -7,11 +7,6 @@ import java.util.Scanner;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.network.CodeEvent;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-
 public class APIHandler {
 
 	static protected String getRest(Scanner scan) {
@@ -24,14 +19,6 @@ public class APIHandler {
 			out.append(scan.next());
 		}
 		return out.toString();
-	}
-
-	public static void globalMessage(String message) {
-		for (World w : FMLCommonHandler.instance().getMinecraftServerInstance().worlds) {
-			for (EntityPlayer p : w.playerEntities) {
-				p.sendMessage(new TextComponentString(message));
-			}
-		}
 	}
 
 	public APIHandler(PrintWriter writer) throws IOException {
