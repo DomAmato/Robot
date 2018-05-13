@@ -79,8 +79,6 @@ public class RobotAPI extends Python2MinecraftApi {
 	// Inventory
 	private static final String ROBOTCRAFT = "robot.craft";
 	private static final String ROBOTEQUIP = "robot.equip";
-	private static final String ROBOTDEPOSIT = "robot.deposit";
-	private static final String ROBOTTAKE = "robot.take";
 	private static final String ROBOTHAS = "robot.contains";
 
 	public static int robotId = 0;
@@ -817,7 +815,8 @@ public class RobotAPI extends Python2MinecraftApi {
 
 				inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
 
-				if (inventorySlot == ItemStack.EMPTY || !(robot.robot_inventory.isItemValidForSlot(2, inventorySlot))) {
+				if ((inventorySlot == ItemStack.EMPTY)
+						|| !(robot.robot_inventory.isItemValidForSlot(2, inventorySlot))) {
 					Python2MinecraftApi.fail("Cannot Equip passed in Item");
 				}
 				if (!robot.robot_inventory.containsItem(inventorySlot)) {
@@ -874,7 +873,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					Python2MinecraftApi.fail(inventorySlot.getDisplayName() + " is not craftable");
 					return;
 				}
-				
+
 				List<ItemStack> ingredients = new ArrayList();
 				List<Set<Item>> oreingredients = new ArrayList();
 				for (IRecipe recipe : RobotMod.recipeMap.get(new SimpleItemStack(inventorySlot))) {
@@ -884,14 +883,15 @@ public class RobotAPI extends Python2MinecraftApi {
 								boolean hasItem = false;
 								Set<Item> oreItems = new HashSet();
 								for (ItemStack stack : ingredient.getMatchingStacks()) {
-									//things like planks will return every variant which gives us a ton of extra ingredients
+									// things like planks will return every variant which gives us a ton of extra
+									// ingredients
 									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
-									if(robot.robot_inventory.containsItem(stack.getItem())) {
+									if (robot.robot_inventory.containsItem(stack.getItem())) {
 										oreItems.add(stack.getItem());
 										hasItem = true;
 									}
 								}
-								if(!hasItem) {
+								if (!hasItem) {
 									ingredients.clear();
 									oreingredients.clear();
 									break;
@@ -904,12 +904,12 @@ public class RobotAPI extends Python2MinecraftApi {
 								boolean hasItem = false;
 								for (ItemStack stack : ingredient.getMatchingStacks()) {
 									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
-									if(robot.robot_inventory.containsItem(stack)) {
+									if (robot.robot_inventory.containsItem(stack)) {
 										ingredients.add(stack);
 										hasItem = true;
 									}
 								}
-								if(!hasItem) {
+								if (!hasItem) {
 									ingredients.clear();
 									oreingredients.clear();
 									break;
@@ -917,22 +917,23 @@ public class RobotAPI extends Python2MinecraftApi {
 							}
 						}
 					}
-					if(!ingredients.isEmpty() || !oreingredients.isEmpty()) {
-						for(ItemStack ingredient : ingredients) {
+					if (!ingredients.isEmpty() || !oreingredients.isEmpty()) {
+						for (ItemStack ingredient : ingredients) {
 							robot.robot_inventory.removeItemFromInventory(ingredient, 1);
 						}
-						for(Set<Item> ingredient : oreingredients) {
-							for(Item i_item : ingredient) {
-								if(robot.robot_inventory.removeItemTypeFromInventory(i_item, 1)) {
+						for (Set<Item> ingredient : oreingredients) {
+							for (Item i_item : ingredient) {
+								if (robot.robot_inventory.removeItemTypeFromInventory(i_item, 1)) {
 									break;
 								}
 							}
 						}
-						
+
+						// sometimes the recipe outputs nothing?
 						robot.robot_inventory.addItemStackToInventory(recipe.getRecipeOutput());
-						
-						MinecraftForge.EVENT_BUS
-						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+
+						MinecraftForge.EVENT_BUS.post(
+								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 						return;
 					}
 				}
@@ -956,12 +957,13 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				short itemId = scan.nextShort();
 				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
-				
+
 				short amount = scan.nextShort();
 
 				ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
 
-				if (!robot.robot_inventory.containsItem(inventorySlot) || robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount) {
+				if (!robot.robot_inventory.containsItem(inventorySlot)
+						|| (robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount)) {
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("False", robot.getEntityId(), robot.getOwner()));
 				}

@@ -5,6 +5,28 @@ import net.minecraft.item.ItemStack;
 
 public class SimpleItemStack {
 	private Item item;
+	private int meta;
+
+	public SimpleItemStack(Item item, int meta) {
+		this.item = item;
+		this.meta = meta;
+	}
+
+	public SimpleItemStack(ItemStack stack) {
+		item = stack.getItem();
+		meta = stack.getMetadata();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof SimpleItemStack) {
+			return (item == ((SimpleItemStack) other).getItem()) && (meta == ((SimpleItemStack) other).getMeta());
+		} else if (other instanceof ItemStack) {
+			return (item == ((ItemStack) other).getItem()) && (meta == ((ItemStack) other).getMetadata());
+		}
+		return false;
+	}
+
 	public Item getItem() {
 		return item;
 	}
@@ -13,35 +35,12 @@ public class SimpleItemStack {
 		return meta;
 	}
 
-	private int meta;
-	
-	public SimpleItemStack(Item item, int meta) {
-		this.item = item;
-		this.meta = meta;
-	}
-	
-	public SimpleItemStack(ItemStack stack) {
-		this.item = stack.getItem();
-		this.meta = stack.getMetadata();
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((item == null) ? 0 : item.hashCode());
-		result = prime * result + meta;
+		result = (prime * result) + ((item == null) ? 0 : item.hashCode());
+		result = (prime * result) + meta;
 		return result;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if(other instanceof SimpleItemStack) {
-			return this.item == ((SimpleItemStack)other).getItem() && this.meta == ((SimpleItemStack)other).getMeta();
-		}
-		else if(other instanceof ItemStack) {
-			return this.item == ((ItemStack)other).getItem() && this.meta == ((ItemStack)other).getMetadata();
-		}
-		return false;
 	}
 }

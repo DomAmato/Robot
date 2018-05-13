@@ -5,12 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -55,7 +52,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -73,8 +69,6 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.oredict.OreIngredient;
-import scala.actors.threadpool.Arrays;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION)
 public class RobotMod {
@@ -323,13 +317,13 @@ public class RobotMod {
 		for (IRecipe recipe : CraftingManager.REGISTRY) {
 			if (recipe.getRecipeOutput() != ItemStack.EMPTY) {
 				SimpleItemStack result = new SimpleItemStack(recipe.getRecipeOutput());
-				if (recipeMap.containsKey(result)) {
+				if (RobotMod.recipeMap.containsKey(result)) {
 					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput());
-					recipeMap.get(result).add(recipe);
+					RobotMod.recipeMap.get(result).add(recipe);
 				} else {
 					List<IRecipe> tempList = new ArrayList();
 					tempList.add(recipe);
-					recipeMap.put(result, tempList);
+					RobotMod.recipeMap.put(result, tempList);
 				}
 			}
 		}

@@ -43,8 +43,8 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	public boolean shouldContinueExecuting() {
 		// run as long as commands exist in the buffer and keep running until
 		// the script is finished, if our watch dog fails timeout and fail
-		boolean doContinue = (watchDog > 0) && (robot.shouldExecuteCode()
-				|| (!robot.getProgramPath().isEmpty() && !robot.getNavigator().noPath()));
+		boolean doContinue = (watchDog > 0)
+				&& (robot.shouldExecuteCode() || (!robot.getProgramPath().isEmpty() && !robot.getNavigator().noPath()));
 		if (!doContinue) {
 			if (watchDog <= 0) {
 				MinecraftForge.EVENT_BUS
@@ -62,8 +62,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 					notifySuccess = false;
 					entityPath.clearPath();
-					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
-							prevDestination.getZ() + .5);
+					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
 					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 				} else {
 					MinecraftForge.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination",
@@ -71,8 +70,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					notifySuccess = false;
 					robot.stopExecutingCode();
 					robot.clearProgramPath();
-					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
-							prevDestination.getZ() + .5);
+					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
 					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 				}
 			}
@@ -134,7 +132,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					robot.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
 							(destination.getZ()) + 0.5D, speed);
 				}
-				if (prevDist - dist < 0.1) {
+				if ((prevDist - dist) < 0.1) {
 					prevDist = dist;
 				} else {
 					// the entity made no progress is it stuck?

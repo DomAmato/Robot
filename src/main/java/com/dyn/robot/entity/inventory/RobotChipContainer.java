@@ -10,10 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
@@ -105,6 +102,11 @@ public class RobotChipContainer extends Container {
 		for (int i1 = 0; i1 < 3; ++i1) {
 			for (int k1 = 0; k1 < 3; ++k1) {
 				addSlotToContainer(new Slot(robotInventory, slot++, 116 + (k1 * 18), 18 + (i1 * 18)) {
+					@Override
+					public int getSlotStackLimit() {
+						return 1;
+					}
+
 					/**
 					 * Check if the stack is a valid item for this slot. Always true beside for the
 					 * armor slots.
@@ -113,11 +115,6 @@ public class RobotChipContainer extends Container {
 					public boolean isItemValid(ItemStack stack) {
 						return super.isItemValid(stack) && (stack.getItem() == RobotMod.expChip)
 								&& !((RobotInventory) robotInventory).containsItem(stack) && !getHasStack();
-					}
-
-					@Override
-					public int getSlotStackLimit() {
-						return 1;
 					}
 
 				});
@@ -132,10 +129,6 @@ public class RobotChipContainer extends Container {
 						return super.isItemValid(stack) && !((stack.getItem() instanceof ItemExpansionChip)
 								|| (stack.getItem() instanceof ItemMemoryCard)
 								|| (stack.getItem() instanceof ItemMemoryStick)) && !getHasStack();
-//
-//						|| (stack.getItem() instanceof ItemSword) || (stack.getItem() instanceof ItemSpade)
-//						|| (stack.getItem() instanceof ItemPickaxe) || (stack.getItem() instanceof ItemAxe)
-//						|| (stack.getItem() instanceof ItemHoe)
 					}
 
 				});

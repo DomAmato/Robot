@@ -7,7 +7,6 @@ import com.dyn.robot.network.CodeEvent;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,8 +37,8 @@ public class EntityAIJumpToward extends EntityAIBase {
 				BlockPos prevLoc = robot.getProgramPath().iterator().next();
 				robot.getProgramPath().remove(prevLoc);
 			}
-			PathPoint[] landPoint = {new PathPoint(robot.getPosition().getX(), robot.getPosition().getY(),
-					robot.getPosition().getZ())};
+			PathPoint[] landPoint = {
+					new PathPoint(robot.getPosition().getX(), robot.getPosition().getY(), robot.getPosition().getZ()) };
 			robot.getNavigator().setPath(new Path(landPoint), 1.5D);
 			final float newYaw = MathHelper.wrapDegrees(robot.getProgrammedDirection().getHorizontalAngle());
 			robot.setPosition(robot.getPosition().getX() + .5, robot.getPosition().getY(),

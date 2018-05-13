@@ -60,6 +60,7 @@ public class RobotInventory extends InventoryBasic {
 
 	/**
 	 * This only checks the item not for specific variants
+	 * 
 	 * @param item
 	 * @return true if item exists in inventory
 	 */
@@ -197,7 +198,7 @@ public class RobotInventory extends InventoryBasic {
 		}
 		return amount <= 0;
 	}
-	
+
 	public boolean removeItemTypeFromInventory(Item item, int amount) {
 		for (int i = 0; i < getSizeInventory(); i++) {
 			ItemStack is2 = getStackInSlot(i);

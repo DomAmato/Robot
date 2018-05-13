@@ -252,8 +252,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				} else {
 					Block block = world.getBlockState(dest).getBlock();
 					Block blockdn = world.getBlockState(dest.down()).getBlock();
-					if (!blockdn.isPassable(world, dest)
-							&& block.isPassable(getEntityWorld(), dest)) {
+					if (!blockdn.isPassable(world, dest) && block.isPassable(getEntityWorld(), dest)) {
 						addToProgramPath(dest);
 					} else {
 						return false;
