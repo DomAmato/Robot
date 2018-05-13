@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.MinecraftForge;
 
 public class EntityAIExecuteProgrammedPath extends EntityAIBase {
-	private EntityRobot entity;
+	private EntityRobot robot;
 	private double speed;
 	private boolean notifySuccess = false;
 	private double prevDist = 0;
@@ -22,10 +22,10 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	private BlockPos destination = BlockPos.ORIGIN;
 	private BlockPos prevDestination = destination;
 
-	public EntityAIExecuteProgrammedPath(EntityRobot entity, double speed) {
-		this.entity = entity;
+	public EntityAIExecuteProgrammedPath(EntityRobot robot, double speed) {
+		this.robot = robot;
 		this.speed = speed;
-		entityPath = entity.getNavigator();
+		entityPath = robot.getNavigator();
 		setMutexBits(7);
 	}
 
@@ -43,36 +43,37 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	public boolean shouldContinueExecuting() {
 		// run as long as commands exist in the buffer and keep running until
 		// the script is finished, if our watch dog fails timeout and fail
-		boolean doContinue = (watchDog > 0) && (entity.shouldExecuteCode()
-				|| (!entity.getProgramPath().isEmpty() && !entity.getNavigator().noPath()));
+		boolean doContinue = (watchDog > 0) && (robot.shouldExecuteCode()
+				|| (!robot.getProgramPath().isEmpty() && !robot.getNavigator().noPath()));
 		if (!doContinue) {
 			if (watchDog <= 0) {
 				MinecraftForge.EVENT_BUS
-						.post(new CodeEvent.FailEvent("Watchdog timed out", entity.getEntityId(), entity.getOwner()));
+						.post(new CodeEvent.FailEvent("Watchdog timed out", robot.getEntityId(), robot.getOwner()));
 				notifySuccess = false;
-				entity.stopExecutingCode();
-				entity.clearProgramPath();
-				entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
-				entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
+				robot.stopExecutingCode();
+				robot.clearProgramPath();
+				robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(), prevDestination.getZ() + .5);
+				robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 			}
 			if (notifySuccess) {
-				if (entity.getPosition().equals(destination)) {
+				if (robot.getPosition().equals(destination)) {
+					RobotMod.logger.info("Notifying Success End");
 					MinecraftForge.EVENT_BUS
-							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
+							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 					notifySuccess = false;
 					entityPath.clearPath();
-					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
+					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
-					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
+					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 				} else {
 					MinecraftForge.EVENT_BUS.post(new CodeEvent.FailEvent("Failed to reach destination",
-							entity.getEntityId(), entity.getOwner()));
+							robot.getEntityId(), robot.getOwner()));
 					notifySuccess = false;
-					entity.stopExecutingCode();
-					entity.clearProgramPath();
-					entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
+					robot.stopExecutingCode();
+					robot.clearProgramPath();
+					robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 							prevDestination.getZ() + .5);
-					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
+					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 				}
 			}
 			RobotMod.logger.info("Stop AI Path Execution");
@@ -85,7 +86,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	 */
 	@Override
 	public boolean shouldExecute() {
-		return entity.shouldExecuteCode();
+		return robot.shouldExecuteCode();
 	}
 
 	/**
@@ -94,7 +95,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	@Override
 	public void startExecuting() {
 		RobotMod.logger.info("Start AI Path Execution");
-		prevDestination = destination = entity.getPosition();
+		prevDestination = destination = robot.getPosition();
 		watchDog = 30;
 	}
 
@@ -103,7 +104,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	 */
 	@Override
 	public void updateTask() {
-		if (!entity.isCodePaused()) {
+		if (!robot.isCodePaused()) {
 			if (!entityPath.noPath()) {
 				if (!destination.equals(new BlockPos(entityPath.getPath().getFinalPathPoint().x,
 						entityPath.getPath().getFinalPathPoint().y, entityPath.getPath().getFinalPathPoint().z))) {
@@ -111,29 +112,29 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 							entityPath.getPath().getFinalPathPoint().y, entityPath.getPath().getFinalPathPoint().z);
 				}
 			}
-			double dist = entity.getDistanceSqToCenter(destination);
+			double dist = robot.getDistanceSqToCenter(destination);
 			// double dist = getClampedDistance();
 			if (!entityPath.noPath() || (dist > .365D)) {
 				if (clampX) {
 					// moving in the Z or Y plane
-					entity.motionX = 0;
+					robot.motionX = 0;
 				}
 				if (clampZ) {
 					// moving in the X or Y plane
-					entity.motionZ = 0;
+					robot.motionZ = 0;
 				}
 				if (isVertical) {
-					entity.motionY = entity.posY < destination.getY() ? .3 : -.3;
+					robot.motionY = robot.posY < destination.getY() ? .3 : -.3;
 					if (!clampX || !clampZ) {
-						entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
+						robot.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
 								(destination.getZ()) + 0.5D, speed);
 					}
 				}
 				if (entityPath.noPath()) {
-					entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
+					robot.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY(),
 							(destination.getZ()) + 0.5D, speed);
 				}
-				if (prevDist != dist) {
+				if (prevDist - dist < 0.1) {
 					prevDist = dist;
 				} else {
 					// the entity made no progress is it stuck?
@@ -141,20 +142,20 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				}
 			} else {
 				// only update when execution is not paused
-				if (!entity.getProgramPath().isEmpty()) {
-					RobotMod.logger.debug("Executing next part of Program Path");
+				if (!robot.getProgramPath().isEmpty()) {
+					RobotMod.logger.info("Executing next part of Program Path");
 					clampX = clampZ = isVertical = false;
 					notifySuccess = true;
 					watchDog = 30;
 					prevDestination = destination;
 
-					destination = entity.getProgramPath().iterator().next();
-					entity.getProgramPath().remove(destination);
+					destination = robot.getProgramPath().iterator().next();
+					robot.getProgramPath().remove(destination);
 					// heres the problem... the ai isnt smart enough to climb
-					if (entity.getPosition().getX() == destination.getX()) {
+					if (robot.getPosition().getX() == destination.getX()) {
 						clampX = true;
 					}
-					if (entity.getPosition().getZ() == destination.getZ()) {
+					if (robot.getPosition().getZ() == destination.getZ()) {
 						clampZ = true;
 					}
 					if (clampX && clampZ) {
@@ -164,28 +165,28 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					if (!entityPath.tryMoveToXYZ((destination.getX()), (destination.getY()), (destination.getZ()),
 							speed)) {
 						RobotMod.logger.debug("Could not get path to: " + destination);
-						if (entity.getPosition().getY() != destination.getY()) {
-							entity.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY() + 0.5D,
+						if (robot.getPosition().getY() != destination.getY()) {
+							robot.getMoveHelper().setMoveTo((destination.getX()) + 0.5D, destination.getY() + 0.5D,
 									(destination.getZ()) + 0.5D, speed);
 							isVertical = true;
 						} else {
 							MinecraftForge.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
-									entity.getEntityId(), entity.getOwner()));
+									robot.getEntityId(), robot.getOwner()));
 							notifySuccess = false;
-							entity.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
+							robot.setPosition(prevDestination.getX() + .5, prevDestination.getY(),
 									prevDestination.getZ() + .5);
-							entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
+							robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 							RobotMod.logger.debug("Stopping Code from path");
-							entity.stopExecutingCode();
-							entity.clearProgramPath();
+							robot.stopExecutingCode();
+							robot.clearProgramPath();
 						}
 					}
 				} else if (notifySuccess) {
-					RobotMod.logger.debug("Notifying Success");
+					RobotMod.logger.info("Notifying Success");
 					// the program path is empty lets send a 1 time event
 					MinecraftForge.EVENT_BUS
-							.post(new CodeEvent.RobotSuccessEvent("Success", entity.getEntityId(), entity.getOwner()));
-					entity.rotate(entity.getProgrammedDirection().getHorizontalAngle());
+							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 
 					entityPath.clearPath();
 					notifySuccess = false;

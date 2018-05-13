@@ -137,6 +137,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void addToProgramPath(BlockPos pos) {
 		// block pos is integer based but we want to move to the center of the
 		// block
+		RobotMod.logger.info("Adding " + pos + " to Path");
 		programPath.add(pos);
 	}
 
@@ -184,17 +185,21 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		for (int i = 0; i < amount; i++) {
 			if (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
 				dest = dest.up();
-
-				if (!world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
-					dest = dest.offset(getProgrammedDirection());
+				while (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
+					addToProgramPath(dest);
+					dest = dest.up();
 				}
-				addToProgramPath(dest);
+				dest = dest.offset(getProgrammedDirection());
+				Block block = world.getBlockState(dest).getBlock();
+				Block blockdn = world.getBlockState(dest.down()).getBlock();
+				if (!blockdn.isPassable(world, dest) && block.isPassable(getEntityWorld(), dest)) {
+					addToProgramPath(dest);
+				}
 			} else {
 				dest = dest.up().offset(getProgrammedDirection());
 				Block block = world.getBlockState(dest).getBlock();
 				Block blockdn = world.getBlockState(dest.down()).getBlock();
-				if (blockdn.getMaterial(world.getBlockState(dest)).blocksMovement()
-						&& block.isPassable(getEntityWorld(), dest)) {
+				if (!blockdn.isPassable(world, dest) && block.isPassable(getEntityWorld(), dest)) {
 					addToProgramPath(dest);
 				} else {
 					return false;
@@ -230,16 +235,24 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 		for (int i = 0; i < amount; i++) {
 			if (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
-				dest = dest.down();
-				addToProgramPath(dest);
+				while (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
+					// this will get the position at the bottom of the ladder
+					dest = dest.down();
+					addToProgramPath(dest);
+				}
 			} else {
 				dest = dest.down().offset(getProgrammedDirection());
 				if (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest, this)) {
-					addToProgramPath(dest);
+					while (world.getBlockState(dest).getBlock().isLadder(world.getBlockState(dest), world, dest,
+							this)) {
+						// this will get the position at the bottom of the ladder
+						dest = dest.down();
+						addToProgramPath(dest);
+					}
 				} else {
 					Block block = world.getBlockState(dest).getBlock();
 					Block blockdn = world.getBlockState(dest.down()).getBlock();
-					if (blockdn.getMaterial(world.getBlockState(dest)).blocksMovement()
+					if (!blockdn.isPassable(world, dest)
 							&& block.isPassable(getEntityWorld(), dest)) {
 						addToProgramPath(dest);
 					} else {
@@ -439,6 +452,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void InsertToProgramPath(int loc, BlockPos pos) {
 		// block pos is integer based but we want to move to the center of the
 		// block
+		RobotMod.logger.info("Inserting " + pos + " to Path");
 		programPath.add(loc, pos);
 	}
 
