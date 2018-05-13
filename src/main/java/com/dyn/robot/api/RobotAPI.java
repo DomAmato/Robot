@@ -1,7 +1,10 @@
 package com.dyn.robot.api;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +15,7 @@ import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.RobotSpeakMessage;
 import com.dyn.robot.utils.EnchantmentUtils;
+import com.dyn.robot.utils.SimpleItemStack;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -28,8 +32,11 @@ import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -38,6 +45,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.oredict.OreIngredient;
 
 public class RobotAPI extends Python2MinecraftApi {
 
@@ -67,6 +75,13 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTATTACK = "robot.attack";
 	private static final String ROBOTUSEITEM = "robot.useItem";
 	private static final String ROBOTUSETOOL = "robot.useTool";
+
+	// Inventory
+	private static final String ROBOTCRAFT = "robot.craft";
+	private static final String ROBOTEQUIP = "robot.equip";
+	private static final String ROBOTDEPOSIT = "robot.deposit";
+	private static final String ROBOTTAKE = "robot.take";
+	private static final String ROBOTHAS = "robot.contains";
 
 	public static int robotId = 0;
 
@@ -193,9 +208,9 @@ public class RobotAPI extends Python2MinecraftApi {
 							Python2MinecraftApi.fail("Block not Found in Inventory");
 							return;
 						}
-						for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-							if ((robot.robot_inventory.getStackInSlot(i) != null)
-									&& (robot.robot_inventory.getStackInSlot(i) == inventorySlot)) {
+						for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
+							if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY) && (robot.robot_inventory
+									.getStackInSlot(i).isItemEqualIgnoreDurability(inventorySlot))) {
 								slot = i;
 								break;
 							}
@@ -203,9 +218,10 @@ public class RobotAPI extends Python2MinecraftApi {
 
 					} else {
 						if (!robot.robot_inventory.isInventoryEmpty()) {
-							for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-								if ((robot.robot_inventory.getStackInSlot(i) != null) && ((Block
-										.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
+							for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
+								if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY) && ((Block
+										.getBlockFromItem(
+												robot.robot_inventory.getStackInSlot(i).getItem()) != Blocks.AIR)
 										|| (robot.robot_inventory.getStackInSlot(i)
 												.getItem() instanceof ItemBlockSpecial)
 										|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemDoor))) {
@@ -296,7 +312,7 @@ public class RobotAPI extends Python2MinecraftApi {
 
 				// blocks with hardness less than 0 are unbreakable
 				if ((robot.world.getBlockState(breakBlock).getBlock() != Blocks.AIR)
-						&& (robot.world.getBlockState(breakBlock).getBlock().getBlockHardness(null, null, null) >= 0)) {
+						&& (robot.world.getBlockState(breakBlock).getBlockHardness(robot.world, breakBlock) >= 0)) {
 					if (robot.getPosition().down().equals(breakBlock)) {
 						// we are mining straight down so update the robots position since it will fall
 						// at least one space
@@ -370,8 +386,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				if (robot.world.getBlockState(interactBlock).getBlock() != Blocks.AIR) {
 					robot.swingArm(robot.getActiveHand());
 					ItemStack inventorySlot = null;
-					for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-						if ((robot.robot_inventory.getStackInSlot(i) != null)
+					for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
+						if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY)
 								&& ((Block.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
 										|| (robot.robot_inventory.getStackInSlot(i)
 												.getItem() instanceof ItemBlockSpecial)
@@ -691,41 +707,23 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				ItemStack inventorySlot = null;
 				int slot = 0;
-				if (scan.nextBoolean()) {
-					short blockId = scan.nextShort();
-					short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+				short blockId = scan.nextShort();
+				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
-					inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
+				inventorySlot = new ItemStack(Item.getItemById(blockId), 1, meta);
 
-					if (!robot.robot_inventory.containsItem(inventorySlot)) {
-						Python2MinecraftApi.fail("Item not found in Inventory");
-						return;
-					}
-					for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-						if ((robot.robot_inventory.getStackInSlot(i) != null)
-								&& (robot.robot_inventory.getStackInSlot(i) == inventorySlot)) {
-							slot = i;
-							break;
-						}
-					}
-
-				} else {
-					if (!robot.robot_inventory.isInventoryEmpty()) {
-						for (int i = 12; i < robot.robot_inventory.getSizeInventory(); i++) {
-							if ((robot.robot_inventory.getStackInSlot(i) != null) && ((Block
-									.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
-									|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemBlockSpecial)
-									|| (robot.robot_inventory.getStackInSlot(i).getItem() instanceof ItemDoor))) {
-								inventorySlot = robot.robot_inventory.getStackInSlot(i);
-								slot = i;
-								break;
-							}
-						}
-					} else {
-						Python2MinecraftApi.fail("No Items in Inventory");
-						return;
+				if (!robot.robot_inventory.containsItem(inventorySlot)) {
+					Python2MinecraftApi.fail("Item not found in Inventory");
+					return;
+				}
+				for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
+					if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY)
+							&& (robot.robot_inventory.getStackInSlot(i).isItemEqualIgnoreDurability(inventorySlot))) {
+						slot = i;
+						break;
 					}
 				}
+
 				robot.swingArm(robot.getActiveHand());
 
 				FakePlayer fakeplayer = FakePlayerFactory
@@ -797,6 +795,179 @@ public class RobotAPI extends Python2MinecraftApi {
 						0, 0, 0);
 				MinecraftForge.EVENT_BUS
 						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+			}
+		});
+		APIRegistry.registerCommand(RobotAPI.ROBOTEQUIP, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Equipping Item", id), player);
+					}
+				}
+				ItemStack inventorySlot = null;
+				short itemId = scan.nextShort();
+				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+
+				inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+
+				if (inventorySlot == ItemStack.EMPTY || !(robot.robot_inventory.isItemValidForSlot(2, inventorySlot))) {
+					Python2MinecraftApi.fail("Cannot Equip passed in Item");
+				}
+				if (!robot.robot_inventory.containsItem(inventorySlot)) {
+					Python2MinecraftApi.fail("Item not found in Inventory");
+					return;
+				}
+				int slot = 0;
+				for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
+					if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY)
+							&& (robot.robot_inventory.getStackInSlot(i).isItemEqualIgnoreDurability(inventorySlot))) {
+						slot = i;
+						break;
+					}
+				}
+
+				ItemStack equippingItem = robot.robot_inventory.removeStackFromSlot(slot);
+				ItemStack equippedItem = robot.robot_inventory.removeStackFromSlot(2);
+
+				robot.robot_inventory.setInventorySlotContents(2, equippingItem);
+				robot.robot_inventory.setInventorySlotContents(slot, equippedItem);
+
+				robot.setHeldItem(EnumHand.MAIN_HAND, equippingItem);
+
+				MinecraftForge.EVENT_BUS
+						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+			}
+		});
+
+		APIRegistry.registerCommand(RobotAPI.ROBOTCRAFT, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Crafting Item", id), player);
+					}
+				}
+				short itemId = scan.nextShort();
+				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+
+				ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+
+				if (inventorySlot == ItemStack.EMPTY) {
+					Python2MinecraftApi.fail("Item is not valid");
+					return;
+				}
+
+				if (!RobotMod.recipeMap.containsKey(new SimpleItemStack(inventorySlot))) {
+					Python2MinecraftApi.fail(inventorySlot.getDisplayName() + " is not craftable");
+					return;
+				}
+				
+				List<ItemStack> ingredients = new ArrayList();
+				List<Set<Item>> oreingredients = new ArrayList();
+				for (IRecipe recipe : RobotMod.recipeMap.get(new SimpleItemStack(inventorySlot))) {
+					for (Ingredient ingredient : recipe.getIngredients()) {
+						if (ingredient instanceof OreIngredient) {
+							if (ingredient != Ingredient.EMPTY) {
+								boolean hasItem = false;
+								Set<Item> oreItems = new HashSet();
+								for (ItemStack stack : ingredient.getMatchingStacks()) {
+									//things like planks will return every variant which gives us a ton of extra ingredients
+									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
+									if(robot.robot_inventory.containsItem(stack.getItem())) {
+										oreItems.add(stack.getItem());
+										hasItem = true;
+									}
+								}
+								if(!hasItem) {
+									ingredients.clear();
+									oreingredients.clear();
+									break;
+								} else {
+									oreingredients.add(oreItems);
+								}
+							}
+						} else {
+							if (ingredient != Ingredient.EMPTY) {
+								boolean hasItem = false;
+								for (ItemStack stack : ingredient.getMatchingStacks()) {
+									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
+									if(robot.robot_inventory.containsItem(stack)) {
+										ingredients.add(stack);
+										hasItem = true;
+									}
+								}
+								if(!hasItem) {
+									ingredients.clear();
+									oreingredients.clear();
+									break;
+								}
+							}
+						}
+					}
+					if(!ingredients.isEmpty() || !oreingredients.isEmpty()) {
+						for(ItemStack ingredient : ingredients) {
+							robot.robot_inventory.removeItemFromInventory(ingredient, 1);
+						}
+						for(Set<Item> ingredient : oreingredients) {
+							for(Item i_item : ingredient) {
+								if(robot.robot_inventory.removeItemTypeFromInventory(i_item, 1)) {
+									break;
+								}
+							}
+						}
+						
+						robot.robot_inventory.addItemStackToInventory(recipe.getRecipeOutput());
+						
+						MinecraftForge.EVENT_BUS
+						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						return;
+					}
+				}
+				Python2MinecraftApi.fail("Cannot Craft, missing required items in inventory");
+			}
+		});
+
+		APIRegistry.registerCommand(RobotAPI.ROBOTHAS, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) RobotMod.robotid2player.get(id);
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Checking Inventory", id), player);
+					}
+				}
+				short itemId = scan.nextShort();
+				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
+				
+				short amount = scan.nextShort();
+
+				ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+
+				if (!robot.robot_inventory.containsItem(inventorySlot) || robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount) {
+					MinecraftForge.EVENT_BUS
+							.post(new CodeEvent.RobotSuccessEvent("False", robot.getEntityId(), robot.getOwner()));
+				}
+
+				MinecraftForge.EVENT_BUS
+						.post(new CodeEvent.RobotSuccessEvent("True", robot.getEntityId(), robot.getOwner()));
 			}
 		});
 	}

@@ -5,9 +5,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -42,12 +45,17 @@ import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.dyn.robot.utils.PathUtility;
+import com.dyn.robot.utils.SimpleItemStack;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -65,6 +73,8 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.oredict.OreIngredient;
+import scala.actors.threadpool.Arrays;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION)
 public class RobotMod {
@@ -110,7 +120,7 @@ public class RobotMod {
 	public static String pythonEmbeddedLocation = "emb-python";
 	public static boolean integrated = true;
 	public static volatile boolean apiActive = false;
-	public static String apiLocation = "robot/api";
+	public static String apiLocation = "roboticraft/api";
 
 	// websocket stuff
 	public static int portNumber = 4711;
@@ -122,8 +132,10 @@ public class RobotMod {
 	// player scripts so admins/mods can destroy running scripts
 	public static Map<EntityPlayer, Process> playerProcesses = Maps.newHashMap();
 
+	// an easier way to index recipes
+	public static Map<SimpleItemStack, List<IRecipe>> recipeMap = Maps.newHashMap();
+
 	public static Logger logger;
-	public static boolean globalChatMessages;
 
 	private static List<APIHandler> apiHandlers = new ArrayList<>();
 
@@ -165,8 +177,6 @@ public class RobotMod {
 				"Relative to .minecraft folder or server jar, only works on Windows");
 		RobotMod.pythonInterpreter = RobotMod.configFile.getString("Python Interpreter", Configuration.CATEGORY_GENERAL,
 				"python", "Python interpreter");
-		RobotMod.globalChatMessages = RobotMod.configFile.getBoolean("Messages Go To All",
-				Configuration.CATEGORY_GENERAL, true, "Messages go to all");
 		RobotMod.apiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
 				Configuration.CATEGORY_GENERAL, "roboticraft/api", "Relative to .minecraft folder or server jar");
 
@@ -234,6 +244,7 @@ public class RobotMod {
 
 		RobotAPI.registerCommands();
 		MinecraftForge.EVENT_BUS.register(this);
+
 		try {
 			RobotMod.currentPortNumber = -1;
 			fullAPIServer = new APIServer(RobotMod.portNumber, RobotMod.searchForPort ? 65535 : RobotMod.portNumber,
@@ -309,7 +320,19 @@ public class RobotMod {
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-
+		for (IRecipe recipe : CraftingManager.REGISTRY) {
+			if (recipe.getRecipeOutput() != ItemStack.EMPTY) {
+				SimpleItemStack result = new SimpleItemStack(recipe.getRecipeOutput());
+				if (recipeMap.containsKey(result)) {
+					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput());
+					recipeMap.get(result).add(recipe);
+				} else {
+					List<IRecipe> tempList = new ArrayList();
+					tempList.add(recipe);
+					recipeMap.put(result, tempList);
+				}
+			}
+		}
 	}
 
 	@Mod.EventHandler

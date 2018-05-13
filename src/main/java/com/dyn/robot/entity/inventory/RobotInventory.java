@@ -3,6 +3,7 @@ package com.dyn.robot.entity.inventory;
 import com.dyn.robot.entity.EntityRobot;
 
 import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public class RobotInventory extends InventoryBasic {
@@ -52,6 +53,23 @@ public class RobotInventory extends InventoryBasic {
 			}
 			if (addAmount <= 0) {
 				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * This only checks the item not for specific variants
+	 * @param item
+	 * @return true if item exists in inventory
+	 */
+	public boolean containsItem(Item item) {
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (!is2.isEmpty()) {
+				if (is2.getItem() == item) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -170,6 +188,21 @@ public class RobotInventory extends InventoryBasic {
 			ItemStack is2 = getStackInSlot(i);
 			if (!is2.isEmpty()) {
 				if (is2.getItem() == is.getItem()) {
+					amount -= decrStackSize(i, amount).getCount();
+					if (amount <= 0) {
+						break;
+					}
+				}
+			}
+		}
+		return amount <= 0;
+	}
+	
+	public boolean removeItemTypeFromInventory(Item item, int amount) {
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (!is2.isEmpty()) {
+				if (is2.getItem() == item) {
 					amount -= decrStackSize(i, amount).getCount();
 					if (amount <= 0) {
 						break;

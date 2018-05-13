@@ -45,13 +45,12 @@ class Robot:
         """Compass turn of robot (turn:float/int) in degrees: 0=south, 90=west, 180=north, 270=west"""
         if type(angle) is int:
             self.mc.conn.send("robot.turn", self.robotId, angle)
-            self.delay()
+            self.delay(self.delayTime)
         else:
             raise TypeError(str(angle) + " is not a valid input")
 
-    def delay(self):
-        if self.delayTime > 0:
-            time.sleep(self.delayTime)
+    def delay(self, s_time):
+        time.sleep(s_time)
 
     def detect(self):
         """Detect entities within a range of the robot"""
@@ -91,12 +90,13 @@ class Robot:
                 self.mc.conn.send("robot.face", self.robotId, facing.fromName(dir).id)
         else:
             raise TypeError(str(dir) + " is not a valid input")
-        self.delay()
+        self.delay(self.delayTime)
 
     def forward(self, distance=1):
         """Move robot forward (distance: float)"""
         if type(distance) is int:
             self.mc.conn.sendReceive("robot.forward", self.robotId, distance)
+            self.delay(self.delayTime)
         else:
             raise TypeError(str(distance) + " is not a valid input")
 
@@ -104,6 +104,7 @@ class Robot:
         """Move robot climb (distance: float)"""
         if type(distance) is int:
             self.mc.conn.sendReceive("robot.climb", self.robotId, distance)
+            self.delay(self.delayTime)
         else:
             raise TypeError(str(distance) + " is not a valid input")
 
@@ -111,6 +112,7 @@ class Robot:
         """Move robot climb (distance: float)"""
         if type(distance) is int:
             self.mc.conn.sendReceive("robot.descend", self.robotId, distance)
+            self.delay(self.delayTime)
         else:
             raise TypeError(str(distance) + " is not a valid input")
 
@@ -131,7 +133,7 @@ class Robot:
         else:
             args.append(False)
         self.mc.conn.sendReceive_flat("robot.place", floorFlatten(args))
-        self.delay()
+        self.delay(self.delayTime)
 
     def mine(self, *args):
         """Breaks block in front of robot, else within 1x1x1 range of robot (x,y,z)"""
@@ -145,21 +147,24 @@ class Robot:
             self.mc.conn.sendReceive_flat("robot.break", floorFlatten(newArgs))
         else:
             self.mc.conn.sendReceive("robot.break", self.robotId)
-        self.delay()
+        self.delay(self.delayTime)
 
     def backward(self, distance=1):
         """Move robot backwards, will change heading"""
         if type(distance) is int:
             self.mc.conn.sendReceive("robot.backward", self.robotId, distance)
+            self.delay(self.delayTime)
+        else:
+            raise TypeError(str(distance) + " is not a valid input")
 
     def say(self, phrase):
         """Have the robot speak"""
         self.mc.conn.send("robot.say", self.robotId, phrase.__str__())
-        self.delay()
 
     def jump(self):
         """Make robot jump"""
         self.mc.conn.sendReceive("robot.jump", self.robotId)
+        self.delay(self.delayTime)
 
     def interact(self, *args):
         """Have the robot interact with the environment"""
@@ -173,14 +178,14 @@ class Robot:
             self.mc.conn.sendReceive_flat("robot.interact", floorFlatten(newArgs))
         else:
             self.mc.conn.send("robot.interact", self.robotId)
-        self.delay()
+        self.delay(self.delayTime)
 
     def useTool(self):
         """Use the currently equipped tool, for vanilla it uses the hoe"""
         self.mc.conn.sendReceive("robot.useTool", self.robotId)
-        self.delay()
+        self.delay(.2)
 
-    def useItem(self, item = _item.Item(0,0), location = Vec3(0,0,0)):
+    def useItem(self, item, location = Vec3(0,0,0)):
         """Use an item from the robots inventory"""
         args = [int(self.robotId)]
         if not location.lengthSqr() == 0:
@@ -190,14 +195,35 @@ class Robot:
             args.append(location.z)
         else:
             args.append(False)
-        if not item == _item.Item(0,0):
-            args.append(True)
-            args.append(item.id)
-            args.append(item.data)
-        else:
-            args.append(False)
+        args.append(item.id)
+        args.append(item.data)
         self.mc.conn.sendReceive_flat("robot.useItem", floorFlatten(args))
-        self.delay()
+        self.delay(.2)
+
+    def equip(self, item):
+        """Use an item from the robots inventory"""
+        args = [int(self.robotId)]
+        args.append(item.id)
+        args.append(item.data)
+        self.mc.conn.sendReceive_flat("robot.equip", floorFlatten(args))
+        self.delay(self.delayTime)
+
+    def has(self, item, amount = 1):
+        """Use an item from the robots inventory"""
+        args = [int(self.robotId)]
+        args.append(item.id)
+        args.append(item.data)
+        args.append(amount)
+        retval = self.mc.conn.sendReceive_flat("robot.contains", floorFlatten(args)).split(',')[1]
+        return self.__to_bool(retval)
+
+    def craft(self, item):
+        """Use an item from the robots inventory"""
+        args = [int(self.robotId)]
+        args.append(item.id)
+        args.append(item.data)
+        self.mc.conn.sendReceive_flat("robot.craft", floorFlatten(args))
+        self.delay(self.delayTime)
 
     def getDirection(self):
         """Get entity direction (entityId:int) => Vec3"""
@@ -213,3 +239,7 @@ class Robot:
         """Get entity direction (entityId:int) => Vec3"""
         s = self.mc.conn.sendReceive("robot.getRotation", self.robotId)
         return float(s)
+
+    def __to_bool(self, val):
+        self.mc.conn.send("robot.say", self.robotId, "Got val " + val)
+        return val.lower() in ("yes", "true", "t", "1")
