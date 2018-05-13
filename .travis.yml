@@ -18,9 +18,6 @@ install:
 # Tell Travis to build the project.
 script:
   - ./gradlew build -S
-  
-notifications:
-  slack: dynminecraft:S9ZN1GrxrmZ7lLfZiaxCGYEH
 
 # So the cache doesn't get repacked every time.
 before_cache:
