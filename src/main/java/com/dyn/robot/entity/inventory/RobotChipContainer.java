@@ -115,6 +115,11 @@ public class RobotChipContainer extends Container {
 								&& !((RobotInventory) robotInventory).containsItem(stack) && !getHasStack();
 					}
 
+					@Override
+					public int getSlotStackLimit() {
+						return 1;
+					}
+
 				});
 			}
 		}
@@ -126,10 +131,11 @@ public class RobotChipContainer extends Container {
 					public boolean isItemValid(ItemStack stack) {
 						return super.isItemValid(stack) && !((stack.getItem() instanceof ItemExpansionChip)
 								|| (stack.getItem() instanceof ItemMemoryCard)
-								|| (stack.getItem() instanceof ItemMemoryStick)
-								|| (stack.getItem() instanceof ItemSword) || (stack.getItem() instanceof ItemSpade)
-								|| (stack.getItem() instanceof ItemPickaxe) || (stack.getItem() instanceof ItemAxe)
-								|| (stack.getItem() instanceof ItemHoe)) && !getHasStack();
+								|| (stack.getItem() instanceof ItemMemoryStick)) && !getHasStack();
+//
+//						|| (stack.getItem() instanceof ItemSword) || (stack.getItem() instanceof ItemSpade)
+//						|| (stack.getItem() instanceof ItemPickaxe) || (stack.getItem() instanceof ItemAxe)
+//						|| (stack.getItem() instanceof ItemHoe)
 					}
 
 				});
@@ -150,7 +156,7 @@ public class RobotChipContainer extends Container {
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
 		return robotInventory.isUsableByPlayer(playerIn) && robot.isEntityAlive()
-				&& (robot.getDistanceSq(playerIn) < 8.0F);
+				&& (robot.getDistanceSq(playerIn) < 16.0F);
 	}
 
 	/**

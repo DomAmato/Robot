@@ -20,7 +20,7 @@ public class ItemExpansionChip extends Item {
 	public ItemExpansionChip() {
 		super();
 		setHasSubtypes(true);
-		setMaxStackSize(1);
+		setMaxStackSize(16);
 		setUnlocalizedName("expansion_chip");
 		setRegistryName(Reference.MOD_ID, "expansion_chip");
 		setCreativeTab(RobotMod.roboTab);
