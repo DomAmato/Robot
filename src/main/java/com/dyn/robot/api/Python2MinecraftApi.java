@@ -31,15 +31,7 @@ public class Python2MinecraftApi {
 
 	protected static PrintWriter writer = null;
 
-	protected static boolean includeNBTWithData = false;
-
-	protected static void chat(String msg) {
-		if (!RobotMod.integrated || (RobotMod.globalChatMessages)) {
-			Python2MinecraftApi.globalMessage(msg);
-		} else {
-			Python2MinecraftApi.mc.player.sendMessage(new TextComponentString(msg));
-		}
-	}
+	protected static boolean includeNBTWithData = false; 
 
 	protected static void entitySetDirection(Entity e, double x, double y, double z) {
 		double xz = Math.sqrt((x * x) + (z * z));

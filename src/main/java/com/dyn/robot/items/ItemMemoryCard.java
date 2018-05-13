@@ -101,7 +101,7 @@ public class ItemMemoryCard extends Item {
 
 						items.add(is);
 					} catch (IOException e) {
-						RobotMod.logger.error("Filed parsing contents of python file", e);
+						RobotMod.logger.error("Failed parsing contents of python file", e);
 					}
 				}
 			}

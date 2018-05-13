@@ -11,7 +11,7 @@ import net.minecraftforge.fml.relauncher.Side;
 public class PathUtility {
 	private static String extraPath() {
 		if (PathUtility.isWindows()) {
-			return "\\python27\\;python27\\";
+			return "\\python36\\;python36\\";
 		} else {
 			return "";
 		}

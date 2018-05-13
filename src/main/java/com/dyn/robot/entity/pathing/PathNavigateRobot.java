@@ -74,7 +74,6 @@ public class PathNavigateRobot extends PathNavigateGround {
 		for (BlockPos key : airBlocks.keySet()) {
 			if (super.getPathToPos(key) != null) {
 				if (closest > airBlocks.get(key)) {
-					System.out.println(key + ", " + airBlocks.get(key));
 					retPos = key;
 					closest = airBlocks.get(key);
 				}
