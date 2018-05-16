@@ -241,5 +241,4 @@ class Robot:
         return float(s)
 
     def __to_bool(self, val):
-        self.mc.conn.send("robot.say", self.robotId, "Got val " + val)
         return val.lower() in ("yes", "true", "t", "1")
