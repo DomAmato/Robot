@@ -257,8 +257,6 @@ public class FileUtils {
 			zis.closeEntry();
 			zis.close();
 
-			RobotMod.logger.info("Done Unzipping File");
-
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}

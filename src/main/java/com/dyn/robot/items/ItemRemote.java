@@ -76,7 +76,6 @@ public class ItemRemote extends Item {
 		if (worldIn.isRemote) {
 			if ((RobotMod.currentRobots.size() == 1) && !RobotMod.currentRobots.get(0).isDead
 					&& (playerIn.getPosition().distanceSq(RobotMod.currentRobots.get(0).getPosition()) < (64 * 64))) {
-				RobotMod.logger.info("Opening current robot window");
 				NetworkManager.sendToServer(new MessageOpenRobotInventory(RobotMod.currentRobots.get(0).getEntityId()));
 			} else {
 				RobotMod.proxy.openRemoteGui();

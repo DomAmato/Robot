@@ -76,8 +76,6 @@ public class RunPythonShell {
 									// server side and translated to client
 									line = line.substring(line.lastIndexOf(".") + 1);
 
-									RobotMod.logger.info(line);
-
 									MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine,
 											line, lineLoc, entity, RunPythonShell.robotId));
 
@@ -184,7 +182,7 @@ public class RunPythonShell {
 			writer.newLine();
 			writer.flush();
 		} catch (IOException e) {
-			RobotMod.logger.info(e);
+			RobotMod.logger.error(e);
 			MinecraftForge.EVENT_BUS
 					.post(new CodeEvent.RobotErrorEvent(RunPythonShell.codeLine, e.getMessage(), 0, player, robotId));
 		}
