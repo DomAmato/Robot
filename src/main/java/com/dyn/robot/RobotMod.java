@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -205,16 +208,22 @@ public class RobotMod {
 		}
 	}
 
-	private File getJarFile(String dir) {
+	private File getJarFile(File dir) {
 		String path = RobotMod.class.getResource("/assets/roboticraft").getPath();
 
-		dir = dir.replace("\\", "/");
-		if (dir.endsWith(".")) {
-			dir = dir.substring(0, dir.length() - 1);
+		try {
+			path = path.substring(path.indexOf(dir.toURI().toURL().getPath()));
+		} catch (MalformedURLException e) {
+			RobotMod.logger.error("Problem getting path to jar file", e);
 		}
 
-		path = path.substring(path.indexOf(dir));
 		path = path.substring(0, path.lastIndexOf('!'));
+
+		try {
+			path = URLDecoder.decode(path, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			RobotMod.logger.error("Problem decoding path", e);
+		}
 
 		return new File(path);
 	}
@@ -385,9 +394,8 @@ public class RobotMod {
 		if (!(boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
 			try {
 				JarFile roboMod = new JarFile(getJarFile(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT
-						? net.minecraft.client.Minecraft.getMinecraft().mcDataDir.getAbsolutePath()
-						: FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory()
-								.getAbsolutePath()));
+						? net.minecraft.client.Minecraft.getMinecraft().mcDataDir
+						: FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory()));
 				Enumeration<JarEntry> resources = roboMod.entries();
 				while (resources.hasMoreElements()) {
 					JarEntry entry = resources.nextElement();
