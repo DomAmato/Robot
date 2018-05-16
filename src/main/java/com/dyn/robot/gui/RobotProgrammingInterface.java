@@ -346,6 +346,7 @@ public class RobotProgrammingInterface extends Show {
 							} else {
 								btn.setIsEnabled(false);
 								codeWindow.clearError();
+								showError = false;
 								errorPanel.setVisible(false);
 
 								NetworkManager
@@ -365,7 +366,7 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(errorPanel = new Panel(0, (int) (mainPanel.getHeight() * .8), mainPanel.getWidth(),
-				(int) (mainPanel.getHeight() * .2)).setVisible(showError).setCanDrag(true));
+				(int) (mainPanel.getHeight() * .2)).setVisible(showError).setCanDrag(true).setFocused(showError));
 
 		errorPanel.registerComponent(
 				new Picture(0, 0, (errorPanel.getWidth()), (errorPanel.getHeight()), DefaultTextures.BACKGROUND2));
@@ -408,6 +409,8 @@ public class RobotProgrammingInterface extends Show {
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 5))) {
 			robotMembers.add("interact()");
+			robotMembers.add("useItem()");
+			robotMembers.add("useTool()");
 		}
 		if (robot.robot_inventory.containsItem(new ItemStack(RobotMod.expChip, 1, 6))) {
 			robotMembers.add("detect()");
