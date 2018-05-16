@@ -1,6 +1,7 @@
 package com.dyn.robot.entity.inventory;
 
-import com.dyn.robot.entity.EntityRobot;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.Item;
@@ -8,46 +9,65 @@ import net.minecraft.item.ItemStack;
 
 public class RobotInventory extends InventoryBasic {
 
-	public RobotInventory(String name, int slots, EntityRobot robot) {
+	public RobotInventory(String name, int slots) {
 		super(name, true, slots);
 	}
 
 	public ItemStack addItemStackToInventory(ItemStack is) {
-		if ((is == null) || (is.isEmpty())) {
-			return null;
+		if ((is == ItemStack.EMPTY) || (is.isEmpty())) {
+			return ItemStack.EMPTY;
 		}
 
-		for (int a = 14; a < getSizeInventory(); a++) {
-			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
-				setInventorySlotContents(a, is);
-				return null;
-			}
-			ItemStack is2 = getStackInSlot(a);
-			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
-				int amount = Math.min(is.getCount(), is2.getMaxStackSize() - is2.getCount());
-				is.shrink(amount);
-				is2.grow(amount);
-				setInventorySlotContents(a, is2);
-			}
-			if (is.isEmpty()) {
-				return null;
+		ItemStack itemstack = is.copy();
+
+		if (containsItem(itemstack)) {
+			for (int i = 14; i < getSizeInventory(); ++i) {
+				ItemStack itemstack1 = getStackInSlot(i);
+
+				if (ItemStack.areItemsEqual(itemstack1, itemstack)) {
+					int j = Math.min(getInventoryStackLimit(), itemstack1.getMaxStackSize());
+					int k = Math.min(itemstack.getCount(), j - itemstack1.getCount());
+
+					if (k > 0) {
+						itemstack1.grow(k);
+						itemstack.shrink(k);
+
+						if (itemstack.isEmpty()) {
+							markDirty();
+							return ItemStack.EMPTY;
+						}
+					}
+				}
 			}
 		}
-		return is;
+
+		for (int i = 14; i < getSizeInventory(); i++) {
+			if ((getStackInSlot(i) == ItemStack.EMPTY) || (getStackInSlot(i).isEmpty())) {
+				setInventorySlotContents(i, itemstack);
+				markDirty();
+				return ItemStack.EMPTY;
+			}
+		}
+
+		if (itemstack.getCount() != is.getCount()) {
+			markDirty();
+		}
+
+		return itemstack;
 	}
 
 	public boolean canAddToInventory(ItemStack is) {
-		if ((is == null) || (is.isEmpty())) {
+		if ((is == ItemStack.EMPTY) || (is.isEmpty())) {
 			return false;
 		}
 
 		int addAmount = is.getCount();
 
-		for (int a = 14; a < getSizeInventory(); a++) {
-			if ((getStackInSlot(a) == null) || (getStackInSlot(a).isEmpty())) {
+		for (int i = 14; i < getSizeInventory(); i++) {
+			if ((getStackInSlot(i) == ItemStack.EMPTY) || (getStackInSlot(i).isEmpty())) {
 				return true;
 			}
-			ItemStack is2 = getStackInSlot(a);
+			ItemStack is2 = getStackInSlot(i);
 			if ((is2.getItem() == is.getItem()) && (is2.getItemDamage() == is.getItemDamage())) {
 				addAmount -= Math.min(is.getCount(), is2.getMaxStackSize() - is2.getCount());
 			}
@@ -60,7 +80,7 @@ public class RobotInventory extends InventoryBasic {
 
 	/**
 	 * This only checks the item not for specific variants
-	 * 
+	 *
 	 * @param item
 	 * @return true if item exists in inventory
 	 */
@@ -112,12 +132,25 @@ public class RobotInventory extends InventoryBasic {
 		return 13;
 	}
 
+	public int getQuantityOfItem(Item item) {
+		int total = 0;
+		for (int i = 0; i < getSizeInventory(); i++) {
+			ItemStack is2 = getStackInSlot(i);
+			if (!is2.isEmpty()) {
+				if (is2.getItem() == item) {
+					total += is2.getCount();
+				}
+			}
+		}
+		return total;
+	}
+
 	public int getQuantityOfItem(ItemStack is) {
 		int total = 0;
 		for (int i = 0; i < getSizeInventory(); i++) {
 			ItemStack is2 = getStackInSlot(i);
 			if (!is2.isEmpty()) {
-				if (is2.getItem() == is.getItem()) {
+				if (ItemStack.areItemsEqual(is, is2)) {
 					total += is2.getCount();
 				}
 			}
@@ -129,13 +162,26 @@ public class RobotInventory extends InventoryBasic {
 		return getStackInSlot(0);
 	}
 
+	public ItemStack getStackOfItem(Item item) {
+		if (item != null) {
+			for (int i = 0; i < getSizeInventory(); i++) {
+				ItemStack is2 = getStackInSlot(i);
+				if (!is2.isEmpty()) {
+					if (is2.getItem() == item) {
+						return is2;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public ItemStack getStackOfItem(ItemStack is) {
 		if (!is.isEmpty()) {
 			for (int i = 0; i < getSizeInventory(); i++) {
 				ItemStack is2 = getStackInSlot(i);
 				if (!is2.isEmpty()) {
-					if ((is2.getItem() == is.getItem())
-							&& ((is2.getItemDamage() == is.getItemDamage()) || is.isItemStackDamageable())) {
+					if (ItemStack.areItemsEqual(is, is2)) {
 						return is2;
 					}
 				}
@@ -199,18 +245,22 @@ public class RobotInventory extends InventoryBasic {
 		return amount <= 0;
 	}
 
-	public boolean removeItemTypeFromInventory(Item item, int amount) {
+	public List<ItemStack> removeItemTypeFromInventory(Item item, int amount) {
+		List<ItemStack> retList = new ArrayList();
 		for (int i = 0; i < getSizeInventory(); i++) {
 			ItemStack is2 = getStackInSlot(i);
 			if (!is2.isEmpty()) {
 				if (is2.getItem() == item) {
+					int prevAmt = amount;
 					amount -= decrStackSize(i, amount).getCount();
+					retList.add(
+							new ItemStack(is2.getItem(), amount <= 0 ? prevAmt : prevAmt - amount, is2.getMetadata()));
 					if (amount <= 0) {
-						break;
+						return retList;
 					}
 				}
 			}
 		}
-		return amount <= 0;
+		return retList;
 	}
 }

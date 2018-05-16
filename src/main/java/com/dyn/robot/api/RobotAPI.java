@@ -19,6 +19,7 @@ import com.dyn.robot.utils.SimpleItemStack;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
@@ -26,8 +27,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlockSpecial;
+import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
@@ -174,8 +177,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos placeBlock = curLoc.offset(robot.getProgrammedDirection());
 
 				if (scan.nextBoolean()) {
-					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							robot.getProgrammedDirection().getHorizontalAngle());
+					BlockPos temp = Python2MinecraftApi.getBlockPos(scan).rotate(
+							Python2MinecraftApi.rotationFromAngle(robot.getProgrammedDirection().getHorizontalAngle()));
 
 					if ((RobotAPI.sqVectorLength(temp) == 0) || (RobotAPI.sqVectorLength(temp) > 3)
 							|| (Math.abs(temp.getX()) > 1) || (Math.abs(temp.getY()) > 1)
@@ -192,7 +195,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				if (robot.world.getBlockState(placeBlock).getBlock().canPlaceBlockAt(robot.world, placeBlock)) {
 					int slot = 0;
-					ItemStack inventorySlot = null;
+					ItemStack inventorySlot = ItemStack.EMPTY;
 					if (scan.nextBoolean()) {
 						short blockId = scan.nextShort();
 						short meta = scan.hasNextShort() ? scan.nextShort() : 0;
@@ -234,7 +237,7 @@ public class RobotAPI extends Python2MinecraftApi {
 						}
 					}
 
-					if (inventorySlot != null) {
+					if (inventorySlot != ItemStack.EMPTY) {
 						FakePlayer fakeplayer = FakePlayerFactory
 								.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
 						fakeplayer.setHeldItem(robot.getActiveHand(), inventorySlot);
@@ -290,8 +293,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos breakBlock = curLoc.offset(robot.getProgrammedDirection());
 				if (scan.hasNext()) {
 					// this rotation is the problem
-					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							robot.getProgrammedDirection().getHorizontalAngle());
+					BlockPos temp = Python2MinecraftApi.getBlockPos(scan).rotate(
+							Python2MinecraftApi.rotationFromAngle(robot.getProgrammedDirection().getHorizontalAngle()));
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");
@@ -373,7 +376,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					}
 				}
 				BlockPos curLoc = robot.getPosition();
-				BlockPos interactBlock = null;
+				BlockPos interactBlock = BlockPos.ORIGIN;
 				if (Block.isEqualTo(robot.world.getBlockState(curLoc).getBlock(), Blocks.LEVER)
 						|| Block.isEqualTo(robot.world.getBlockState(curLoc).getBlock(), Blocks.STONE_BUTTON)
 						|| Block.isEqualTo(robot.world.getBlockState(curLoc).getBlock(), Blocks.WOODEN_BUTTON)) {
@@ -383,7 +386,7 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				if (robot.world.getBlockState(interactBlock).getBlock() != Blocks.AIR) {
 					robot.swingArm(robot.getActiveHand());
-					ItemStack inventorySlot = null;
+					ItemStack inventorySlot = ItemStack.EMPTY;
 					for (int i = 14; i < robot.robot_inventory.getSizeInventory(); i++) {
 						if ((robot.robot_inventory.getStackInSlot(i) != ItemStack.EMPTY)
 								&& ((Block.getBlockFromItem(robot.robot_inventory.getStackInSlot(i).getItem()) != null)
@@ -606,8 +609,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos curLoc = robot.getPosition();
 				BlockPos inspectBlock = curLoc.offset(robot.getProgrammedDirection());
 				if (scan.hasNext()) {
-					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							robot.getProgrammedDirection().getHorizontalAngle());
+					BlockPos temp = Python2MinecraftApi.getBlockPos(scan).rotate(
+							Python2MinecraftApi.rotationFromAngle(robot.getProgrammedDirection().getHorizontalAngle()));
 
 					if ((RobotAPI.sqVectorLength(temp) > 3) || (Math.abs(temp.getX()) > 1)
 							|| (Math.abs(temp.getY()) > 1) || (Math.abs(temp.getZ()) > 1)) {
@@ -685,9 +688,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos interactBlock = curLoc.offset(robot.getProgrammedDirection()).down();
 				if (scan.nextBoolean()) { // we were given a location
 					// this rotation is the problem
-					interactBlock = interactBlock.up();
-					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							robot.getProgrammedDirection().getHorizontalAngle());
+					BlockPos temp = Python2MinecraftApi.getBlockPos(scan).rotate(
+							Python2MinecraftApi.rotationFromAngle(robot.getProgrammedDirection().getHorizontalAngle()));
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");
@@ -703,7 +705,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					}
 					interactBlock = curLoc.add(temp);
 				}
-				ItemStack inventorySlot = null;
+				ItemStack inventorySlot = ItemStack.EMPTY;
 				int slot = 0;
 				short blockId = scan.nextShort();
 				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
@@ -727,18 +729,26 @@ public class RobotAPI extends Python2MinecraftApi {
 				FakePlayer fakeplayer = FakePlayerFactory
 						.getMinecraft(FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0));
 				fakeplayer.setHeldItem(robot.getActiveHand(), inventorySlot);
-				if (inventorySlot
+				if (inventorySlot.getItem() instanceof ItemBucket) {
+					if (((ItemBucket) inventorySlot.getItem()).tryPlaceContainedLiquid(fakeplayer, robot.world,
+							interactBlock)) {
+						robot.robot_inventory.setInventorySlotContents(slot, new ItemStack(Items.BUCKET));
+						MinecraftForge.EVENT_BUS.post(
+								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
+						return;
+					}
+				} else if (inventorySlot
 						.onItemUse(fakeplayer, robot.world, interactBlock, robot.getActiveHand(),
 								interactBlock.getY() < robot.getPosition().getY() ? EnumFacing.UP
 										: robot.getProgrammedDirection().getOpposite(),
-								0, 0, 0) == EnumActionResult.PASS) {
+								0, 0, 0) != EnumActionResult.FAIL) { // PASS or SUCCESS is acceptable
 					robot.robot_inventory.decrStackSize(slot, 1);
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
-				} else {
-					Python2MinecraftApi.fail("Was unable to use item " + inventorySlot.getDisplayName()
-							+ " at location " + interactBlock);
+					return;
 				}
+				Python2MinecraftApi.fail(
+						"Was unable to use item " + inventorySlot.getDisplayName() + " at location " + interactBlock);
 			}
 		});
 		APIRegistry.registerCommand(RobotAPI.ROBOTUSETOOL, (String args, Scanner scan) -> {
@@ -763,8 +773,8 @@ public class RobotAPI extends Python2MinecraftApi {
 				BlockPos interactBlock = curLoc.offset(robot.getProgrammedDirection()).down();
 				if (scan.hasNext()) {
 					// this rotation is the problem
-					BlockPos temp = Python2MinecraftApi.rotateVectorAngle(Python2MinecraftApi.getBlockPos(scan),
-							robot.getProgrammedDirection().getHorizontalAngle());
+					BlockPos temp = Python2MinecraftApi.getBlockPos(scan).rotate(
+							Python2MinecraftApi.rotationFromAngle(robot.getProgrammedDirection().getHorizontalAngle()));
 
 					if (RobotAPI.sqVectorLength(temp) == 0) {
 						Python2MinecraftApi.fail("Coordinates cannot equal 0");
@@ -809,7 +819,7 @@ public class RobotAPI extends Python2MinecraftApi {
 						NetworkManager.sendTo(new RobotSpeakMessage("Equipping Item", id), player);
 					}
 				}
-				ItemStack inventorySlot = null;
+				ItemStack inventorySlot = ItemStack.EMPTY;
 				short itemId = scan.nextShort();
 				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
 
@@ -832,14 +842,15 @@ public class RobotAPI extends Python2MinecraftApi {
 					}
 				}
 
-				ItemStack equippingItem = robot.robot_inventory.removeStackFromSlot(slot);
-				ItemStack equippedItem = robot.robot_inventory.removeStackFromSlot(2);
+				if (slot >= 14) {
+					ItemStack equippingItem = robot.robot_inventory.removeStackFromSlot(slot);
+					ItemStack equippedItem = robot.robot_inventory.removeStackFromSlot(2);
 
-				robot.robot_inventory.setInventorySlotContents(2, equippingItem);
-				robot.robot_inventory.setInventorySlotContents(slot, equippedItem);
+					robot.robot_inventory.setInventorySlotContents(2, equippingItem);
+					robot.robot_inventory.setInventorySlotContents(slot, equippedItem);
 
-				robot.setHeldItem(EnumHand.MAIN_HAND, equippingItem);
-
+					robot.setHeldItem(EnumHand.MAIN_HAND, equippingItem);
+				}
 				MinecraftForge.EVENT_BUS
 						.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 			}
@@ -861,8 +872,21 @@ public class RobotAPI extends Python2MinecraftApi {
 				}
 				short itemId = scan.nextShort();
 				short meta = scan.hasNextShort() ? scan.nextShort() : 0;
-
-				ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+				ItemStack inventorySlot = ItemStack.EMPTY;
+				if (meta >= 0) {
+					inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+				} else {
+					NonNullList<ItemStack> items = NonNullList.create();
+					Item.getItemById(itemId).getSubItems(CreativeTabs.SEARCH, items);
+					for (ItemStack item : items) {
+						if (RobotMod.recipeMap.containsKey(new SimpleItemStack(inventorySlot))) {
+							// this will default to the first craftable item type which
+							// should really only affect ore types
+							inventorySlot = item;
+							break;
+						}
+					}
+				}
 
 				if (inventorySlot == ItemStack.EMPTY) {
 					Python2MinecraftApi.fail("Item is not valid");
@@ -883,9 +907,8 @@ public class RobotAPI extends Python2MinecraftApi {
 								boolean hasItem = false;
 								Set<Item> oreItems = new HashSet();
 								for (ItemStack stack : ingredient.getMatchingStacks()) {
-									// things like planks will return every variant which gives us a ton of extra
-									// ingredients
-									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
+									// things like planks will return every variant
+									// which gives us a ton of extra ingredients
 									if (robot.robot_inventory.containsItem(stack.getItem())) {
 										oreItems.add(stack.getItem());
 										hasItem = true;
@@ -903,7 +926,6 @@ public class RobotAPI extends Python2MinecraftApi {
 							if (ingredient != Ingredient.EMPTY) {
 								boolean hasItem = false;
 								for (ItemStack stack : ingredient.getMatchingStacks()) {
-									RobotMod.logger.info("Recipe requires: " + stack.getDisplayName());
 									if (robot.robot_inventory.containsItem(stack)) {
 										ingredients.add(stack);
 										hasItem = true;
@@ -918,20 +940,32 @@ public class RobotAPI extends Python2MinecraftApi {
 						}
 					}
 					if (!ingredients.isEmpty() || !oreingredients.isEmpty()) {
+						List<ItemStack> removedItems = new ArrayList();
 						for (ItemStack ingredient : ingredients) {
+							removedItems.add(ingredient);
 							robot.robot_inventory.removeItemFromInventory(ingredient, 1);
 						}
 						for (Set<Item> ingredient : oreingredients) {
 							for (Item i_item : ingredient) {
-								if (robot.robot_inventory.removeItemTypeFromInventory(i_item, 1)) {
+								List<ItemStack> actRemovedItems = robot.robot_inventory
+										.removeItemTypeFromInventory(i_item, 1);
+								if (!actRemovedItems.isEmpty()) {
+									removedItems.addAll(actRemovedItems);
 									break;
 								}
 							}
 						}
 
-						// sometimes the recipe outputs nothing?
-						robot.robot_inventory.addItemStackToInventory(recipe.getRecipeOutput());
-
+						if (robot.robot_inventory.canAddToInventory(recipe.getRecipeOutput())) {
+							// sometimes the recipe outputs nothing?
+							robot.robot_inventory.addItemStackToInventory(recipe.getRecipeOutput());
+						} else {
+							for (ItemStack stack : removedItems) {
+								robot.robot_inventory.addItemStackToInventory(stack);
+							}
+							Python2MinecraftApi.fail("Cannot Craft, not enough space in inventory");
+							return;
+						}
 						MinecraftForge.EVENT_BUS.post(
 								new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));
 						return;
@@ -960,12 +994,22 @@ public class RobotAPI extends Python2MinecraftApi {
 
 				short amount = scan.nextShort();
 
-				ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
+				if (meta >= 0) {
+					ItemStack inventorySlot = new ItemStack(Item.getItemById(itemId), 1, meta);
 
-				if (!robot.robot_inventory.containsItem(inventorySlot)
-						|| (robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount)) {
-					MinecraftForge.EVENT_BUS
-							.post(new CodeEvent.RobotSuccessEvent("False", robot.getEntityId(), robot.getOwner()));
+					if (!robot.robot_inventory.containsItem(inventorySlot)
+							|| (robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount)) {
+						MinecraftForge.EVENT_BUS
+								.post(new CodeEvent.RobotSuccessEvent("False", robot.getEntityId(), robot.getOwner()));
+					}
+				} else {
+					Item inventorySlot = Item.getItemById(itemId);
+
+					if (!robot.robot_inventory.containsItem(inventorySlot)
+							|| (robot.robot_inventory.getQuantityOfItem(inventorySlot) < amount)) {
+						MinecraftForge.EVENT_BUS
+								.post(new CodeEvent.RobotSuccessEvent("False", robot.getEntityId(), robot.getOwner()));
+					}
 				}
 
 				MinecraftForge.EVENT_BUS

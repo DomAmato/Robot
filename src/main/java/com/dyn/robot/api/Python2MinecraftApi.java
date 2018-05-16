@@ -8,12 +8,11 @@ import com.dyn.robot.network.SocketEvent;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -86,14 +85,6 @@ public class Python2MinecraftApi {
 		return Python2MinecraftApi.writer;
 	}
 
-	public static void globalMessage(String message) {
-		for (World w : FMLCommonHandler.instance().getMinecraftServerInstance().worlds) {
-			for (EntityPlayer p : w.playerEntities) {
-				p.sendMessage(new TextComponentString(message));
-			}
-		}
-	}
-
 	public static void init() {
 		APIRegistry.registerCommand(Python2MinecraftApi.AUTHENTICATE, (String args, Scanner scan) -> {
 			Python2MinecraftApi.sendLine("handshake");
@@ -109,7 +100,7 @@ public class Python2MinecraftApi {
 		});
 	}
 
-	static boolean refresh() {
+	public static boolean refresh() {
 		Python2MinecraftApi.serverWorlds = FMLCommonHandler.instance().getMinecraftServerInstance().worlds;
 
 		if (Python2MinecraftApi.serverWorlds == null) {
@@ -119,15 +110,21 @@ public class Python2MinecraftApi {
 		return true;
 	}
 
-	protected static BlockPos rotateVectorAngle(BlockPos pos, float angle) {
+	protected static Rotation rotationFromAngle(float angle) {
 		angle = MathHelper.wrapDegrees(angle);
-		Vec3d rotated = new Vec3d(pos.getX(), pos.getY(), pos.getZ()).rotateYaw((float) Math.toRadians(angle));
-		return new BlockPos(Math.round(rotated.x), Math.round(rotated.y), Math.round(rotated.z));
-	}
-
-	protected static BlockPos rotateVectorRadian(BlockPos pos, float radian) {
-		Vec3d rotated = new Vec3d(pos.getX(), pos.getY(), pos.getZ()).rotateYaw(radian);
-		return new BlockPos(Math.round(rotated.x), Math.round(rotated.y), Math.round(rotated.z));
+		switch ((int) angle) {
+		case 90:
+		case -270:
+			return Rotation.CLOCKWISE_90;
+		case 180:
+		case -180:
+			return Rotation.CLOCKWISE_180;
+		case -90:
+		case 270:
+			return Rotation.COUNTERCLOCKWISE_90;
+		default:
+			return Rotation.NONE;
+		}
 	}
 
 	protected static void sendLine(BlockPos pos) {
