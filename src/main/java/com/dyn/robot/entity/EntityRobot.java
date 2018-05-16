@@ -109,7 +109,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		height = .9f;
 		width = 0.5f;
 		isTamable = true;
-		robot_inventory = new RobotInventory("Robot Inventory", 32, this);
+		robot_inventory = new RobotInventory("Robot Inventory", 32);
 		dataManager.register(EntityRobot.ROBOT_OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");
 		dataManager.register(EntityRobot.ROBOT_FOLLOWING, Boolean.valueOf(false));
@@ -135,9 +135,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void addToProgramPath(BlockPos pos) {
-		// block pos is integer based but we want to move to the center of the
-		// block
-		RobotMod.logger.info("Adding " + pos + " to Path");
 		programPath.add(pos);
 	}
 
@@ -221,10 +218,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	 */
 	@Override
 	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
-		if (!(damageSrc.getTrueSource() instanceof EntityPlayer)
-				&& !((damageSrc == DamageSource.FALL) && (damageAmount > 25))) {
-			super.damageEntity(damageSrc, damageAmount);
+		if ((damageSrc.getTrueSource() instanceof EntityPlayer)
+				|| ((damageSrc == DamageSource.FALL) && (damageAmount < 25))) {
+			return;
 		}
+		super.damageEntity(damageSrc, damageAmount);
 	}
 
 	public boolean descend(int amount) {
@@ -449,9 +447,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void InsertToProgramPath(int loc, BlockPos pos) {
-		// block pos is integer based but we want to move to the center of the
-		// block
-		RobotMod.logger.info("Inserting " + pos + " to Path");
 		programPath.add(loc, pos);
 	}
 
