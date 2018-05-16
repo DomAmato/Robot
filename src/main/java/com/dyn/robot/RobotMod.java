@@ -59,6 +59,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -318,7 +319,7 @@ public class RobotMod {
 			if (recipe.getRecipeOutput() != ItemStack.EMPTY) {
 				SimpleItemStack result = new SimpleItemStack(recipe.getRecipeOutput());
 				if (RobotMod.recipeMap.containsKey(result)) {
-					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput());
+					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput().getDisplayName());
 					RobotMod.recipeMap.get(result).add(recipe);
 				} else {
 					List<IRecipe> tempList = new ArrayList();
@@ -391,7 +392,6 @@ public class RobotMod {
 				while (resources.hasMoreElements()) {
 					JarEntry entry = resources.nextElement();
 					if (entry.getName().startsWith("assets/roboticraft/api")) {
-						RobotMod.logger.info(entry.getName());
 						File file = new File(RobotMod.apiFileLocation,
 								entry.getName().replace("assets/roboticraft/api", ""));
 						if (!file.exists()) {
@@ -429,5 +429,10 @@ public class RobotMod {
 				robot.stopExecutingCode();
 			}
 		}
+	}
+
+	@SubscribeEvent
+	public void worldLoad(WorldEvent.Load event) {
+		Python2MinecraftApi.refresh();
 	}
 }
