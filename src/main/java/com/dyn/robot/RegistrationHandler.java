@@ -2,10 +2,8 @@ package com.dyn.robot;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -15,7 +13,6 @@ import org.apache.commons.lang3.text.WordUtils;
 import com.dyn.robot.blocks.RobotBlockTileEntity;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
-import com.dyn.schematics.block.ClaimBlockTileEntity;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
@@ -183,7 +180,8 @@ public class RegistrationHandler {
 								writer.write(String.format("%1$-33s",
 										item.getItem().getRegistryName().getResourcePath().toUpperCase()) + " = Item("
 										+ Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata() + ", \""
-										+ WordUtils.capitalizeFully(item.getItem().getRegistryName().getResourcePath().replaceAll("_", " "))
+										+ WordUtils.capitalizeFully(
+												item.getItem().getRegistryName().getResourcePath().replaceAll("_", " "))
 										+ "\")\n");
 							} else {
 								switch (Item.getIdFromItem(item.getItem())) {
@@ -192,9 +190,9 @@ public class RegistrationHandler {
 											+ Item.getIdFromItem(item.getItem()) + ", " + 0 + ", \"Snow Block\")\n");
 									break;
 								case 322:
-									writer.write(String.format("%1$-33s", "ENCHANTED_GOLDEN_APPLE")
-											+ " = Item(" + Item.getIdFromItem(item.getItem()) + ", "
-											+ item.getMetadata() + ", \"Enchanted Golden Apple\")\n");
+									writer.write(String.format("%1$-33s", "ENCHANTED_GOLDEN_APPLE") + " = Item("
+											+ Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata()
+											+ ", \"Enchanted Golden Apple\")\n");
 									break;
 								case 360:
 									writer.write(String.format("%1$-33s", "MELON_SLICE") + " = Item("

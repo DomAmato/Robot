@@ -37,7 +37,7 @@ public class MessageRunRobotScript implements IMessage {
 			robot.startExecutingCode();
 
 			robot.setLastExecutedScript(message.getScript());
-			
+
 			File scriptFile = new File(RobotMod.scriptsLoc, player.getName() + "/" + LocalDate.now() + "/"
 					+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 			try {

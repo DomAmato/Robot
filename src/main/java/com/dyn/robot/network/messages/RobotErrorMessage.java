@@ -1,8 +1,6 @@
 package com.dyn.robot.network.messages;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
-import com.dyn.robot.entity.EntityRobot;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.ByteBufUtils;

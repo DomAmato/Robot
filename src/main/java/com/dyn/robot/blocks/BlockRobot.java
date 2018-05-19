@@ -19,7 +19,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -45,6 +44,11 @@ public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 	}
 
 	@Override
+	public TileEntity createNewTileEntity(World worldIn, int meta) {
+		return new RobotBlockTileEntity();
+	}
+
+	@Override
 	@SideOnly(Side.CLIENT)
 	public BlockRenderLayer getBlockLayer() {
 		return BlockRenderLayer.CUTOUT;
@@ -54,13 +58,6 @@ public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 		return new ItemBlock(this).setRegistryName(getRegistryName());
 	}
 
-	@Override
-	public void onEndFalling(World worldIn, BlockPos pos, IBlockState state_1, IBlockState state_2)
-    {
-		super.onEndFalling(worldIn, pos, state_1, state_2);
-		
-    }
-	
 	/**
 	 * Convert the BlockStateContainer into the correct metadata value
 	 */
@@ -118,7 +115,7 @@ public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Called by ItemBlocks after a block is set in the world, to allow post-place
 	 * logic
@@ -146,9 +143,9 @@ public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		return new RobotBlockTileEntity();
+	public void onEndFalling(World worldIn, BlockPos pos, IBlockState state_1, IBlockState state_2) {
+		super.onEndFalling(worldIn, pos, state_1, state_2);
+
 	}
-	
-	
+
 }

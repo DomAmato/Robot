@@ -1,11 +1,8 @@
 package com.dyn.robot.network.messages;
 
-import java.util.List;
-
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.blocks.RobotBlockTileEntity;
-import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
 
@@ -16,10 +13,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
@@ -52,9 +47,9 @@ public class MessageActivateRobot implements IMessage {
 				new_robot.setRobotName(message.getName());
 				new_robot.setLastExecutedScript(robotTile.getPrevScript());
 				NBTTagList inventory = robotTile.getInventory();
-				if(inventory.hasNoTags()) {
+				if (inventory.hasNoTags()) {
 					new_robot.robot_inventory.setInventorySlotContents(new_robot.robot_inventory.getOpenExpansionSlot(),
-							new ItemStack(RobotMod.expChip, 1, 15));	
+							new ItemStack(RobotMod.expChip, 1, 15));
 				} else {
 					for (int i = 0; i < inventory.tagCount(); i++) {
 						NBTTagCompound itemtag = inventory.getCompoundTagAt(i);

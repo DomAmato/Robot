@@ -29,7 +29,6 @@ import com.dyn.robot.python.RunPythonShell;
 import com.dyn.robot.utils.FileUtils;
 import com.google.common.base.Optional;
 
-import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.block.state.IBlockState;
@@ -75,25 +74,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	protected static final DataParameter<String> ROBOT_NAME = EntityDataManager.<String>createKey(EntityRobot.class,
 			DataSerializers.STRING);
-	
-	protected static final DataParameter<String> LAST_EXECUTED_SCRIPT = EntityDataManager.<String>createKey(EntityRobot.class,
-			DataSerializers.STRING);
 
-	public String getLastExecutedScript() {
-		return dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT);
-	}
-	
-	public void setLastExecutedScript(String script) {
-		dataManager.set(EntityRobot.LAST_EXECUTED_SCRIPT, script);
-	}
+	protected static final DataParameter<String> LAST_EXECUTED_SCRIPT = EntityDataManager
+			.<String>createKey(EntityRobot.class, DataSerializers.STRING);
 
 	private static final DataParameter<Boolean> ROBOT_FOLLOWING = EntityDataManager
 			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
+
 	private static final DataParameter<Boolean> ROBOT_CODE_EXECUTING = EntityDataManager
 			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TAMABLE = EntityDataManager
-			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
-	
+
+	private static final DataParameter<Boolean> TAMABLE = EntityDataManager.<Boolean>createKey(EntityRobot.class,
+			DataSerializers.BOOLEAN);
+
 	public static List<EntityItem> getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class,
 				new AxisAlignedBB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
@@ -103,14 +96,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	protected EntityPlayer owner;
 
 	public RobotInventory robot_inventory;
+
 	private List<BlockPos> programPath = new ArrayList();
 
 	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<>();
+
 	private boolean pauseCode = false;
-
 	private EntityAIWander wanderTask;
-
 	public int counter = 0;
 
 	private EnumFacing programDir;
@@ -390,6 +383,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return 0.41F;
 	}
 
+	public String getLastExecutedScript() {
+		return dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT);
+	}
+
 	@Override
 	public int getMaxFallHeight() {
 		return 20;
@@ -411,6 +408,24 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			messages.put(entry.getKey(), entry.getValue());
 		}
 		return this.messages = messages;
+	}
+
+	public NBTTagCompound getNBTforItemStack() {
+		NBTTagCompound nbttagcompound = new NBTTagCompound();
+		NBTTagList nbttaglist = new NBTTagList();
+		for (int i = 0; i < robot_inventory.getSizeInventory(); i++) {
+			if (robot_inventory.getStackInSlot(i) != null) {
+				NBTTagCompound itemtag = new NBTTagCompound();
+				itemtag.setByte("Slot", (byte) i);
+				robot_inventory.getStackInSlot(i).writeToNBT(itemtag);
+				nbttaglist.appendTag(itemtag);
+			}
+		}
+		nbttagcompound.setTag("Items", nbttaglist);
+
+		nbttagcompound.setString("robotName", dataManager.get(EntityRobot.ROBOT_NAME));
+		nbttagcompound.setString("code", dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT));
+		return nbttagcompound;
 	}
 
 	@Override
@@ -460,6 +475,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		return false;
 	}
 
+	public boolean hasOwner() {
+		return (getOwner() != null) || (getOwnerId() != null);
+	}
+
 	public void InsertToProgramPath(int loc, BlockPos pos) {
 		programPath.add(loc, pos);
 	}
@@ -485,10 +504,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			return false;
 		}
 		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID());
-	}
-	
-	public boolean hasOwner() {
-		return (getOwner() != null) || getOwnerId() != null;
 	}
 
 	public boolean isTamable() {
@@ -723,6 +738,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		dataManager.set(EntityRobot.ROBOT_FOLLOWING, shouldFollow);
 	}
 
+	public void setLastExecutedScript(String script) {
+		dataManager.set(EntityRobot.LAST_EXECUTED_SCRIPT, script);
+	}
+
 	public void setOwner(EntityPlayer player) {
 		setOwnerId(player.getUniqueID());
 	}
@@ -766,24 +785,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void stopExecutingCode() {
 		dataManager.set(EntityRobot.ROBOT_CODE_EXECUTING, false);
 	}
-	public NBTTagCompound getNBTforItemStack() {
-		NBTTagCompound nbttagcompound = new NBTTagCompound();
-		NBTTagList nbttaglist = new NBTTagList();
-		for (int i = 0; i < robot_inventory.getSizeInventory(); i++) {
-			if (robot_inventory.getStackInSlot(i) != null) {
-				NBTTagCompound itemtag = new NBTTagCompound();
-				itemtag.setByte("Slot", (byte) i);
-				robot_inventory.getStackInSlot(i).writeToNBT(itemtag);
-				nbttaglist.appendTag(itemtag);
-			}
-		}
-		nbttagcompound.setTag("Items", nbttaglist);
 
-		nbttagcompound.setString("robotName", dataManager.get(EntityRobot.ROBOT_NAME));
-		nbttagcompound.setString("code", dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT));
-		return nbttagcompound;
-	}
-	
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
 		super.writeEntityToNBT(nbttagcompound);

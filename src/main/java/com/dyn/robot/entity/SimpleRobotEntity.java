@@ -7,7 +7,6 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
@@ -95,6 +94,12 @@ public class SimpleRobotEntity extends EntityRobot {
 		}
 	}
 
+	@Override
+	public void readSpawnData(ByteBuf additionalData) {
+		// TODO Auto-generated method stub
+
+	}
+
 	public void slightMoveWhenStill() {
 		if ((Math.abs(motionX) + Math.abs(motionZ)) <= 0.4) {
 			Vec3d vec = getLookVec();
@@ -122,12 +127,6 @@ public class SimpleRobotEntity extends EntityRobot {
 	@Override
 	public void writeSpawnData(ByteBuf buffer) {
 		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public void readSpawnData(ByteBuf additionalData) {
-		// TODO Auto-generated method stub
-		
 	}
 }

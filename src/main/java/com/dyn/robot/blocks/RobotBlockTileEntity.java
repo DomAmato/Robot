@@ -20,24 +20,12 @@ public class RobotBlockTileEntity extends TileEntity {
 		return inventory;
 	}
 
-	public void setInventory(NBTTagList inventory) {
-		this.inventory = inventory;
-	}
-
-	public String getRobotName() {
-		return robotName;
-	}
-
-	public void setRobotName(String robotName) {
-		this.robotName = robotName;
-	}
-
 	public String getPrevScript() {
 		return prevScript;
 	}
 
-	public void setPrevScript(String prevScript) {
-		this.prevScript = prevScript;
+	public String getRobotName() {
+		return robotName;
 	}
 
 	@Override
@@ -68,15 +56,27 @@ public class RobotBlockTileEntity extends TileEntity {
 		super.readFromNBT(nbttagcompound);
 		inventory = nbttagcompound.getTagList("Items", Constants.NBT.TAG_COMPOUND);
 		robotName = nbttagcompound.getString("robotName");
-		prevScript =  nbttagcompound.getString("code");
-		
+		prevScript = nbttagcompound.getString("code");
+
+	}
+
+	public void setInventory(NBTTagList inventory) {
+		this.inventory = inventory;
+	}
+
+	public void setPrevScript(String prevScript) {
+		this.prevScript = prevScript;
+	}
+
+	public void setRobotName(String robotName) {
+		this.robotName = robotName;
 	}
 
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
 		return (oldState.getBlock() != newSate.getBlock());
 	}
-	
+
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
 		super.writeToNBT(nbttagcompound);

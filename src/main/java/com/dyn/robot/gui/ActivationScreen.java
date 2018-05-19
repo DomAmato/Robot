@@ -18,7 +18,6 @@ import com.rabbit.gui.show.Show;
 import com.rabbit.gui.utils.DefaultTextures;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 
 public class ActivationScreen extends Show {
@@ -40,7 +39,7 @@ public class ActivationScreen extends Show {
 	public ActivationScreen(EntityRobot entityRobot, EntityPlayer player) {
 		this.entityRobot = entityRobot;
 		this.player = player;
-		this.robotName = entityRobot.getRobotName();
+		robotName = entityRobot.getRobotName();
 		if (robotName.isEmpty()) {
 			robotName = "Robot" + (int) (65535 * Math.random());
 		}
@@ -53,7 +52,7 @@ public class ActivationScreen extends Show {
 
 		panel.registerComponent(new TextLabel((int) (panel.getWidth() * .05), (int) (panel.getHeight() * .05),
 				(int) (panel.getWidth() * .8), 20, Color.black, "Robot Remote"));
-		
+
 		panel.registerComponent(new TextLabel((int) (panel.getWidth() * .1), (int) (panel.getHeight() * .2),
 				(int) (panel.getWidth() * .8), 20, Color.black, "Give Robot a Name:"));
 
