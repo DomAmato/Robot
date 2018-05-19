@@ -5,9 +5,11 @@ buildscript {
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+		classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.0.10"
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'com.matthewprenger.cursegradle'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 repositories {
@@ -18,9 +20,8 @@ repositories {
 		url "https://jitpack.io" 
 	}
 }
-
-version = "0.10.1"
-group = "com.dom.robot" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "0.10.${buildNum}"
+group = "com.dyn.robot" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Roboticraft"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -83,4 +84,20 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+}
+
+build.doLast
+{
+	ant.propertyfile(file: "gradle.properties") {
+        entry( key: "buildNum", type:"int", default:"0", operation:"+")
+    }
+}
+
+curseforge {
+  apiKey = '${api_key}'
+  project {
+    id = '294044'
+    changelog = 'consult the github'
+    releaseType = 'beta'
+  }
 }
