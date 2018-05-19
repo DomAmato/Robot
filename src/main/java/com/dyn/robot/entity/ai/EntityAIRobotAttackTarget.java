@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.Path;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -179,7 +180,7 @@ public class EntityAIRobotAttackTarget extends EntityAIBase {
 			attackTick = 20;
 
 			if (robot.getHeldItemMainhand() != null) {
-				robot.swingArm(robot.swingingHand);
+				robot.swingArm(EnumHand.MAIN_HAND);
 			}
 
 			robot.attackEntityAsMob(entitylivingbase);
