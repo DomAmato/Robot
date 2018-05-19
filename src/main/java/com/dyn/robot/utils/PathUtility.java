@@ -1,10 +1,10 @@
 package com.dyn.robot.utils;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.dyn.robot.RobotMod;
 
-import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
@@ -32,11 +32,19 @@ public class PathUtility {
 			pathVar = System.getenv("PATH");
 		} else {
 			if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-				File localpath = Minecraft.getMinecraft().mcDataDir;
-				pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
+				File localpath = net.minecraft.client.Minecraft.getMinecraft().mcDataDir;
+				try {
+					pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getCanonicalPath();
+				} catch (IOException e) {
+					pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
+				}
 			} else {
 				File localpath = FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory();
-				pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
+				try {
+					pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getCanonicalPath();
+				} catch (IOException e) {
+					pathVar = new File(localpath, RobotMod.pythonEmbeddedLocation).getAbsolutePath();
+				}
 			}
 		}
 

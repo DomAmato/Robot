@@ -121,7 +121,7 @@ public class RunPythonShell {
 			RunPythonShell.robotId = robotId;
 			String path = PathUtility.getPythonExecutablePath();
 			if (path.contains("/") || path.contains(System.getProperty("file.separator"))) {
-				RunPythonShell.scriptProcessorPath = new File(path).getAbsolutePath().toString();
+				RunPythonShell.scriptProcessorPath = new File(path).getCanonicalPath().toString();
 			} else {
 				RunPythonShell.scriptProcessorPath = path;
 			}

@@ -278,22 +278,32 @@ public class RobotMod {
 			if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
 				File localpath = net.minecraft.client.Minecraft.getMinecraft().mcDataDir;
 				File path = new File(localpath, RobotMod.pythonEmbeddedLocation);
-				if (!path.exists()) {
+				if (!path.exists() || path.list().length == 0) {
 					path.mkdirs();
 					File zip = new File(path, "python.zip");
-					FileUtils.downloadFile("https://www.python.org/ftp/python/3.6.3/python-3.6.3-embed-amd64.zip", zip);
+					FileUtils.downloadFile("https://www.python.org/ftp/python/3.6.5/python-3.6.5-embed-amd64.zip", zip);
 					FileUtils.unZip(zip.getAbsolutePath(), path.getAbsolutePath());
 					zip.delete();
+					for(File file : path.listFiles()) {
+						if(file.getName().contains("python36._pth")) {
+							file.renameTo(new File(path, "python36zz._pth"));
+						}
+					}
 				}
 			} else {
 				File localpath = FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory();
 				File path = new File(localpath, RobotMod.pythonEmbeddedLocation);
-				if (!path.exists()) {
+				if (!path.exists() || path.list().length == 0) {
 					path.mkdirs();
 					File zip = new File(path, "python.zip");
-					FileUtils.downloadFile("https://www.python.org/ftp/python/3.6.3/python-3.6.3-embed-amd64.zip", zip);
+					FileUtils.downloadFile("https://www.python.org/ftp/python/3.6.5/python-3.6.5-embed-amd64.zip", zip);
 					FileUtils.unZip(zip.getAbsolutePath(), path.getAbsolutePath());
 					zip.delete();
+					for(File file : path.listFiles()) {
+						if(file.getName().contains("python36._pth")) {
+							file.renameTo(new File(path, "python36zz._pth"));
+						}
+					}
 				}
 			}
 		}
