@@ -89,18 +89,18 @@ processResources {
     }
 }
 
-build.doLast
-{
-	ant.propertyfile(file: "gradle.properties") {
-        entry( key: "buildNum", type:"int", default:"0", operation:"+")
-    }
-}
-
 curseforge {
-  apiKey = '${api_key}'
+  apiKey = "${api_key}"
   project {
     id = '294044'
     changelog = 'consult the github'
     releaseType = 'beta'
   }
+}
+
+curseforge.doLast
+{
+	ant.propertyfile(file: "gradle.properties") {
+        entry( key: "buildNum", type:"int", default:"0", operation:"+")
+    }
 }
