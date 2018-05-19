@@ -1,4 +1,4 @@
-# Roboticraft
+# Roboticraft [![Build Status](https://travis-ci.org/DomAmato/Robot.svg?branch=master)](https://travis-ci.org/DomAmato/Robot) [![Documentation Status](https://readthedocs.org/projects/robot/badge/?version=latest)](http://robot.readthedocs.io/en/latest/?badge=latest) 
 Programmable Robot Entities for Minecraft.
 
 ## Info
