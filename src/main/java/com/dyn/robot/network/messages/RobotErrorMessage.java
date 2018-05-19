@@ -17,8 +17,6 @@ public class RobotErrorMessage implements IMessage {
 		public IMessage onMessage(RobotErrorMessage message, MessageContext ctx) {
 			RobotMod.proxy.addScheduledTask(() -> {
 				RobotMod.proxy.handleErrorMessage(message.getError(), message.getCode(), message.getLine());
-				EntityRobot robot = RobotAPI.getRobotEntityFromID(message.getRobotId());
-				robot.stopExecutingCode();
 			});
 			return null;
 		}
@@ -29,7 +27,6 @@ public class RobotErrorMessage implements IMessage {
 	private String error;
 
 	private int line;
-	private int robotid;
 
 	public RobotErrorMessage() {
 	}
@@ -38,7 +35,6 @@ public class RobotErrorMessage implements IMessage {
 		this.code = code;
 		this.error = error;
 		this.line = line;
-		this.robotid = robotid;
 	}
 
 	@Override
@@ -46,7 +42,6 @@ public class RobotErrorMessage implements IMessage {
 		code = ByteBufUtils.readUTF8String(buf);
 		error = ByteBufUtils.readUTF8String(buf);
 		line = buf.readInt();
-		robotid = buf.readInt();
 	}
 
 	public String getCode() {
@@ -61,15 +56,10 @@ public class RobotErrorMessage implements IMessage {
 		return line;
 	}
 
-	public int getRobotId() {
-		return robotid;
-	}
-
 	@Override
 	public void toBytes(ByteBuf buf) {
 		ByteBufUtils.writeUTF8String(buf, code);
 		ByteBufUtils.writeUTF8String(buf, error);
 		buf.writeInt(line);
-		buf.writeInt(robotid);
 	}
 }
