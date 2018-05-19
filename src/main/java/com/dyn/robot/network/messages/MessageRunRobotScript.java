@@ -29,13 +29,15 @@ public class MessageRunRobotScript implements IMessage {
 			// TODO
 			// we might want to filter out the other minecraft API calls to
 			// prevent cheating we need some way of severely limiting what
-			// commands the students can use in certain situations
+			// commands the players can use in certain situations
 			EntityPlayerMP player = ctx.getServerHandler().player;
 			World world = player.world;
 			EntityRobot robot = (EntityRobot) world.getEntityByID(message.getId());
 			robot.clearProgramPath();
 			robot.startExecutingCode();
 
+			robot.setLastExecutedScript(message.getScript());
+			
 			File scriptFile = new File(RobotMod.scriptsLoc, player.getName() + "/" + LocalDate.now() + "/"
 					+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 			try {

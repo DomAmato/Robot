@@ -72,7 +72,10 @@ public class RobotProgrammingInterface extends Show {
 
 	public RobotProgrammingInterface(EntityRobot robot) {
 		title = "Robot Remote Interface";
-		termText = "#Welcome to the progamming interface!\nfrom api.robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
+		termText = robot.getLastExecutedScript();
+		if(termText.isEmpty()) {
+			termText = "#Welcome to the progamming interface!\nfrom api.robot import *\nrobot = Robot()\n\nrobot.say(\"hello world\")\n";
+		}
 		errorText = "";
 		showError = false;
 		this.robot = robot;

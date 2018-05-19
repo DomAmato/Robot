@@ -64,6 +64,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
@@ -74,19 +75,31 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	protected static final DataParameter<String> ROBOT_NAME = EntityDataManager.<String>createKey(EntityRobot.class,
 			DataSerializers.STRING);
+	
+	protected static final DataParameter<String> LAST_EXECUTED_SCRIPT = EntityDataManager.<String>createKey(EntityRobot.class,
+			DataSerializers.STRING);
+
+	public String getLastExecutedScript() {
+		return dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT);
+	}
+	
+	public void setLastExecutedScript(String script) {
+		dataManager.set(EntityRobot.LAST_EXECUTED_SCRIPT, script);
+	}
 
 	private static final DataParameter<Boolean> ROBOT_FOLLOWING = EntityDataManager
 			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Boolean> ROBOT_CODE_EXECUTING = EntityDataManager
 			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
-
+	private static final DataParameter<Boolean> TAMABLE = EntityDataManager
+			.<Boolean>createKey(EntityRobot.class, DataSerializers.BOOLEAN);
+	
 	public static List<EntityItem> getEntityItemsInRadius(World world, double x, double y, double z, int radius) {
 		List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class,
 				new AxisAlignedBB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius));
 		return list;
 	}
 
-	protected boolean isTamable;
 	protected EntityPlayer owner;
 
 	public RobotInventory robot_inventory;
@@ -108,12 +121,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		super(worldIn);
 		height = .9f;
 		width = 0.5f;
-		isTamable = true;
 		robot_inventory = new RobotInventory("Robot Inventory", 32);
 		dataManager.register(EntityRobot.ROBOT_OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");
+		dataManager.register(EntityRobot.LAST_EXECUTED_SCRIPT, "");
 		dataManager.register(EntityRobot.ROBOT_FOLLOWING, Boolean.valueOf(false));
 		dataManager.register(EntityRobot.ROBOT_CODE_EXECUTING, Boolean.valueOf(false));
+		dataManager.register(EntityRobot.TAMABLE, Boolean.valueOf(true));
 
 		tasks.addTask(1, new EntityAIExecuteProgrammedPath(this, 1.5D));
 		tasks.addTask(1, new EntityAIJumpToward(this, 0.4F));
@@ -382,7 +396,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public int getMemorySize() {
-		return (int) (robot_inventory.getStackInSlot(1) != null
+		return (int) (robot_inventory.getStackInSlot(1) != ItemStack.EMPTY
 				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage()))
 				: 8);
 	}
@@ -472,9 +486,13 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 		return (entityIn == getOwner()) || getOwnerId().equals(entityIn.getUniqueID());
 	}
+	
+	public boolean hasOwner() {
+		return (getOwner() != null) || getOwnerId() != null;
+	}
 
 	public boolean isTamable() {
-		return isTamable;
+		return dataManager.get(EntityRobot.TAMABLE);
 	}
 
 	public void makeSwingArm(boolean state) {
@@ -617,9 +635,9 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 					if (isOwner(player)) {
 						RobotMod.proxy.openRobotProgrammingWindow(this);
 					} else {
-						if (owner != null) {
+						if (hasOwner()) {
 							player.sendMessage(new TextComponentString("Robot belongs to someone else"));
-						} else if (((owner == null) && isTamable)) {
+						} else if (isTamable()) {
 							RobotMod.proxy.openActivationInterface(this);
 						} else {
 							player.sendMessage(
@@ -649,7 +667,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void readEntityFromNBT(NBTTagCompound nbttagcompound) {
 		super.readEntityFromNBT(nbttagcompound);
 
-		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", 10);
+		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", Constants.NBT.TAG_LIST);
 		// robot_inventory = new ItemStack[32];
 		for (int i = 0; i < nbttaglist.tagCount(); i++) {
 			NBTTagCompound itemtag = nbttaglist.getCompoundTagAt(i);
@@ -659,9 +677,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			}
 		}
 
-		isTamable = nbttagcompound.getBoolean("tame");
+		dataManager.set(EntityRobot.TAMABLE, nbttagcompound.getBoolean("tame"));
 
 		String robotName = nbttagcompound.getString("robotName");
+		dataManager.set(EntityRobot.LAST_EXECUTED_SCRIPT, nbttagcompound.getString("code"));
 		if (robotName.length() > 0) {
 			setRobotName(robotName);
 		}
@@ -670,18 +689,6 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 			setOwnerId(ownerID);
 		}
 
-	}
-
-	/**
-	 * Called by the client when it receives a Entity spawn packet. Data should be
-	 * read out of the stream in the same way as it was written.
-	 *
-	 * @param data
-	 *            The packet data stream
-	 */
-	@Override
-	public void readSpawnData(ByteBuf additionalData) {
-		isTamable = additionalData.readBoolean();
 	}
 
 	public void reinitIdleAI() {
@@ -741,7 +748,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public void setTamable(boolean isTamable) {
-		this.isTamable = isTamable;
+		dataManager.set(EntityRobot.TAMABLE, isTamable);
 	}
 
 	public boolean shouldExecuteCode() {
@@ -759,7 +766,24 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void stopExecutingCode() {
 		dataManager.set(EntityRobot.ROBOT_CODE_EXECUTING, false);
 	}
+	public NBTTagCompound getNBTforItemStack() {
+		NBTTagCompound nbttagcompound = new NBTTagCompound();
+		NBTTagList nbttaglist = new NBTTagList();
+		for (int i = 0; i < robot_inventory.getSizeInventory(); i++) {
+			if (robot_inventory.getStackInSlot(i) != null) {
+				NBTTagCompound itemtag = new NBTTagCompound();
+				itemtag.setByte("Slot", (byte) i);
+				robot_inventory.getStackInSlot(i).writeToNBT(itemtag);
+				nbttaglist.appendTag(itemtag);
+			}
+		}
+		nbttagcompound.setTag("Items", nbttaglist);
 
+		nbttagcompound.setString("robotName", dataManager.get(EntityRobot.ROBOT_NAME));
+		nbttagcompound.setString("code", dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT));
+		return nbttagcompound;
+	}
+	
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
 		super.writeEntityToNBT(nbttagcompound);
@@ -776,22 +800,11 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		nbttagcompound.setTag("Items", nbttaglist);
 
 		nbttagcompound.setString("robotName", dataManager.get(EntityRobot.ROBOT_NAME));
-		nbttagcompound.setBoolean("tame", isTamable);
+		nbttagcompound.setString("code", dataManager.get(EntityRobot.LAST_EXECUTED_SCRIPT));
+		nbttagcompound.setBoolean("tame", dataManager.get(EntityRobot.TAMABLE));
 
 		if (getOwnerId() != null) {
 			nbttagcompound.setUniqueId("OwnerUUID", getOwnerId());
 		}
-	}
-
-	/**
-	 * Called by the server when constructing the spawn packet. Data should be added
-	 * to the provided stream.
-	 *
-	 * @param buffer
-	 *            The packet data stream
-	 */
-	@Override
-	public void writeSpawnData(ByteBuf buffer) {
-		buffer.writeBoolean(isTamable);
 	}
 }

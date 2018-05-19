@@ -2,10 +2,12 @@ package com.dyn.robot.entity;
 
 import com.dyn.robot.RobotMod;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
@@ -45,7 +47,10 @@ public class SimpleRobotEntity extends EntityRobot {
 	@Override
 	protected void dropFewItems(boolean recentlyAttacked, int lootModify) {
 		super.dropFewItems(recentlyAttacked, lootModify);
-		dropItem(new ItemStack(RobotMod.robot_block, 1));
+		ItemStack robotStack = new ItemStack(RobotMod.robot_block, 1);
+		robotStack.setStackDisplayName(getRobotName());
+		robotStack.setTagCompound(getNBTforItemStack());
+		dropItem(robotStack);
 	}
 
 	public void dropItem(ItemStack is) {
@@ -112,5 +117,17 @@ public class SimpleRobotEntity extends EntityRobot {
 					posY + 0.5D + (rand.nextFloat() * height), (posZ + (rand.nextFloat() * width * 2.0F)) - width, 0, 0,
 					0);
 		}
+	}
+
+	@Override
+	public void writeSpawnData(ByteBuf buffer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void readSpawnData(ByteBuf additionalData) {
+		// TODO Auto-generated method stub
+		
 	}
 }

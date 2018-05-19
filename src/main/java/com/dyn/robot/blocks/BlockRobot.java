@@ -5,6 +5,7 @@ import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.BlockFalling;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -15,7 +16,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -23,10 +27,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockRobot extends BlockFalling {
+public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 
 	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
-	private String robotName;
 
 	public BlockRobot() {
 		super(Material.IRON);
@@ -51,16 +54,19 @@ public class BlockRobot extends BlockFalling {
 		return new ItemBlock(this).setRegistryName(getRegistryName());
 	}
 
+	@Override
+	public void onEndFalling(World worldIn, BlockPos pos, IBlockState state_1, IBlockState state_2)
+    {
+		super.onEndFalling(worldIn, pos, state_1, state_2);
+		
+    }
+	
 	/**
 	 * Convert the BlockStateContainer into the correct metadata value
 	 */
 	@Override
 	public int getMetaFromState(IBlockState state) {
 		return state.getValue(BlockRobot.FACING).getHorizontalIndex();
-	}
-
-	public String getRobotName() {
-		return robotName;
 	}
 
 	/**
@@ -79,10 +85,6 @@ public class BlockRobot extends BlockFalling {
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
 		return getDefaultState().withProperty(BlockRobot.FACING, EnumFacing.getHorizontal(meta));
-	}
-
-	public boolean hasName() {
-		return (robotName != null) && !robotName.equals("Robot");
 	}
 
 	@Override
@@ -116,7 +118,7 @@ public class BlockRobot extends BlockFalling {
 		}
 		return true;
 	}
-
+	
 	/**
 	 * Called by ItemBlocks after a block is set in the world, to allow post-place
 	 * logic
@@ -124,10 +126,29 @@ public class BlockRobot extends BlockFalling {
 	@Override
 	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
 			ItemStack stack) {
-		robotName = stack.getDisplayName().trim();
+		if (stack.hasTagCompound()) {
+			if (worldIn.isRemote) {
+				return;
+			} else {
+				stack.shrink(1);
+				TileEntity tileentity = worldIn.getTileEntity(pos);
+
+				if ((tileentity instanceof RobotBlockTileEntity)
+						&& !ItemBlock.setTileEntityNBT(worldIn, (EntityPlayer) placer, pos, stack)) {
+					NBTTagCompound nbttagcompound = new NBTTagCompound();
+					tileentity.writeToNBT(nbttagcompound);
+					nbttagcompound.merge(stack.getTagCompound());
+					((RobotBlockTileEntity) tileentity).readFromNBT(nbttagcompound);
+					((RobotBlockTileEntity) tileentity).markForUpdate();
+				}
+			}
+		}
 	}
 
-	public void setRobotName(String robotName) {
-		this.robotName = robotName;
+	@Override
+	public TileEntity createNewTileEntity(World worldIn, int meta) {
+		return new RobotBlockTileEntity();
 	}
+	
+	
 }

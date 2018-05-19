@@ -11,7 +11,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
@@ -87,15 +89,11 @@ public class ItemWrench extends Item {
 			if ((entity != null) && (entity instanceof EntityRobot)) {
 				EntityRobot robot = (EntityRobot) worldIn.getEntityByID(entity.getEntityId());
 				if (robot != null) {
-					robot.setDead();
-					for (int a = 0; a < robot.robot_inventory.getSizeInventory(); a++) {
-						if (robot.robot_inventory.getStackInSlot(a) != null) {
-							worldIn.spawnEntity(new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ,
-									robot.robot_inventory.getStackInSlot(a)));
-						}
-					}
 					ItemStack robotStack = new ItemStack(RobotMod.robot_block, 1);
-					robotStack.setStackDisplayName(robot.getName());
+					robotStack.setTagCompound(robot.getNBTforItemStack());
+					robotStack.setStackDisplayName(robot.getRobotName());
+					
+					robot.setDead();
 					worldIn.spawnEntity(new EntityItem(worldIn, robot.posX, robot.posY + 0.3, robot.posZ, robotStack));
 				}
 			}
