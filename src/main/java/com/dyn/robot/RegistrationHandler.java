@@ -1,9 +1,21 @@
 package com.dyn.robot;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import org.apache.commons.lang3.text.WordUtils;
+
+import com.dyn.robot.blocks.RobotBlockTileEntity;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
+import com.dyn.schematics.block.ClaimBlockTileEntity;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
@@ -22,9 +34,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class RegistrationHandler {
@@ -37,32 +51,81 @@ public class RegistrationHandler {
 
 	}
 
-	@SubscribeEvent
+	// we want to register last so that we can create a file
+	// of all the items in the registry
+	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void registerBlocks(final RegistryEvent.Register<Block> event) {
 		event.getRegistry().register(RobotMod.robot_block);
 		event.getRegistry().register(RobotMod.robot_magent);
-		StringBuilder sb = new StringBuilder();
-		sb.append("from .block import Block\n\n");
-		for (Entry<ResourceLocation, Block> entry : event.getRegistry().getEntries()) {
-			Item bItem = Item.getItemFromBlock(entry.getValue());
-			if (!(bItem instanceof ItemPotion) && !(bItem instanceof ItemEnchantedBook)
-					&& !(bItem instanceof ItemMonsterPlacer) && !(bItem instanceof ItemTippedArrow)) {
-				NonNullList<ItemStack> items = NonNullList.create();
-				bItem.getSubItems(CreativeTabs.SEARCH, items);
-				for (ItemStack item : items) {
-					if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
-						Block block = Block.getBlockFromItem(item.getItem());
-						sb.append(String.format("%1$-33s",
-								item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("([#'\\)\\(])+",
-										""))
-								+ " = Block(" + Block.getIdFromBlock(block) + ", " + item.getMetadata() + ", \""
-								+ item.getDisplayName() + "\")\n");
+		File file = new File(RobotMod.apiFileLocation, "/core/blocks.py");
+		Set<String> names = new HashSet();
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+			writer.write("from .block import Block\n\n");
+			for (Entry<ResourceLocation, Block> entry : event.getRegistry().getEntries()) {
+				Item bItem = Item.getItemFromBlock(entry.getValue());
+				if (!(bItem instanceof ItemPotion) && !(bItem instanceof ItemEnchantedBook)
+						&& !(bItem instanceof ItemMonsterPlacer) && !(bItem instanceof ItemTippedArrow)) {
+					NonNullList<ItemStack> items = NonNullList.create();
+					bItem.getSubItems(CreativeTabs.SEARCH, items);
+					if (!items.isEmpty()) {
+						for (ItemStack item : items) {
+							if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
+								Block block = Block.getBlockFromItem(item.getItem());
+								if (names.add(item.getDisplayName().toUpperCase().replaceAll(" ", "_")
+										.replaceAll("(\\W)+", ""))) {
+									writer.write(String.format("%1$-33s",
+											item.getDisplayName().toUpperCase().replaceAll(" ", "_")
+													.replaceAll("(\\W)+", ""))
+											+ " = Block(" + Block.getIdFromBlock(block) + ", " + item.getMetadata()
+											+ ", \"" + item.getDisplayName() + "\")\n");
+								} else {
+									if (names.add(entry.getValue().getRegistryName().getResourcePath().toUpperCase()
+											.replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+										writer.write(String.format("%1$-33s",
+												entry.getValue().getRegistryName().getResourcePath().toUpperCase()
+														.replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+												+ " = Block(" + Block.getIdFromBlock(entry.getValue()) + ", " + 0
+												+ ", \"" + WordUtils.capitalizeFully(entry.getValue().getRegistryName()
+														.getResourcePath().replace("_", " "))
+												+ "\")\n");
+									} else {
+										if (Block.getIdFromBlock(block) == 80) {
+											// Snow blocks
+											writer.write(String.format("%1$-33s", "SNOW_BLOCK") + " = Block("
+													+ Block.getIdFromBlock(entry.getValue()) + ", " + 0
+													+ ", \"Snow Block\")\n");
+										} else {
+											RobotMod.logger.info("Found Duplicate name for Block: "
+													+ entry.getValue().getRegistryName().getResourcePath() + " - "
+													+ Block.getIdFromBlock(block));
+
+										}
+									}
+								}
+							}
+						}
+					} else {
+						if (names.add(entry.getValue().getRegistryName().getResourcePath().toUpperCase()
+								.replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+							writer.write(String.format("%1$-33s",
+									entry.getValue().getRegistryName().getResourcePath().toUpperCase()
+											.replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+									+ " = Block(" + Block.getIdFromBlock(entry.getValue()) + ", " + 0 + ", \""
+									+ WordUtils.capitalizeFully(
+											entry.getValue().getRegistryName().getResourcePath().replace("_", " "))
+									+ "\")\n");
+						} else {
+							RobotMod.logger.info("Found Duplicate name for Block: "
+									+ entry.getValue().getRegistryName().getResourcePath() + " - "
+									+ Block.getIdFromBlock(entry.getValue()));
+						}
 					}
 				}
 			}
-
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		sb.toString();
 	}
 
 	@SubscribeEvent
@@ -82,7 +145,9 @@ public class RegistrationHandler {
 		RegistrationHandler.registerTileEntities();
 	}
 
-	@SubscribeEvent
+	// we want to register last so that we can create a file
+	// of all the items in the registry
+	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void registerItems(final RegistryEvent.Register<Item> event) {
 		event.getRegistry().register(RobotMod.robot_remote);
 		event.getRegistry().register(RobotMod.robot_wrench);
@@ -96,28 +161,61 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.neuralyzer);
 		event.getRegistry().register(RobotMod.manual);
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("from .item import Item\n\n");
-		for (Entry<ResourceLocation, Item> entry : event.getRegistry().getEntries()) {
-			if (!(entry.getValue() instanceof ItemPotion) && !(entry.getValue() instanceof ItemEnchantedBook)
-					&& !(entry.getValue() instanceof ItemMonsterPlacer)
-					&& !(entry.getValue() instanceof ItemTippedArrow)) {
-				NonNullList<ItemStack> items = NonNullList.create();
-				entry.getValue().getSubItems(CreativeTabs.SEARCH, items);
-				for (ItemStack item : items) {
-					if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
-						Block block = Block.getBlockFromItem(item.getItem());
-						sb.append(String.format("%1$-33s",
-								item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("([#'\\)\\(])+",
-										""))
-								+ " = Item(" + Block.getIdFromBlock(block) + ", " + item.getMetadata() + ", \""
-								+ item.getDisplayName() + "\")\n");
+		File file = new File(RobotMod.apiFileLocation, "/core/items.py");
+		Set<String> names = new HashSet();
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+			writer.write("from .item import Item\n\n");
+			for (Entry<ResourceLocation, Item> entry : event.getRegistry().getEntries()) {
+				if (!(entry.getValue() instanceof ItemPotion) && !(entry.getValue() instanceof ItemEnchantedBook)
+						&& !(entry.getValue() instanceof ItemMonsterPlacer)
+						&& !(entry.getValue() instanceof ItemTippedArrow)) {
+					NonNullList<ItemStack> items = NonNullList.create();
+					entry.getValue().getSubItems(CreativeTabs.SEARCH, items);
+					for (ItemStack item : items) {
+						if (names.add(
+								item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+							writer.write(String.format("%1$-33s",
+									item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+									+ " = Item(" + Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata()
+									+ ", \"" + item.getDisplayName() + "\")\n");
+						} else {
+							if (names.add(item.getItem().getRegistryName().getResourcePath().toUpperCase())) {
+								writer.write(String.format("%1$-33s",
+										item.getItem().getRegistryName().getResourcePath().toUpperCase()) + " = Item("
+										+ Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata() + ", \""
+										+ WordUtils.capitalizeFully(item.getItem().getRegistryName().getResourcePath().replaceAll("_", " "))
+										+ "\")\n");
+							} else {
+								switch (Item.getIdFromItem(item.getItem())) {
+								case 80:
+									writer.write(String.format("%1$-33s", "SNOW_BLOCK") + " = Item("
+											+ Item.getIdFromItem(item.getItem()) + ", " + 0 + ", \"Snow Block\")\n");
+									break;
+								case 322:
+									writer.write(String.format("%1$-33s", "ENCHANTED_GOLDEN_APPLE")
+											+ " = Item(" + Item.getIdFromItem(item.getItem()) + ", "
+											+ item.getMetadata() + ", \"Enchanted Golden Apple\")\n");
+									break;
+								case 360:
+									writer.write(String.format("%1$-33s", "MELON_SLICE") + " = Item("
+											+ Item.getIdFromItem(item.getItem()) + ", " + 0 + ", \"Melon Slice\")\n");
+									break;
+								default:
+									RobotMod.logger.info("Found Duplicate name for Item: "
+											+ item.getItem().getRegistryName().getResourcePath() + " - "
+											+ Item.getIdFromItem(item.getItem()));
+								}
+							}
+						}
 					}
 				}
+
 			}
 
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		sb.toString();
 	}
 
 	/**
@@ -137,7 +235,7 @@ public class RegistrationHandler {
 	}
 
 	private static void registerTileEntities() {
-
+		GameRegistry.registerTileEntity(RobotBlockTileEntity.class, "robot_block_te");
 	}
 
 }
