@@ -56,9 +56,10 @@ class Robot:
         """Detect entities within a range of the robot"""
         ans = self.mc.conn.sendReceive("robot.detect", self.robotId)
         entities = []
-        for x in ans.split("%"):
-            val = x.split("|")
-            entities.append(entity.Entity(int(val[1]), val[0]))
+        if ans:
+            for x in ans.split("%"):
+                val = x.split("|")
+                entities.append(entity.Entity(int(val[1]), val[0]))
         return entities
 
     def attack(self, enemy):
