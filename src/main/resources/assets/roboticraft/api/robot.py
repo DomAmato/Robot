@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from .core import minecraft as minecraft
 from .core import block as _block
 from .core import item as _item
@@ -5,21 +7,27 @@ from .core import entity as entity
 from .core import facing as facing
 from .core.vec3 import Vec3
 from .core.util import flatten, floorFlatten
+from os import environ
+import atexit
 import time
 
 class Robot:
 
     def __init__(self):
         self.mc = minecraft.Minecraft()
-        self.robotId = self.mc.conn.sendReceive("robot.id", self.mc.playerId)
+        self.robotId = int(environ['MINECRAFT_ROBOT_ID'])
+        assert (int(self.mc.conn.sendReceive("robot.start", self.robotId)) == self.robotId)
+        atexit.register(self.mc.conn.close, self.robotId)
         self.delayTime = 0.1
+
+    def __del__(self):
+        try:
+            atexit.unregister(self.mc.conn.close)
+        except:
+            pass
 
     def __str__(self):
         return self.mc.conn.sendReceive("robot.name", self.robotId)
-
-    def robot(self):
-        """Initialize the Robot"""
-        self.robotId = self.mc.conn.sendReceive("robot.id", self.mc.playerId)
 
     def buildSchematic(self):
         self.mc.conn.sendReceive("robot.schematic", self.robotId)

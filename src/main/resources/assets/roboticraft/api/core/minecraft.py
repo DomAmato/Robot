@@ -37,10 +37,7 @@ def stringToBlockWithNBT(s, pipeFix = False):
 class Minecraft:
     """The main class to interact with a running instance of Minecraft Pi."""
 
-    def __init__(self, connection=None, autoId=True, name=None):
-        if name is not None:
-            autoId = False
-    
+    def __init__(self, connection=None):
         if connection:
             self.conn = connection
         else:
@@ -50,20 +47,14 @@ class Minecraft:
         
         self.playerId = None
         
-        if autoId:
-            try:
-                 self.playerId = int(environ['MINECRAFT_PLAYER_ID'])
-            except:
-                try:
-                    self.playerId = self.getPlayerId(environ['MINECRAFT_PLAYER_NAME'])
-                except:
-                    raise RuntimeError("Could not get player ID")
+        try:
+             self.playerId = int(environ['MINECRAFT_PLAYER_ID'])
+        except:
+            raise RuntimeError("Could not get player ID")
         
         self.enabledNBT = False
         atexit.register(self.conn.close, self.playerId)
 
-
-    
     def __del__(self):
         try:
             atexit.unregister(self.conn.close)
@@ -71,8 +62,8 @@ class Minecraft:
             pass 
 
     @staticmethod
-    def create(address = None, port = None, name = None):
-        return Minecraft(Connection(address, port), name = None)
+    def create(address = None, port = None):
+        return Minecraft(Connection(address, port))
         
 if __name__ == "__main__":
     mc = Minecraft.create()
