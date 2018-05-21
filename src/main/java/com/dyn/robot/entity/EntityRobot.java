@@ -22,10 +22,15 @@ import com.dyn.robot.entity.ai.EntityAIJumpToward;
 import com.dyn.robot.entity.ai.EntityAIRobotAttackTarget;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
+import com.dyn.robot.items.ItemExpansionChip;
+import com.dyn.robot.items.ItemMemoryCard;
+import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemMemoryWipe;
+import com.dyn.robot.items.ItemRedstoneMeter;
 import com.dyn.robot.items.ItemRemote;
+import com.dyn.robot.items.ItemSIMCard;
 import com.dyn.robot.items.ItemWrench;
-import com.dyn.robot.python.RunPythonShell;
+import com.dyn.robot.python.RobotScript;
 import com.dyn.robot.utils.FileUtils;
 import com.google.common.base.Optional;
 
@@ -619,11 +624,22 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
 				}
 
-				RobotAPI.setRobotId(getEntityId(), getOwner());
-
-				RobotMod.proxy.addScheduledTask(() -> RunPythonShell
-						.run(Arrays.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
-								.split(Pattern.quote("\n"))), getOwner(), getEntityId()));
+				RobotMod.proxy.addScheduledTask(() -> {
+					if (RobotMod.runningProcesses.containsKey(getEntityId())) {
+						RobotMod.runningProcesses.get(getEntityId()).endScript();
+						RobotMod.runningProcesses.replace(getEntityId(),
+								new RobotScript(Arrays
+										.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+												.split(Pattern.quote("\n"))),
+										getOwner(), getEntityId()));
+					} else {
+						RobotMod.runningProcesses.put(getEntityId(),
+								new RobotScript(Arrays
+										.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+												.split(Pattern.quote("\n"))),
+										getOwner(), getEntityId()));
+					}
+				});
 			}
 		}
 	}
@@ -643,7 +659,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	 */
 	@Override
 	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack itemstack = player.inventory.getCurrentItem();
+		ItemStack itemstack = player.getHeldItem(hand);
 		if (world.isRemote) {
 			if (itemstack != null) {
 				if ((itemstack.getItem() instanceof ItemRemote) && isEntityAlive()) {
@@ -660,18 +676,53 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 						}
 					}
 					return true;
-				} else if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+				} else if (isOwner(player)) {
+					if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+						((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+					} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+						((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+					}
 				}
 			}
 		} else {
-			if (itemstack != null) {
-				if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
-					((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
-				} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
-					((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+			if (player.getActiveHand() == hand) {
+				if (itemstack != null) {
+					if (isOwner(player)) {
+						if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
+							((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
+						} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
+							((ItemMemoryWipe) player.inventory.getCurrentItem().getItem()).setEntity(this);
+						} else if ((itemstack.getItem() instanceof ItemExpansionChip) && isEntityAlive()
+								&& !robot_inventory.hasExpansionChip(itemstack)
+								&& !robot_inventory.isExpansionSlotsFull()) {
+							ItemStack is = itemstack.copy();
+							is.setCount(1);
+							itemstack.shrink(1);
+							robot_inventory.setInventorySlotContents(robot_inventory.getOpenExpansionSlot(), is);
+						} else if ((itemstack.getItem() instanceof ItemMemoryCard) && isEntityAlive()) {
+							ItemStack is = itemstack.copy();
+							player.setHeldItem(hand, robot_inventory.getStackInSlot(0));
+							robot_inventory.setInventorySlotContents(0, is);
+						} else if ((itemstack.getItem() instanceof ItemMemoryStick)
+								&& robot_inventory.getStackInSlot(1) == ItemStack.EMPTY && isEntityAlive()) {
+							ItemStack is = itemstack.copy();
+							is.setCount(1);
+							itemstack.shrink(1);
+							robot_inventory.setInventorySlotContents(1, is);
+						} else if ((itemstack.getItem() instanceof ItemRedstoneMeter)
+								&& robot_inventory.getStackInSlot(4) == ItemStack.EMPTY && isEntityAlive()) {
+							ItemStack is = itemstack.copy();
+							is.setCount(1);
+							itemstack.shrink(1);
+							robot_inventory.setInventorySlotContents(4, is);
+						} else if ((itemstack.getItem() instanceof ItemSIMCard)
+								&& robot_inventory.getStackInSlot(3) == ItemStack.EMPTY && isEntityAlive()) {
+							ItemStack is = itemstack.copy();
+							is.setCount(1);
+							itemstack.shrink(1);
+							robot_inventory.setInventorySlotContents(3, is);
+						}
+					}
 				}
 			}
 		}
@@ -683,11 +734,10 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		super.readEntityFromNBT(nbttagcompound);
 
 		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", Constants.NBT.TAG_LIST);
-		// robot_inventory = new ItemStack[32];
 		for (int i = 0; i < nbttaglist.tagCount(); i++) {
 			NBTTagCompound itemtag = nbttaglist.getCompoundTagAt(i);
 			int slot = itemtag.getByte("Slot") & 0xFF;
-			if ((slot >= 0) && (slot < 32)) {
+			if ((slot >= 0) && (slot < robot_inventory.getSizeInventory())) {
 				robot_inventory.setInventorySlotContents(slot, new ItemStack(itemtag));
 			}
 		}
