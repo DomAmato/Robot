@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.python.RunPythonShell;
+import com.dyn.robot.python.RobotScript;
 import com.dyn.robot.utils.FileUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -47,11 +47,18 @@ public class MessageRunRobotScript implements IMessage {
 						e);
 			}
 
-			RobotAPI.setRobotId(message.getId(), ctx.getServerHandler().player);
-
-			RobotMod.proxy.addScheduledTask(
-					() -> RunPythonShell.run(Arrays.asList(message.getScript().split(Pattern.quote("\n"))),
-							ctx.getServerHandler().player, message.getId()));
+			RobotMod.proxy.addScheduledTask(() -> {
+				if (RobotMod.runningProcesses.containsKey(message.getId())) {
+					RobotMod.runningProcesses.get(message.getId()).endScript();
+					RobotMod.runningProcesses.replace(message.getId(),
+							new RobotScript(Arrays.asList(message.getScript().split(Pattern.quote("\n"))),
+									ctx.getServerHandler().player, message.getId()));
+				} else {
+					RobotMod.runningProcesses.put(message.getId(),
+							new RobotScript(Arrays.asList(message.getScript().split(Pattern.quote("\n"))),
+									ctx.getServerHandler().player, message.getId()));
+				}
+			});
 			return null;
 		}
 	}

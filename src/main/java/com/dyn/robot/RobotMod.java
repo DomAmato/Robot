@@ -41,6 +41,7 @@ import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.SocketEvent;
 import com.dyn.robot.network.messages.RobotErrorMessage;
 import com.dyn.robot.proxy.Proxy;
+import com.dyn.robot.python.RobotScript;
 import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
@@ -127,8 +128,8 @@ public class RobotMod {
 	public static int currentPortNumber;
 	public static String serverAddress = null;
 
-	// player scripts so admins/mods can destroy running scripts
-	public static Map<EntityPlayer, Process> playerProcesses = Maps.newHashMap();
+	// currently running scripts
+	public static Map<Integer, RobotScript> runningProcesses = Maps.newHashMap();
 
 	// an easier way to index recipes
 	public static Map<SimpleItemStack, List<IRecipe>> recipeMap = Maps.newHashMap();
@@ -136,10 +137,7 @@ public class RobotMod {
 	public static Logger logger;
 
 	private static List<APIHandler> apiHandlers = new ArrayList<>();
-
-	// server
-	public static BiMap<Integer, EntityPlayer> robotid2player = HashBiMap.create();
-
+	
 	// client
 	public static List<EntityRobot> currentRobots = new ArrayList();
 
@@ -316,8 +314,8 @@ public class RobotMod {
 
 		MinecraftForge.EVENT_BUS.unregister(this);
 
-		for (Process process : RobotMod.playerProcesses.values()) {
-			process.destroy();
+		for (RobotScript script : RobotMod.runningProcesses.values()) {
+			script.endScript();
 		}
 
 		if (fullAPIServer != null) {
@@ -437,16 +435,8 @@ public class RobotMod {
 	}
 
 	@SubscribeEvent
-	public void socketClose(SocketEvent.Close event) {
-		if (RobotMod.robotid2player.inverse().containsKey(event.getPlayer())) {
-			World world = event.getPlayer().world;
-			EntityRobot robot = (EntityRobot) world
-					.getEntityByID(RobotMod.robotid2player.inverse().get(event.getPlayer()));
-			RobotMod.logger.debug("Stop Executing Code from Socket Message for Player: " + event.getPlayer().getName());
-			if (robot != null) {
-				robot.stopExecutingCode();
-			}
-		}
+	public void socketClose(SocketEvent.CloseRobot event) {
+			event.getRobot().stopExecutingCode();
 	}
 
 	@SubscribeEvent
