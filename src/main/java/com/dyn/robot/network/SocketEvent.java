@@ -12,14 +12,15 @@ public class SocketEvent extends Event {
 			super(player);
 		}
 	}
-	
-	public static class CloseRobot extends Close {	
+
+	public static class CloseRobot extends Close {
 		private final EntityRobot robot;
+
 		public CloseRobot(EntityRobot robot) {
 			super(robot.getOwner());
 			this.robot = robot;
 		}
-		
+
 		public EntityRobot getRobot() {
 			return robot;
 		}

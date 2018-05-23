@@ -10,7 +10,6 @@ import com.dyn.robot.network.SocketEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -96,12 +95,12 @@ public class Python2MinecraftApi {
 			// attached
 			if (scan.hasNextInt()) {
 				Entity entity = Python2MinecraftApi.getServerEntityByID(scan.nextInt());
-				if(entity instanceof EntityPlayer) {
-				MinecraftForge.EVENT_BUS.post(new SocketEvent.Close((EntityPlayer) entity));
-				Python2MinecraftApi.sendLine("Closing Socket for Player: " + entity.getName());
+				if (entity instanceof EntityPlayer) {
+					MinecraftForge.EVENT_BUS.post(new SocketEvent.Close((EntityPlayer) entity));
+					Python2MinecraftApi.sendLine("Closing Socket for Player: " + entity.getName());
 				} else if (entity instanceof EntityRobot) {
 					MinecraftForge.EVENT_BUS.post(new SocketEvent.CloseRobot((EntityRobot) entity));
-				Python2MinecraftApi.sendLine("Closing Socket for Robot: " + ((EntityRobot)entity).getRobotName());
+					Python2MinecraftApi.sendLine("Closing Socket for Robot: " + ((EntityRobot) entity).getRobotName());
 				}
 			}
 		});
