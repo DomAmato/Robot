@@ -21,8 +21,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -83,6 +83,8 @@ public class RobotAPI extends Python2MinecraftApi {
 	private static final String ROBOTCRAFT = "robot.craft";
 	private static final String ROBOTEQUIP = "robot.equip";
 	private static final String ROBOTHAS = "robot.contains";
+	private static final String ROBOTINVENTORY = "robot.inventory";
+	private static final String ROBOTINVFULL = "robot.full";
 
 	public static EntityRobot getRobotEntityFromID(int id) {
 		EntityRobot robot = (EntityRobot) Python2MinecraftApi.getServerEntityByID(id);
@@ -443,11 +445,11 @@ public class RobotAPI extends Python2MinecraftApi {
 						robot.robot_inventory.getStackOfItem(new ItemStack(RobotMod.expChip, 1, 6)));
 				// Can map the entity this way
 				// EntityList.stringToClassMapping.get("");
-				List<EntityMob> list = robot.world.getEntitiesWithinAABB(EntityMob.class,
+				List<EntityLiving> list = robot.world.getEntitiesWithinAABB(EntityLiving.class,
 						robot.getEntityBoundingBox().expand(5 + (10 * level), 5 + (10 * level), 5 + (10 * level)));
 
 				String entityList = "";
-				for (EntityMob entity : list) {
+				for (EntityLiving entity : list) {
 					entityList += entity.getName() + "|" + entity.getEntityId() + "%";
 				}
 				if (!entityList.isEmpty()) {
@@ -471,7 +473,7 @@ public class RobotAPI extends Python2MinecraftApi {
 					}
 				}
 				id = scan.nextInt();
-				Entity target = RobotAPI.getServerEntityByID(id);
+				Entity target = Python2MinecraftApi.getServerEntityByID(id);
 				if (target instanceof EntityPlayer) {
 					Python2MinecraftApi.fail("Cannot go against the first law of robotics");
 				}
@@ -615,19 +617,19 @@ public class RobotAPI extends Python2MinecraftApi {
 			int id = scan.nextInt();
 			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
 			if (robot != null) {
-			if (!robot.shouldExecuteCode()) {
-				Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
-				return;
-			}
-			// adds a comma to the beginning so we substring
-			if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
-				Python2MinecraftApi.fail("Robot does not know the say command");
-				return;
-			}
-			EntityPlayerMP player = (EntityPlayerMP) robot.getOwner();
-			if (player != null) {
-				NetworkManager.sendTo(new RobotSpeakMessage(scan.nextLine().substring(1), id), player);
-			}
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				// adds a comma to the beginning so we substring
+				if (!robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					Python2MinecraftApi.fail("Robot does not know the say command");
+					return;
+				}
+				EntityPlayerMP player = (EntityPlayerMP) robot.getOwner();
+				if (player != null) {
+					NetworkManager.sendTo(new RobotSpeakMessage(scan.nextLine().substring(1), id), player);
+				}
 			}
 		});
 		APIRegistry.registerCommand(RobotAPI.ROBOTJUMP, (String args, Scanner scan) -> {
@@ -999,6 +1001,48 @@ public class RobotAPI extends Python2MinecraftApi {
 
 				MinecraftForge.EVENT_BUS
 						.post(new CodeEvent.RobotSuccessEvent("True", robot.getEntityId(), robot.getOwner()));
+			}
+		});
+		APIRegistry.registerCommand(RobotAPI.ROBOTINVENTORY, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) robot.getOwner();
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Getting Inventory", id), player);
+					}
+				}
+
+				String invItems = "";
+				for (int i = 15; i < robot.robot_inventory.getSizeInventory(); i++) {
+					ItemStack stack = robot.robot_inventory.getStackInSlot(i);
+					invItems += Item.getIdFromItem(stack.getItem()) + "|" + stack.getMetadata() + "%";
+				}
+				if (!invItems.isEmpty()) {
+					invItems = invItems.substring(0, invItems.length() - 1);
+				}
+				Python2MinecraftApi.sendLine(invItems);
+			}
+		});
+		APIRegistry.registerCommand(RobotAPI.ROBOTINVFULL, (String args, Scanner scan) -> {
+			int id = scan.nextInt();
+			EntityRobot robot = RobotAPI.getRobotEntityFromID(id);
+			if (robot != null) {
+				if (!robot.shouldExecuteCode()) {
+					Python2MinecraftApi.fail("Robot is not executing code, it might be out of sync");
+					return;
+				}
+				if (robot.robot_inventory.hasExpansionChip(new ItemStack(RobotMod.expChip, 1, 15))) {
+					EntityPlayerMP player = (EntityPlayerMP) robot.getOwner();
+					if (player != null) {
+						NetworkManager.sendTo(new RobotSpeakMessage("Checking Inventory", id), player);
+					}
+				}
+
+				MinecraftForge.EVENT_BUS.post(
+						new CodeEvent.RobotSuccessEvent(robot.robot_inventory.isInventoryFull() ? "True" : "False",
+								robot.getEntityId(), robot.getOwner()));
 			}
 		});
 	}
