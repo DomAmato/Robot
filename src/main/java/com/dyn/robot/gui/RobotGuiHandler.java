@@ -39,7 +39,7 @@ public class RobotGuiHandler implements IGuiHandler {
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		EntityRobot robot = (EntityRobot) world.getEntityByID(ID);
-		if ((robot != null) && (robot.getOwner() == player)) {
+		if ((robot != null) && (robot.isOwner(player))) {
 			return new RobotChipContainer(player.inventory, robot.robot_inventory, robot, player);
 		}
 		RobotMod.logger.error("<Server> Invalid ID: Could not find robot with that id");
