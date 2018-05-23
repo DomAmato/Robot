@@ -7,6 +7,12 @@
 			"description": "Create the connection between your controller and the robots computer brain"
 		},
 		{
+			"package": "robot.reorient",
+			"short": "Reset Robot Orientation",
+			"argument_list": "reorient()",
+			"description": "Resets the robots path to its current location and heading"
+		},
+		{
 			"package": "robot.inspect",
 			"short": "Get the Block in (x, y, z)",
 			"argument_list": "inspect([x,y,z])",
@@ -37,10 +43,22 @@
 			"description": "Turns the robot 90 degrees clockwise from current heading"
 		},
 		{
+			"package": "robot.face",
+			"short": "Make Robot face a direction",
+			"argument_list": "face(dir)",
+			"description": "Make robot face a cardinal direction\n\nCan be an int 0-3, string 'n' 'north' or a Facing object"
+		},
+		{
 			"package": "robot.forward",
 			"short": "Make Robot move Forward",
 			"argument_list": "forward(distance)",
 			"description": "Defaults to 1 block forward but can be a positive integer"
+		},
+		{
+			"package": "robot.backward",
+			"short": "Make Robot move Backward",
+			"argument_list": "backward(distance)",
+			"description": "Defaults to 1 block backward but can be any positive integer"
 		},
 		{
 			"package": "robot.climb",
@@ -57,8 +75,8 @@
 		{
 			"package": "robot.place",
 			"short": "Have the robot Place a block",
-			"argument_list": "place([x,y,z])",
-			"description": "Places a block from robot inventory\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+			"argument_list": "place(block, location=Vec3([x,y,z]))",
+			"description": "Places a block from robot inventory\n\nDefaults to the position directly in front of the robot but can be within 1 block of robot"
 		},
 		{
 			"package": "robot.mine",
@@ -83,6 +101,36 @@
 			"short": "Have the robot interact with the game",
 			"argument_list": "interact([x,y,z])",
 			"description": "Make the robot push buttons, open doors, etc.\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.useTool",
+			"short": "Have the robot use its currently equipped tool",
+			"argument_list": "interact([x,y,z])",
+			"description": "Make the robot use its currenly equipped tool.\n\nDefaults to the block directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.useItem",
+			"short": "Have the robot use an item from its inventory",
+			"argument_list": "useItem(item, location=Vec3([x,y,z]))",
+			"description": "Uses an item from robot inventory\n\nDefaults to the position directly in front of the robot but can be within 1 block of robot"
+		},
+		{
+			"package": "robot.equip",
+			"short": "Make robot equip an Item",
+			"argument_list": "equip(item)",
+			"description": "Equips an item assuming it is a tool (modded items have to subclass ItemTool)"
+		},
+		{
+			"package": "robot.has",
+			"short": "Does robot have item",
+			"argument_list": "has(item, amount=1)",
+			"description": "Checks if the robot has the amount of an item in its inventory"
+		},
+		{
+			"package": "robot.craft",
+			"short": "Have the robot craft an item",
+			"argument_list": "craft(item)",
+			"description": "If the robot has the materials, make it craft the passed in item"
 		}
 	]
 }
