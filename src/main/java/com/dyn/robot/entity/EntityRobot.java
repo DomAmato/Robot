@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import com.dyn.robot.RobotMod;
-import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.ai.EntityAIExecuteProgrammedPath;
 import com.dyn.robot.entity.ai.EntityAIFollowsOwnerEX;
 import com.dyn.robot.entity.ai.EntityAIJumpToward;
@@ -614,30 +613,29 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				clearProgramPath();
 				startExecutingCode();
 
-				File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
-						+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
-				try {
-					FileUtils.writeFile(scriptFile,
-							robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
-				} catch (IOException e) {
-					RobotMod.logger.error(
-							"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
+				if (RobotMod.saveScripts) {
+					File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
+							+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
+					try {
+						FileUtils.writeFile(scriptFile,
+								robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
+					} catch (IOException e) {
+						RobotMod.logger.error(
+								"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
+					}
 				}
-
 				RobotMod.proxy.addScheduledTask(() -> {
 					if (RobotMod.runningProcesses.containsKey(getEntityId())) {
 						RobotMod.runningProcesses.get(getEntityId()).endScript();
 						RobotMod.runningProcesses.replace(getEntityId(),
-								new RobotScript(Arrays
-										.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
-												.split(Pattern.quote("\n"))),
-										getOwner(), getEntityId()));
+								new RobotScript(Arrays.asList(RobotMod.pythonImportRegex
+										.matcher(robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+										.replaceAll("").split(Pattern.quote("\n"))), getOwner(), getEntityId()));
 					} else {
 						RobotMod.runningProcesses.put(getEntityId(),
-								new RobotScript(Arrays
-										.asList((robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
-												.split(Pattern.quote("\n"))),
-										getOwner(), getEntityId()));
+								new RobotScript(Arrays.asList(RobotMod.pythonImportRegex
+										.matcher(robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+										.replaceAll("").split(Pattern.quote("\n"))), getOwner(), getEntityId()));
 					}
 				});
 			}
@@ -704,19 +702,19 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 							player.setHeldItem(hand, robot_inventory.getStackInSlot(0));
 							robot_inventory.setInventorySlotContents(0, is);
 						} else if ((itemstack.getItem() instanceof ItemMemoryStick)
-								&& robot_inventory.getStackInSlot(1) == ItemStack.EMPTY && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(1) == ItemStack.EMPTY) && isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);
 							robot_inventory.setInventorySlotContents(1, is);
 						} else if ((itemstack.getItem() instanceof ItemRedstoneMeter)
-								&& robot_inventory.getStackInSlot(4) == ItemStack.EMPTY && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(4) == ItemStack.EMPTY) && isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);
 							robot_inventory.setInventorySlotContents(4, is);
 						} else if ((itemstack.getItem() instanceof ItemSIMCard)
-								&& robot_inventory.getStackInSlot(3) == ItemStack.EMPTY && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(3) == ItemStack.EMPTY) && isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);

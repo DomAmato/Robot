@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
 
@@ -47,8 +48,6 @@ import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.dyn.robot.utils.PathUtility;
 import com.dyn.robot.utils.SimpleItemStack;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -137,9 +136,15 @@ public class RobotMod {
 	public static Logger logger;
 
 	private static List<APIHandler> apiHandlers = new ArrayList<>();
-	
+
 	// client
 	public static List<EntityRobot> currentRobots = new ArrayList();
+
+	public static Pattern pythonImportRegex;
+
+	public static boolean saveScripts;
+
+	public static String scriptFolder;
 
 	/**
 	 * Create a {@link SoundEvent}.
@@ -175,7 +180,15 @@ public class RobotMod {
 				"python", "Python interpreter");
 		RobotMod.apiLocation = RobotMod.configFile.getString("Minecraft Python API Directory",
 				Configuration.CATEGORY_GENERAL, "roboticraft/api", "Relative to .minecraft folder or server jar");
-
+		RobotMod.pythonImportRegex = Pattern.compile(
+				RobotMod.configFile.getString("A regular expression to filter import statements",
+						Configuration.CATEGORY_GENERAL, "^(from|import)\\s+(?!(api).*).*",
+						"Instead of requiring a bunch of setup for a sandbox just remove non api imports"),
+				Pattern.MULTILINE);
+		RobotMod.scriptFolder = RobotMod.configFile.getString("Minecraft Python Saved Script Directory",
+				Configuration.CATEGORY_GENERAL, "python_scripts", "Relative to .minecraft folder or server jar");
+		RobotMod.saveScripts = RobotMod.configFile.getBoolean("Save Scripts ", Configuration.CATEGORY_GENERAL, true,
+				"Save excuted scripts to the script folder, logs by player or robot name");
 		if (RobotMod.configFile.hasChanged()) {
 			RobotMod.configFile.save();
 		}
@@ -385,7 +398,7 @@ public class RobotMod {
 		} else {
 			// only do this server side
 			RobotMod.scriptsLoc = new File(FMLCommonHandler.instance().getMinecraftServerInstance().getDataDirectory(),
-					"python_scripts");
+					RobotMod.scriptFolder);
 
 			if (!RobotMod.scriptsLoc.exists()) {
 				RobotMod.scriptsLoc.mkdir();
@@ -436,7 +449,7 @@ public class RobotMod {
 
 	@SubscribeEvent
 	public void socketClose(SocketEvent.CloseRobot event) {
-			event.getRobot().stopExecutingCode();
+		event.getRobot().stopExecutingCode();
 	}
 
 	@SubscribeEvent
