@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
-from .core import minecraft as minecraft
-from .core import block as _block
-from .core import item as _item
-from .core import entity as entity
-from .core import facing as facing
+from .core.minecraft import Minecraft
+from .core.block import Block
+from .core.item import Item
+from .core.items import *
+from .core.entity import Entity
+from .core.facing import Facing
 from .core.vec3 import Vec3
 from .core.util import flatten, floorFlatten
 from os import environ
@@ -14,7 +15,7 @@ import time
 class Robot:
 
     def __init__(self):
-        self.mc = minecraft.Minecraft()
+        self.mc = Minecraft()
         self.robotId = int(environ['MINECRAFT_ROBOT_ID'])
         assert (int(self.mc.conn.sendReceive("robot.start", self.robotId)) == self.robotId)
         atexit.register(self.mc.conn.close, self.robotId)
@@ -47,7 +48,7 @@ class Robot:
             ans = self.mc.conn.sendReceive_flat("robot.inspect", floorFlatten(newArgs))
         else:
             ans = self.mc.conn.sendReceive("robot.inspect", self.robotId)
-        return _block.Block(*[int(x) for x in ans.split(",")[:2]])
+        return Block(*[int(x) for x in ans.split(",")[:2]])
 
     def turn(self, angle):
         """Compass turn of robot (turn:float/int) in degrees: 0=south, 90=west, 180=north, 270=west"""
@@ -67,12 +68,12 @@ class Robot:
         if ans:
             for x in ans.split("%"):
                 val = x.split("|")
-                entities.append(entity.Entity(int(val[1]), val[0]))
+                entities.append(Entity(int(val[1]), val[0]))
         return entities
 
     def attack(self, enemy):
         """Attack Entity of the respective ID"""
-        if type(enemy) is entity.Entity:
+        if type(enemy) is Entity:
             ans = self.mc.conn.sendReceive("robot.attack", self.robotId, enemy.getEntityId())
         elif type(enemy) is int:
             ans = self.mc.conn.sendReceive("robot.attack", self.robotId, enemy)
@@ -88,15 +89,15 @@ class Robot:
         self.turn(90)
 
     def face(self, dir):
-        if type(dir) is facing.Facing:
+        if type(dir) is Facing:
             self.mc.conn.send("robot.face", self.robotId, dir.id)
         elif type(dir) is int:
-            self.mc.conn.send("robot.face", self.robotId, facing.fromId(dir).id)
+            self.mc.conn.send("robot.face", self.robotId, Facing.fromId(dir).id)
         elif type(dir) is str:
             if len(dir) == 1:
-                self.mc.conn.send("robot.face", self.robotId, facing.fromLetter(dir).id)
+                self.mc.conn.send("robot.face", self.robotId, Facing.fromLetter(dir).id)
             else:
-                self.mc.conn.send("robot.face", self.robotId, facing.fromName(dir).id)
+                self.mc.conn.send("robot.face", self.robotId, Facing.fromName(dir).id)
         else:
             raise TypeError(str(dir) + " is not a valid input")
         self.delay(self.delayTime)
@@ -125,7 +126,7 @@ class Robot:
         else:
             raise TypeError(str(distance) + " is not a valid input")
 
-    def place(self,  block = _block.Block(0,0), location = Vec3(0,0,0)):
+    def place(self,  block = Block(0,0), location = Vec3(0,0,0)):
         """Place block in front of robot, else within 1x1x1 range of robot (x,y,z), robot uses inventory"""
         args = [int(self.robotId)]
         if not location.lengthSqr() == 0:
@@ -135,7 +136,7 @@ class Robot:
             args.append(location.z)
         else:
             args.append(False)
-        if not block == _block.Block(0,0):
+        if not block == Block(0,0):
             args.append(True)
             args.append(block.id)
             args.append(block.data)
@@ -233,6 +234,21 @@ class Robot:
         args.append(item.data)
         self.mc.conn.sendReceive_flat("robot.craft", floorFlatten(args))
         self.delay(self.delayTime)
+
+    def inventory(self):
+        """Return a list of items in the Robots Inventory"""
+        ans = self.mc.conn.sendReceive("robot.inventory", self.robotId)
+        items = []
+        if ans:
+            for x in ans.split("%"):
+                val = x.split("|")
+                items.append(ITEMS[Item(int(val[0]), int(val[1]))])
+        return items
+
+    def full(self):
+        """Is the Robot Inventory full"""
+        retval = self.mc.conn.sendReceive("robot.full",  self.robotId).split(',')[1]
+        return self.__to_bool(retval)
 
     def getDirection(self):
         """Get entity direction (entityId:int) => Vec3"""
