@@ -22,6 +22,10 @@ import net.minecraftforge.common.MinecraftForge;
 public class RobotScript {
 
 	private String scriptProcessorPath;
+	private Process runningScript;
+
+	private int robotId = 0;
+
 	public RobotScript(List<String> program, EntityPlayer player, int robotId) {
 		try {
 			this.robotId = robotId;
@@ -38,7 +42,7 @@ public class RobotScript {
 
 			Map<String, String> environment = builder.environment();
 			environment.put("MINECRAFT_PLAYER_ID", "" + player.getEntityId());
-			environment.put("MINECRAFT_ROBOT_ID", ""+robotId);
+			environment.put("MINECRAFT_ROBOT_ID", "" + robotId);
 			environment.put("MINECRAFT_API_PORT", "" + RobotMod.currentPortNumber);
 
 			runningScript = builder.start();
@@ -77,18 +81,9 @@ public class RobotScript {
 			writer.flush();
 		} catch (IOException e) {
 			RobotMod.logger.error(e);
-			MinecraftForge.EVENT_BUS
-					.post(new CodeEvent.RobotErrorEvent("", e.getMessage(), 0, player, robotId));
+			MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent("", e.getMessage(), 0, player, robotId));
 		}
 	}
-	
-	public void endScript() {
-		runningScript.destroy();
-	}
-
-	private Process runningScript;
-
-	private int robotId = 0;
 
 	private void createErrorListenerDaemon(final InputStream stream, final EntityPlayer entity) {
 		Thread t = new Thread() {
@@ -108,7 +103,7 @@ public class RobotScript {
 							if (line.contains(">>>")) {
 								lineNum = line;
 							} else {
-								
+
 								// stop the script from executing
 								if (line.contains("Error:")) {
 									try {
@@ -139,14 +134,13 @@ public class RobotScript {
 									// server side and translated to client
 									line = line.substring(line.lastIndexOf(".") + 1);
 
-									MinecraftForge.EVENT_BUS.post(new CodeEvent.RobotErrorEvent(codeLine,
-											line, lineLoc, entity, robotId));
+									MinecraftForge.EVENT_BUS.post(
+											new CodeEvent.RobotErrorEvent(codeLine, line, lineLoc, entity, robotId));
 
 									lineNum = "";
 									codeLine = "";
 									// kill the script if it hasnt been already
-									if ((runningScript != null)
-											&& isProcessAlive()) {
+									if ((runningScript != null) && isProcessAlive()) {
 										runningScript.destroy();
 									}
 									break;
@@ -167,6 +161,10 @@ public class RobotScript {
 		};
 		t.setDaemon(true);
 		t.start();
+	}
+
+	public void endScript() {
+		runningScript.destroy();
 	}
 
 	public boolean isProcessAlive() {

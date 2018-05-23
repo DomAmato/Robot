@@ -208,21 +208,21 @@ public class RobotInventory extends InventoryBasic {
 		return !(getStackInSlot(0).isEmpty());
 	}
 
-	public boolean isInventoryEmpty() {
-		for (int a = 14; a < getSizeInventory(); a++) {
-			if (!getStackInSlot(a).isEmpty()) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public boolean isExpansionSlotsFull() {
 		for (int a = 5; a < 14; a++) {
 			if (getStackInSlot(a).isEmpty()) {
 				removeStackFromSlot(a);
 			}
 			if (getStackInSlot(a).isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean isInventoryEmpty() {
+		for (int a = 14; a < getSizeInventory(); a++) {
+			if (!getStackInSlot(a).isEmpty()) {
 				return false;
 			}
 		}
