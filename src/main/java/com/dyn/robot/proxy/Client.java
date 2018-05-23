@@ -38,6 +38,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -66,6 +67,11 @@ public class Client implements Proxy {
 				RobotMod.currentRobots.add((EntityRobot) event.getEntity());
 			}
 		}
+	}
+
+	@SubscribeEvent
+	public void clientWorldEvent(PlayerLoggedOutEvent event) {
+		RobotMod.currentRobots.clear();
 	}
 
 	@Override
