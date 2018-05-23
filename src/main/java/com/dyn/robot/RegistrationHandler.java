@@ -69,18 +69,18 @@ public class RegistrationHandler {
 							if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
 								Block block = Block.getBlockFromItem(item.getItem());
 								if (names.add(item.getDisplayName().toUpperCase().replaceAll(" ", "_")
-										.replaceAll("(\\W)+", ""))) {
+										.replaceAll("([^A-Z0-9a-z\\s_])+", ""))) {
 									writer.write(String.format("%1$-33s",
 											item.getDisplayName().toUpperCase().replaceAll(" ", "_")
-													.replaceAll("(\\W)+", ""))
+													.replaceAll("([^A-Z0-9a-z\\s_])+", ""))
 											+ " = Block(" + Block.getIdFromBlock(block) + ", " + item.getMetadata()
 											+ ", \"" + item.getDisplayName() + "\")\n");
 								} else {
 									if (names.add(entry.getValue().getRegistryName().getResourcePath().toUpperCase()
-											.replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+											.replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))) {
 										writer.write(String.format("%1$-33s",
 												entry.getValue().getRegistryName().getResourcePath().toUpperCase()
-														.replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+														.replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
 												+ " = Block(" + Block.getIdFromBlock(entry.getValue()) + ", " + 0
 												+ ", \"" + WordUtils.capitalizeFully(entry.getValue().getRegistryName()
 														.getResourcePath().replace("_", " "))
@@ -103,10 +103,10 @@ public class RegistrationHandler {
 						}
 					} else {
 						if (names.add(entry.getValue().getRegistryName().getResourcePath().toUpperCase()
-								.replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+								.replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))) {
 							writer.write(String.format("%1$-33s",
 									entry.getValue().getRegistryName().getResourcePath().toUpperCase()
-											.replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+											.replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
 									+ " = Block(" + Block.getIdFromBlock(entry.getValue()) + ", " + 0 + ", \""
 									+ WordUtils.capitalizeFully(
 											entry.getValue().getRegistryName().getResourcePath().replace("_", " "))
@@ -119,6 +119,13 @@ public class RegistrationHandler {
 					}
 				}
 			}
+			writer.write("\n# This looks weird but it makes indexing blocks way easier\nBLOCKS = {\n");
+			for (String name : names) {
+				if (name != "AIR") {
+					writer.write(name.toUpperCase() + ":" + name.toUpperCase() + ",\n");
+				}
+			}
+			writer.write("AIR : AIR\n}");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -162,6 +169,7 @@ public class RegistrationHandler {
 		Set<String> names = new HashSet();
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			writer.write("from .item import Item\n\n");
+			writer.write(String.format("%1$-33s", "EMPTY") + " = Item(0, 0, \"Empty\")\n");
 			for (Entry<ResourceLocation, Item> entry : event.getRegistry().getEntries()) {
 				if (!(entry.getValue() instanceof ItemPotion) && !(entry.getValue() instanceof ItemEnchantedBook)
 						&& !(entry.getValue() instanceof ItemMonsterPlacer)
@@ -169,12 +177,13 @@ public class RegistrationHandler {
 					NonNullList<ItemStack> items = NonNullList.create();
 					entry.getValue().getSubItems(CreativeTabs.SEARCH, items);
 					for (ItemStack item : items) {
-						if (names.add(
-								item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("(\\W)+", ""))) {
+						if (names.add(item.getDisplayName().toUpperCase().replaceAll(" ", "_")
+								.replaceAll("([^A-Z0-9a-z\\s_])+", ""))) {
 							writer.write(String.format("%1$-33s",
-									item.getDisplayName().toUpperCase().replaceAll(" ", "_").replaceAll("(\\W)+", ""))
+									item.getDisplayName().toUpperCase().replaceAll(" ", "_")
+											.replaceAll("([^A-Z0-9a-z\\s_])+", ""))
 									+ " = Item(" + Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata()
-									+ ", \"" + item.getDisplayName() + "\")\n");
+									+ ", \"" + item.getDisplayName().replaceAll("([^A-Z0-9a-z\\s_])+", "") + "\")\n");
 						} else {
 							if (names.add(item.getItem().getRegistryName().getResourcePath().toUpperCase())) {
 								writer.write(String.format("%1$-33s",
@@ -186,15 +195,18 @@ public class RegistrationHandler {
 							} else {
 								switch (Item.getIdFromItem(item.getItem())) {
 								case 80:
+									names.add("SNOW_BLOCK");
 									writer.write(String.format("%1$-33s", "SNOW_BLOCK") + " = Item("
 											+ Item.getIdFromItem(item.getItem()) + ", " + 0 + ", \"Snow Block\")\n");
 									break;
 								case 322:
+									names.add("ENCHANTED_GOLDEN_APPLE");
 									writer.write(String.format("%1$-33s", "ENCHANTED_GOLDEN_APPLE") + " = Item("
 											+ Item.getIdFromItem(item.getItem()) + ", " + item.getMetadata()
 											+ ", \"Enchanted Golden Apple\")\n");
 									break;
 								case 360:
+									names.add("MELON_SLICE");
 									writer.write(String.format("%1$-33s", "MELON_SLICE") + " = Item("
 											+ Item.getIdFromItem(item.getItem()) + ", " + 0 + ", \"Melon Slice\")\n");
 									break;
@@ -209,7 +221,11 @@ public class RegistrationHandler {
 				}
 
 			}
-
+			writer.write("\n# This looks weird but it makes indexing items way easier\nITEMS = {\n");
+			for (String name : names) {
+				writer.write(name.toUpperCase() + ":" + name.toUpperCase() + ",\n");
+			}
+			writer.write("EMPTY : EMPTY\n}");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
