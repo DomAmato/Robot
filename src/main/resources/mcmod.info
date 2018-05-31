@@ -11,6 +11,7 @@
   "credits": "The Forge and FML guys, and the people who works on Raspberry Jam and Minecraft API",
   "logoFile": "",
   "screenshots": [],
-  "dependencies": []
+  "requiredMods": ["Forge", "rabbit-gui"],
+  "dependencies": ["rabbit-gui"]
 }
 ]
