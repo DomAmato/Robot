@@ -150,6 +150,9 @@ public class RobotInventoryScreen extends GuiContainer {
 		mousePosx = mouseX;
 		mousePosY = mouseY;
 		super.drawScreen(mouseX, mouseY, partialTicks);
+		renderHoveredToolTip(mouseX, mouseY);
+		GlStateManager.disableLighting();
+		GlStateManager.disableBlend();
 	}
 
 	@Override
