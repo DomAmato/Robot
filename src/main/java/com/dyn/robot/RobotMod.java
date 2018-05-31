@@ -1,7 +1,9 @@
 package com.dyn.robot;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -9,12 +11,15 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.Logger;
 
 import com.dyn.robot.api.APIHandler;
@@ -50,12 +55,21 @@ import com.dyn.robot.utils.PathUtility;
 import com.dyn.robot.utils.SimpleItemStack;
 import com.google.common.collect.Maps;
 
+import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemEnchantedBook;
+import net.minecraft.item.ItemMonsterPlacer;
+import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemTippedArrow;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
@@ -219,6 +233,149 @@ public class RobotMod {
 		}
 	}
 
+	private String generateBlockAPILine(String name, int id, int meta) {
+		return String.format("%1$-33s", name.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
+				+ " = Block(" + id + ", " + meta + ", \"" + WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
+	}
+
+	private void generateBlocksAPIClass() {
+		File file = new File(RobotMod.apiFileLocation, "/core/blocks.py");
+		Set<String> names = new HashSet();
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+			writer.write("from .block import Block\n\n");
+			for (Block block : Block.REGISTRY) {
+				NonNullList<ItemStack> items = NonNullList.create();
+				Item.getItemFromBlock(block).getSubItems(CreativeTabs.SEARCH, items);
+				if (!items.isEmpty()) {
+					for (ItemStack item : items) {
+						if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
+							if (names.add(generateSetName(item.getDisplayName()))) {
+								writer.write(generateBlockAPILine(item.getDisplayName(), Block.getIdFromBlock(block),
+										item.getMetadata()));
+							} else {
+								if (names.add(generateSetName(block.getRegistryName().getResourcePath()))) {
+									writer.write(generateBlockAPILine(block.getRegistryName().getResourcePath(),
+											Block.getIdFromBlock(block), 0));
+								} else {
+									if (Block.getIdFromBlock(block) == 80) {
+										// Snow blocks
+										names.add(generateSetName("SNOW_BLOCK"));
+										writer.write(generateBlockAPILine("Snow Block", 80, 0));
+									} else {
+										RobotMod.logger.info("Found Duplicate name for Block: "
+												+ block.getRegistryName().getResourcePath() + " - "
+												+ Block.getIdFromBlock(block));
+
+									}
+								}
+							}
+						}
+					}
+				} else {
+					if (names.add(generateSetName(block.getRegistryName().getResourcePath()))) {
+						writer.write(generateBlockAPILine(block.getRegistryName().getResourcePath(),
+								Block.getIdFromBlock(block), 0));
+					} else {
+						RobotMod.logger.info("Found Duplicate name for Block: "
+								+ block.getRegistryName().getResourcePath() + " - " + Block.getIdFromBlock(block));
+					}
+				}
+			}
+			writer.write("\n# This looks weird but it makes indexing blocks way easier\nBLOCKS = {\n");
+			for (String name : names) {
+				if (name != "AIR") {
+					writer.write(name.toUpperCase() + ":" + name.toUpperCase() + ",\n");
+				}
+			}
+			writer.write("AIR : AIR\n}");
+		} catch (IOException e) {
+			RobotMod.logger.error("Could not write to blocks python file", e);
+		}
+	}
+
+	private void generateCraftingMappings() {
+		for (IRecipe recipe : CraftingManager.REGISTRY) {
+			if (recipe.getRecipeOutput() != ItemStack.EMPTY) {
+				SimpleItemStack result = new SimpleItemStack(recipe.getRecipeOutput());
+				if (RobotMod.recipeMap.containsKey(result)) {
+					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput().getDisplayName());
+					RobotMod.recipeMap.get(result).add(recipe);
+				} else {
+					List<IRecipe> tempList = new ArrayList();
+					tempList.add(recipe);
+					RobotMod.recipeMap.put(result, tempList);
+				}
+			}
+		}
+	}
+
+	private String generateItemAPILine(String name, int id, int meta) {
+		return String.format("%1$-33s", name.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
+				+ " = Item(" + id + ", " + meta + ", \"" + WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
+	}
+
+	private void generateItemsAPIClass() {
+		File file = new File(RobotMod.apiFileLocation, "/core/items.py");
+		Set<String> names = new HashSet();
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+			writer.write("from .item import Item\n\n");
+			names.add("EMPTY");
+			writer.write(generateItemAPILine("EMPTY", 0, 0));
+			for (Item entry : Item.REGISTRY) {
+				if (!(entry instanceof ItemPotion) && !(entry instanceof ItemEnchantedBook)
+						&& !(entry instanceof ItemMonsterPlacer) && !(entry instanceof ItemTippedArrow)) {
+					NonNullList<ItemStack> items = NonNullList.create();
+					entry.getSubItems(CreativeTabs.SEARCH, items);
+					for (ItemStack item : items) {
+						if (names.add(generateSetName(item.getDisplayName()))) {
+							writer.write(generateItemAPILine(item.getDisplayName(), Item.getIdFromItem(item.getItem()),
+									item.getMetadata()));
+						} else {
+							if (names.add(generateSetName(item.getItem().getRegistryName().getResourcePath()))) {
+								writer.write(generateItemAPILine(item.getItem().getRegistryName().getResourcePath(),
+										Item.getIdFromItem(item.getItem()), item.getMetadata()));
+							} else {
+								switch (Item.getIdFromItem(item.getItem())) {
+								case 80:
+									names.add("SNOW_BLOCK");
+									writer.write(
+											generateItemAPILine("SNOW_BLOCK", Item.getIdFromItem(item.getItem()), 0));
+									break;
+								case 322:
+									names.add("ENCHANTED_GOLDEN_APPLE");
+									writer.write(generateItemAPILine("ENCHANTED_GOLDEN_APPLE",
+											Item.getIdFromItem(item.getItem()), item.getMetadata()));
+									break;
+								case 360:
+									names.add("MELON_SLICE");
+									writer.write(
+											generateItemAPILine("MELON_SLICE", Item.getIdFromItem(item.getItem()), 0));
+									break;
+								default:
+									RobotMod.logger.info("Found Duplicate name for Item: "
+											+ item.getItem().getRegistryName().getResourcePath() + " - "
+											+ Item.getIdFromItem(item.getItem()));
+								}
+							}
+						}
+					}
+				}
+
+			}
+			writer.write("\n# This looks weird but it makes indexing items way easier\nITEMS = {\n");
+			for (String name : names) {
+				writer.write(name.toUpperCase() + ":" + name.toUpperCase() + ",\n");
+			}
+			writer.write("EMPTY : EMPTY\n}");
+		} catch (IOException e) {
+			RobotMod.logger.error("Could not write to items python file", e);
+		}
+	}
+
+	private String generateSetName(String input) {
+		return input.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", "");
+	}
+
 	private File getJarFile(File dir) {
 		String path = RobotMod.class.getResource("/assets/roboticraft").getPath();
 
@@ -345,19 +502,9 @@ public class RobotMod {
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-		for (IRecipe recipe : CraftingManager.REGISTRY) {
-			if (recipe.getRecipeOutput() != ItemStack.EMPTY) {
-				SimpleItemStack result = new SimpleItemStack(recipe.getRecipeOutput());
-				if (RobotMod.recipeMap.containsKey(result)) {
-					RobotMod.logger.info("Recipe Map already has " + recipe.getRecipeOutput().getDisplayName());
-					RobotMod.recipeMap.get(result).add(recipe);
-				} else {
-					List<IRecipe> tempList = new ArrayList();
-					tempList.add(recipe);
-					RobotMod.recipeMap.put(result, tempList);
-				}
-			}
-		}
+		generateCraftingMappings();
+		generateBlocksAPIClass();
+		generateItemsAPIClass();
 	}
 
 	@Mod.EventHandler
