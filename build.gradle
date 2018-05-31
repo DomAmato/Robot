@@ -101,5 +101,21 @@ curseforge {
     id = '294044'
     changelog = 'consult the github'
     releaseType = 'beta'
+	
+	relations {
+        requiredLibrary 'rabbit-gui'
+	}
   }
 }
+
+task incrementVersion {
+    ant.propertyfile(file: "gradle.properties") {
+        entry( key: "buildNum", type:"int", default:"0", operation:"+")
+    }
+}
+
+//enforce correct order
+tasks.build.mustRunAfter clean
+
+//curseforge uses these tasks
+tasks.curseforge.dependsOn clean, build, incrementVersion
