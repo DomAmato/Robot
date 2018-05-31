@@ -48,7 +48,6 @@ import com.dyn.robot.network.SocketEvent;
 import com.dyn.robot.network.messages.RobotErrorMessage;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.python.RobotScript;
-import com.dyn.robot.reference.MetaData;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.dyn.robot.utils.PathUtility;
@@ -88,7 +87,7 @@ import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION)
+@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = "@VERSION")
 public class RobotMod {
 
 	@Mod.Instance(Reference.MOD_ID)
@@ -522,8 +521,6 @@ public class RobotMod {
 		RobotMod.configFile.load();
 
 		RobotMod.synchronizeConfig();
-
-		MetaData.init(event.getModMetadata());
 
 		NetworkManager.registerMessages();
 		NetworkManager.registerPackets();
