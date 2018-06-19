@@ -4,16 +4,19 @@ import com.dyn.robot.RobotMod;
 import com.dyn.robot.blocks.BlockRobot;
 import com.dyn.robot.blocks.RobotBlockTileEntity;
 import com.dyn.robot.entity.SimpleRobotEntity;
+import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.reference.Reference;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -56,6 +59,12 @@ public class MessageActivateRobot implements IMessage {
 						int slot = itemtag.getByte("Slot") & 0xFF;
 						if ((slot >= 0) && (slot < 32)) {
 							new_robot.robot_inventory.setInventorySlotContents(slot, new ItemStack(itemtag));
+							if (slot == RobotInventory.EQUIP_SLOT) {
+								new_robot.setHeldItem(EnumHand.MAIN_HAND, new ItemStack(itemtag));
+							}
+							if (slot == RobotInventory.SUIT_SLOT) {
+								new_robot.setItemStackToSlot(EntityEquipmentSlot.CHEST, new ItemStack(itemtag));
+							}
 						}
 					}
 				}
