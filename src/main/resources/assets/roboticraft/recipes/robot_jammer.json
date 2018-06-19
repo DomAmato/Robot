@@ -1,0 +1,26 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"TST",
+		"TIT",
+		"TST"
+	],
+	"key": {
+		"T": {
+			"item": "minecraft:redstone_torch",
+      		"data": 0
+		},
+		"I": {
+			"item": "minecraft:iron_ingot",
+      		"data": 0
+		},
+		"S": {
+			"item": "minecraft:stone_slab",
+      		"data": 0
+		}
+	},
+	"result": {
+		"item": "roboticraft:robot_jammer",
+		"count": 1
+	}
+}
