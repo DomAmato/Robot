@@ -16,6 +16,7 @@ import com.dyn.robot.network.messages.MessageToggleRobotFollow;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.google.common.collect.Lists;
+import com.rabbit.gui.RabbitGui;
 import com.rabbit.gui.component.code.CodeInterface;
 import com.rabbit.gui.component.control.Button;
 import com.rabbit.gui.component.control.DraggableCamera;
@@ -248,8 +249,8 @@ public class RobotProgrammingInterface extends Show {
 				}));
 
 		mainPanel.registerComponent(followTab = new PictureTab(0, mainPanel.getHeight() - 40, 40, 40, "", 90,
-				robot.getIsFollowing() ? new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_stand.png")
-						: new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"))
+				robot.getIsFollowing() ? new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png")
+						: new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_stand.png"))
 								.setHoverText(robot.getIsFollowing() ? Lists.newArrayList("Make Robot", "Stand still")
 										: Lists.newArrayList("Make Robot", "Follow Me"))
 								.setDrawHoverText(true).setClickListener(tab -> {
@@ -257,18 +258,28 @@ public class RobotProgrammingInterface extends Show {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), true));
 										((PictureTab) tab).setPicture(new ResourceLocation(Reference.MOD_NAME,
-												"textures/gui/robot_stand.png"));
+												"textures/gui/robot_follow.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Stand still"));
 										robot.setIsFollowing(true);
 									} else {
 										NetworkManager
 												.sendToServer(new MessageToggleRobotFollow(robot.getEntityId(), false));
 										((PictureTab) tab).setPicture(new ResourceLocation(Reference.MOD_NAME,
-												"textures/gui/robot_follow.png"));
+												"textures/gui/robot_stand.png"));
 										tab.setHoverText(Lists.newArrayList("Make Robot", "Follow Me"));
 										robot.setIsFollowing(false);
 									}
 								}));
+
+		mainPanel.registerComponent(new PictureTab(0, mainPanel.getHeight() - 80, 40, 40, "", 90,
+				new ResourceLocation(Reference.MOD_NAME, "textures/gui/cli.png"))
+						.setHoverText(Lists.newArrayList("Open", "Command Line")).setDrawHoverText(true)
+						.setClickListener(tab -> {
+							RobotMod.isSpectatingRobot = true;
+							Minecraft.getMinecraft().setRenderViewEntity(robot);
+							RobotMod.proxy.toggleRenderRobotProgramInterface(false);
+							RabbitGui.proxy.display(new CommandLineInterface(robot));
+						}));
 
 		// The Panel background
 		mainPanel.registerComponent(
@@ -303,10 +314,6 @@ public class RobotProgrammingInterface extends Show {
 		// menu panel
 		mainPanel.registerComponent(
 				new Button(0, 0, (mainPanel.getWidth() - 15) / 4, 15, "<<Game").setClickListener(btn -> {
-					// followTab.setHidden(true);
-					// robotDirTab.setHidden(true);
-					// playerDirTab.setHidden(true);
-					// invTab.setHidden(true);
 					RobotMod.proxy.toggleRenderRobotProgramInterface(true);
 					Minecraft.getMinecraft().setIngameFocus();
 				}));
@@ -352,8 +359,7 @@ public class RobotProgrammingInterface extends Show {
 								showError = false;
 								errorPanel.setVisible(false);
 
-								NetworkManager
-										.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId(), true));
+								NetworkManager.sendToServer(new MessageRunRobotScript(termText, robot.getEntityId()));
 								robot.startExecutingCode();
 								((PictureTab) followTab).setPicture(
 										new ResourceLocation(Reference.MOD_NAME, "textures/gui/robot_follow.png"));

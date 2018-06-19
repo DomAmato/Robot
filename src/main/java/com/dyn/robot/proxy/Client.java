@@ -32,12 +32,15 @@ import net.minecraft.util.IThreadListener;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderHandEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -67,11 +70,6 @@ public class Client implements Proxy {
 				RobotMod.currentRobots.add((EntityRobot) event.getEntity());
 			}
 		}
-	}
-
-	@SubscribeEvent
-	public void clientWorldEvent(PlayerLoggedOutEvent event) {
-		RobotMod.currentRobots.clear();
 	}
 
 	@Override
@@ -134,6 +132,13 @@ public class Client implements Proxy {
 	}
 
 	@SubscribeEvent
+	public void onHandRender(RenderHandEvent event) {
+		if (RobotMod.isSpectatingRobot) {
+			event.setCanceled(true);
+		}
+	}
+
+	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if ((Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
 			return;
@@ -142,6 +147,13 @@ public class Client implements Proxy {
 		if (scriptKey.isPressed() && showRobotProgrammer) {
 			showRobotProgrammer = false;
 			RabbitGui.proxy.display(robotProgramInterface);
+		}
+	}
+
+	@SubscribeEvent
+	public void onPlayerRender(RenderPlayerEvent.Pre event) {
+		if ((event.getEntityPlayer() == Minecraft.getMinecraft().player) && RobotMod.isSpectatingRobot) {
+			event.getRenderer().getRenderManager().renderViewEntity = Minecraft.getMinecraft().player;
 		}
 	}
 
@@ -158,7 +170,8 @@ public class Client implements Proxy {
 								new ResourceLocation(Reference.MOD_NAME,
 										robotProgramInterface.getRobot().getIsFollowing()
 												? "textures/gui/robot_follow.png"
-												: "textures/gui/robot_stand.png")).setHidden(false);
+												: "textures/gui/robot_stand.png")).setDrawHoverText(false)
+														.setHidden(false);
 						;
 					}
 					programTab.onDraw(0, 0, event.renderTickTime);
@@ -207,6 +220,20 @@ public class Client implements Proxy {
 		createNewProgrammingInterface(robot);
 
 		openRobotProgrammingWindow();
+	}
+
+	@SubscribeEvent
+	public void playerLoggedIn(PlayerLoggedInEvent event) {
+		if (event.player == Minecraft.getMinecraft().player) {
+			RobotMod.isSpectatingRobot = false;
+		}
+	}
+
+	@SubscribeEvent
+	public void playerLoggedOut(PlayerLoggedOutEvent event) {
+		if (event.player == Minecraft.getMinecraft().player) {
+			RobotMod.currentRobots.clear();
+		}
 	}
 
 	@Override

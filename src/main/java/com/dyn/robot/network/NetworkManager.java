@@ -2,12 +2,16 @@ package com.dyn.robot.network;
 
 import com.dyn.robot.network.messages.MessageActivateRobot;
 import com.dyn.robot.network.messages.MessageClaimRobot;
+import com.dyn.robot.network.messages.MessageEndRobotTerminal;
 import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.dyn.robot.network.messages.MessageReplaceSDCardItemStack;
+import com.dyn.robot.network.messages.MessageRobotError;
+import com.dyn.robot.network.messages.MessageRobotTerminalInput;
+import com.dyn.robot.network.messages.MessageRobotTerminalOutput;
 import com.dyn.robot.network.messages.MessageRunRobotScript;
+import com.dyn.robot.network.messages.MessageStartRobotTerminal;
 import com.dyn.robot.network.messages.MessageTeleportRobot;
 import com.dyn.robot.network.messages.MessageToggleRobotFollow;
-import com.dyn.robot.network.messages.RobotErrorMessage;
 import com.dyn.robot.network.messages.RobotSpeakMessage;
 import com.dyn.robot.reference.Reference;
 
@@ -94,12 +98,19 @@ public class NetworkManager {
 		NetworkManager.registerMessage(MessageTeleportRobot.class, MessageTeleportRobot.Handler.class, Side.SERVER);
 		NetworkManager.registerMessage(MessageOpenRobotInventory.class, MessageOpenRobotInventory.Handler.class,
 				Side.SERVER);
-
 		NetworkManager.registerMessage(MessageReplaceSDCardItemStack.class, MessageReplaceSDCardItemStack.Handler.class,
+				Side.SERVER);
+		NetworkManager.registerMessage(MessageRobotTerminalInput.class, MessageRobotTerminalInput.Handler.class,
+				Side.SERVER);
+		NetworkManager.registerMessage(MessageStartRobotTerminal.class, MessageStartRobotTerminal.Handler.class,
+				Side.SERVER);
+		NetworkManager.registerMessage(MessageEndRobotTerminal.class, MessageEndRobotTerminal.Handler.class,
 				Side.SERVER);
 
 		// CLIENT
-		NetworkManager.registerMessage(RobotErrorMessage.class, RobotErrorMessage.Handler.class, Side.CLIENT);
+		NetworkManager.registerMessage(MessageRobotError.class, MessageRobotError.Handler.class, Side.CLIENT);
+		NetworkManager.registerMessage(MessageRobotTerminalOutput.class, MessageRobotTerminalOutput.Handler.class,
+				Side.CLIENT);
 
 	}
 	// ========================================================//
