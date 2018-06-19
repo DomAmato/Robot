@@ -71,7 +71,7 @@ public class ItemWrench extends Item {
 	// called when the player starts holding right click;
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if ((entity != null) && !entity.isDead && entity.isOwner(playerIn)) {
+		if ((entity != null) && !entity.isDead) {
 			playerIn.setActiveHand(handIn);
 		}
 		return new ActionResult<>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
