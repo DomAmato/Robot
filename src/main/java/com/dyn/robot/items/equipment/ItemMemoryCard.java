@@ -1,4 +1,4 @@
-package com.dyn.robot.items;
+package com.dyn.robot.items.equipment;
 
 import java.io.File;
 import java.io.FilenameFilter;

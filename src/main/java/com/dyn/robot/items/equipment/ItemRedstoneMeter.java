@@ -1,4 +1,4 @@
-package com.dyn.robot.items;
+package com.dyn.robot.items.equipment;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.reference.Reference;

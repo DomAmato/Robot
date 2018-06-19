@@ -1,22 +1,52 @@
-package com.dyn.robot.items;
+package com.dyn.robot.items.equipment;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.reference.Reference;
 
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class ItemSIMCard extends Item {
+public class ItemMemoryStick extends Item {
 
-	public ItemSIMCard() {
+	public ItemMemoryStick() {
 		super();
 		setHasSubtypes(true);
 		setMaxStackSize(1);
-		setUnlocalizedName("robot_sim");
-		setRegistryName(Reference.MOD_ID, "robot_sim");
+		setUnlocalizedName("robot_memory");
+		setRegistryName(Reference.MOD_ID, "robot_memory");
 		setCreativeTab(RobotMod.roboTab);
+	}
+
+	@Override
+	public int getMetadata(int damage) {
+		return damage;
+	}
+
+	// add a subitem for each item we want to appear in the creative tab
+	// in this case - a full bottle of each colour
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+		if (isInCreativeTab(tab)) {
+			super.getSubItems(tab, items);
+			for (int i = 1; i < 8; i++) {
+				items.add(new ItemStack(this, 1, i));
+			}
+		}
+	}
+
+	// Make a unique name for each contents type (lime, orange, etc) so we can
+	// name them individually
+	// The fullness information is added separately in getItemStackDisplayName()
+	@Override
+	public String getUnlocalizedName(ItemStack stack) {
+		return super.getUnlocalizedName() + "_" + stack.getMetadata();
 	}
 
 	/**
