@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.MessageOpenRobotInventory;
 import com.rabbit.gui.component.control.Button;
@@ -48,7 +49,7 @@ public class RemoteScreen extends Show {
 				.registerComponent(new HorizontalLine(0, 0, panel.getWidth() - 4, 2, Color.white), 0, 30));
 
 		for (EntityRobot robot : RobotMod.currentRobots) {
-			if (!robot.isDead && (!robot.robot_inventory.getStackInSlot(3).isEmpty()
+			if (!robot.isDead && (!robot.robot_inventory.getStackInSlot(RobotInventory.SIM_SLOT).isEmpty()
 					|| (robot.getPosition().distanceSq(player.getPosition()) < (64 * 64)))) {
 				buttonEntries.add(new MultiComponentListEntry()
 						.registerComponent(new TextLabel(0, 0, (int) (panel.getWidth() * .8), 10, robot.getRobotName()),

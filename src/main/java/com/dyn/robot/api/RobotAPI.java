@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
+import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.messages.RobotSpeakMessage;
@@ -265,9 +266,11 @@ public class RobotAPI extends Python2MinecraftApi {
 					Python2MinecraftApi.fail("Robot does not know the mine command");
 					return;
 				}
-				if (robot.robot_inventory.getStackInSlot(2).isEmpty()
-						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemSword)
-						|| (robot.robot_inventory.getStackInSlot(2).getItem() instanceof ItemHoe)) {
+				if (robot.robot_inventory.getStackInSlot(RobotInventory.EQUIP_SLOT).isEmpty()
+						|| (robot.robot_inventory.getStackInSlot(RobotInventory.EQUIP_SLOT)
+								.getItem() instanceof ItemSword)
+						|| (robot.robot_inventory.getStackInSlot(RobotInventory.EQUIP_SLOT)
+								.getItem() instanceof ItemHoe)) {
 					Python2MinecraftApi.fail("Robot has no tool to break block with");
 					return;
 				}

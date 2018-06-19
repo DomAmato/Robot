@@ -9,6 +9,16 @@ import net.minecraft.item.ItemStack;
 
 public class RobotInventory extends InventoryBasic {
 
+	public static final int SDCARD_SLOT = 0;
+	public static final int RAM_SLOT = 1;
+	public static final int EQUIP_SLOT = 2;
+	public static final int SIM_SLOT = 3;
+	public static final int METER_SLOT = 4;
+	public static final int SUIT_SLOT = 5;
+	public static final int START_EXPANSION_SLOT = 6;
+	public static final int END_EXPANSION_SLOT = 14;
+	public static final int START_INVENTORY = 15;
+
 	public RobotInventory(String name, int slots) {
 		super(name, true, slots);
 	}
@@ -21,7 +31,7 @@ public class RobotInventory extends InventoryBasic {
 		ItemStack itemstack = is.copy();
 
 		if (containsItem(itemstack)) {
-			for (int i = 14; i < getSizeInventory(); ++i) {
+			for (int i = RobotInventory.START_INVENTORY; i < getSizeInventory(); ++i) {
 				ItemStack itemstack1 = getStackInSlot(i);
 
 				if (ItemStack.areItemsEqual(itemstack1, itemstack)) {
@@ -41,7 +51,7 @@ public class RobotInventory extends InventoryBasic {
 			}
 		}
 
-		for (int i = 14; i < getSizeInventory(); i++) {
+		for (int i = RobotInventory.START_INVENTORY; i < getSizeInventory(); i++) {
 			if ((getStackInSlot(i) == ItemStack.EMPTY) || (getStackInSlot(i).isEmpty())) {
 				setInventorySlotContents(i, itemstack);
 				markDirty();
@@ -63,7 +73,7 @@ public class RobotInventory extends InventoryBasic {
 
 		int addAmount = is.getCount();
 
-		for (int i = 14; i < getSizeInventory(); i++) {
+		for (int i = RobotInventory.START_INVENTORY; i < getSizeInventory(); i++) {
 			if ((getStackInSlot(i) == ItemStack.EMPTY) || (getStackInSlot(i).isEmpty())) {
 				return true;
 			}
@@ -124,12 +134,21 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public int getOpenExpansionSlot() {
-		for (int a = 5; a < 14; a++) {
+		for (int a = RobotInventory.START_EXPANSION_SLOT; a <= RobotInventory.END_EXPANSION_SLOT; a++) {
 			if ((getStackInSlot(a).isEmpty())) {
 				return a;
 			}
 		}
-		return 15;
+		return RobotInventory.END_EXPANSION_SLOT;
+	}
+
+	public int getOpenInventorySlot() {
+		for (int a = RobotInventory.START_INVENTORY; a < getSizeInventory(); a++) {
+			if ((getStackInSlot(a).isEmpty())) {
+				return a;
+			}
+		}
+		return getSizeInventory() - 1;
 	}
 
 	public int getQuantityOfItem(Item item) {
@@ -159,7 +178,7 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public ItemStack getSDCard() {
-		return getStackInSlot(0);
+		return getStackInSlot(RobotInventory.SDCARD_SLOT);
 	}
 
 	public ItemStack getStackOfItem(Item item) {
@@ -190,9 +209,13 @@ public class RobotInventory extends InventoryBasic {
 		return null;
 	}
 
+	public ItemStack getSuit() {
+		return getStackInSlot(RobotInventory.SUIT_SLOT);
+	}
+
 	public boolean hasExpansionChip(ItemStack chip) {
 		if (!chip.isEmpty()) {
-			for (int i = 5; i < 14; i++) {
+			for (int i = 5; i <= RobotInventory.END_EXPANSION_SLOT; i++) {
 				ItemStack is2 = getStackInSlot(i);
 				if (!is2.isEmpty()) {
 					if ((is2.getItem() == chip.getItem()) && ((is2.getItemDamage() == chip.getItemDamage()))) {
@@ -205,11 +228,15 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean hasSDCard() {
-		return !(getStackInSlot(0).isEmpty());
+		return !(getStackInSlot(RobotInventory.SDCARD_SLOT).isEmpty());
+	}
+
+	public boolean hasSuit() {
+		return getStackInSlot(RobotInventory.SUIT_SLOT) != ItemStack.EMPTY;
 	}
 
 	public boolean isExpansionSlotsFull() {
-		for (int a = 5; a < 14; a++) {
+		for (int a = RobotInventory.START_EXPANSION_SLOT; a <= RobotInventory.END_EXPANSION_SLOT; a++) {
 			if (getStackInSlot(a).isEmpty()) {
 				removeStackFromSlot(a);
 			}
@@ -221,7 +248,7 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean isInventoryEmpty() {
-		for (int a = 14; a < getSizeInventory(); a++) {
+		for (int a = RobotInventory.START_INVENTORY; a < getSizeInventory(); a++) {
 			if (!getStackInSlot(a).isEmpty()) {
 				return false;
 			}
@@ -230,7 +257,7 @@ public class RobotInventory extends InventoryBasic {
 	}
 
 	public boolean isInventoryFull() {
-		for (int a = 14; a < getSizeInventory(); a++) {
+		for (int a = RobotInventory.START_INVENTORY; a < getSizeInventory(); a++) {
 			if (getStackInSlot(a).isEmpty()) {
 				removeStackFromSlot(a);
 			}

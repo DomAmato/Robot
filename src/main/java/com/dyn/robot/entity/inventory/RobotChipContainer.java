@@ -2,12 +2,11 @@ package com.dyn.robot.entity.inventory;
 
 import com.dyn.robot.RobotMod;
 import com.dyn.robot.entity.EntityRobot;
-import com.dyn.robot.items.ItemExpansionChip;
-import com.dyn.robot.items.ItemMemoryCard;
-import com.dyn.robot.items.ItemMemoryStick;
+import com.dyn.robot.items.equipment.ItemRobotSuit;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemHoe;
@@ -29,9 +28,7 @@ public class RobotChipContainer extends Container {
 		robotInventory.openInventory(player);
 		int j = (i - 4) * 18;
 
-		int slot = 0;
-
-		addSlotToContainer(new Slot(robotInventory, slot++, 62, 18) {
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.SDCARD_SLOT, 62, 18) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
 			 * armor slots.
@@ -43,7 +40,7 @@ public class RobotChipContainer extends Container {
 
 		});
 
-		addSlotToContainer(new Slot(robotInventory, slot++, 62, 36) {
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.RAM_SLOT, 62, 36) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
 			 * armor slots.
@@ -55,7 +52,7 @@ public class RobotChipContainer extends Container {
 
 		});
 
-		addSlotToContainer(new Slot(robotInventory, slot++, 62, 54) {
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.EQUIP_SLOT, 62, 54) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
 			 * armor slots.
@@ -75,7 +72,7 @@ public class RobotChipContainer extends Container {
 
 		});
 
-		addSlotToContainer(new Slot(robotInventory, slot++, 80, 18) {
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.SIM_SLOT, 80, 18) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
 			 * armor slots.
@@ -87,7 +84,7 @@ public class RobotChipContainer extends Container {
 
 		});
 
-		addSlotToContainer(new Slot(robotInventory, slot++, 80, 36) {
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.METER_SLOT, 80, 36) {
 			/**
 			 * Check if the stack is a valid item for this slot. Always true beside for the
 			 * armor slots.
@@ -99,9 +96,27 @@ public class RobotChipContainer extends Container {
 
 		});
 
+		addSlotToContainer(new Slot(robotInventory, RobotInventory.SUIT_SLOT, 80, 54) {
+			/**
+			 * Check if the stack is a valid item for this slot. Always true beside for the
+			 * armor slots.
+			 */
+			@Override
+			public boolean isItemValid(ItemStack stack) {
+				return super.isItemValid(stack) && (stack.getItem() instanceof ItemRobotSuit) && !getHasStack();
+			}
+
+			@Override
+			public void onSlotChanged() {
+				robot.setItemStackToSlot(EntityEquipmentSlot.CHEST, getStack());
+				super.onSlotChanged();
+			}
+		});
+
 		for (int i1 = 0; i1 < 3; ++i1) {
 			for (int k1 = 0; k1 < 3; ++k1) {
-				addSlotToContainer(new Slot(robotInventory, slot++, 116 + (k1 * 18), 18 + (i1 * 18)) {
+				addSlotToContainer(new Slot(robotInventory, RobotInventory.START_EXPANSION_SLOT + (k1 + (3 * i1)),
+						116 + (k1 * 18), 18 + (i1 * 18)) {
 					@Override
 					public int getSlotStackLimit() {
 						return 1;
@@ -123,15 +138,8 @@ public class RobotChipContainer extends Container {
 
 		for (int i1 = 0; i1 < 2; ++i1) {
 			for (int k1 = 0; k1 < 9; ++k1) {
-				addSlotToContainer(new Slot(robotInventory, slot++, 8 + (k1 * 18), 92 + (i1 * 18) + j) {
-					@Override
-					public boolean isItemValid(ItemStack stack) {
-						return super.isItemValid(stack) && !((stack.getItem() instanceof ItemExpansionChip)
-								|| (stack.getItem() instanceof ItemMemoryCard)
-								|| (stack.getItem() instanceof ItemMemoryStick)) && !getHasStack();
-					}
-
-				});
+				addSlotToContainer(new Slot(robotInventory, RobotInventory.START_INVENTORY + (k1 + (i1 * 9)),
+						8 + (k1 * 18), 92 + (i1 * 18) + j));
 			}
 		}
 
@@ -177,31 +185,35 @@ public class RobotChipContainer extends Container {
 				if (!mergeItemStack(itemstack1, robotInventory.getSizeInventory(), inventorySlots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(0).isItemValid(itemstack1)) {
+			} else if (getSlot(RobotInventory.SDCARD_SLOT).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 0, 1, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(1).isItemValid(itemstack1)) {
+			} else if (getSlot(RobotInventory.RAM_SLOT).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 1, 2, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(2).isItemValid(itemstack1)) {
+			} else if (getSlot(RobotInventory.EQUIP_SLOT).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 2, 3, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(3).isItemValid(itemstack1)) {
+			} else if (getSlot(RobotInventory.SIM_SLOT).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 3, 4, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(4).isItemValid(itemstack1)) {
+			} else if (getSlot(RobotInventory.METER_SLOT).isItemValid(itemstack1)) {
 				if (!mergeItemStack(itemstack1, 4, 5, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (getSlot(((RobotInventory) robotInventory).getOpenExpansionSlot()).isItemValid(itemstack1)) {
-				if (!mergeItemStack(itemstack1, 5, 14, false)) {
+			} else if (getSlot(RobotInventory.SUIT_SLOT).isItemValid(itemstack1)) {
+				if (!mergeItemStack(itemstack1, 5, 6, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!mergeItemStack(itemstack1, 14, robotInventory.getSizeInventory(), false)) {
+			} else if (getSlot(((RobotInventory) robotInventory).getOpenExpansionSlot()).isItemValid(itemstack1)) {
+				if (!mergeItemStack(itemstack1, 6, 15, false)) {
+					return ItemStack.EMPTY;
+				}
+			} else if (!mergeItemStack(itemstack1, 15, robotInventory.getSizeInventory(), false)) {
 				return ItemStack.EMPTY;
 			}
 
