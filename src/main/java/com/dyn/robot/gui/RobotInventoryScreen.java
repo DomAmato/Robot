@@ -47,6 +47,9 @@ public class RobotInventoryScreen extends GuiContainer {
 	protected void actionPerformed(GuiButton button) throws IOException {
 		if (button.enabled) {
 			if (button.id == 1) {
+				// we have to close the vanilla screen so it doesnt randomly close the rabbit
+				// guis
+				mc.player.closeScreen();
 				RobotMod.proxy.openRobotProgrammingWindow(robot);
 			}
 		}
