@@ -55,7 +55,7 @@ configurations {
 }
 
 dependencies {
-	compile 'com.github.DomAmato:rabbit-gui:1.12-SNAPSHOT'
+	compile 'com.github.DomAmato:rabbit-gui:master-SNAPSHOT'
 
 	// https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket
 	shade group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.3.0'
