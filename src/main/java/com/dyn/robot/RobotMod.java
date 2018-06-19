@@ -27,27 +27,30 @@ import com.dyn.robot.api.APIServer;
 import com.dyn.robot.api.Python2MinecraftApi;
 import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.blocks.BlockRobot;
+import com.dyn.robot.blocks.BlockRobotJammer;
 import com.dyn.robot.blocks.BlockRobotMagnet;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.items.ItemExpansionChip;
-import com.dyn.robot.items.ItemMemoryCard;
-import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemMemoryWipe;
-import com.dyn.robot.items.ItemRedstoneMeter;
 import com.dyn.robot.items.ItemReferenceManual;
 import com.dyn.robot.items.ItemRemote;
 import com.dyn.robot.items.ItemRobotWhistle;
-import com.dyn.robot.items.ItemSIMCard;
 import com.dyn.robot.items.ItemSimpleRobotSpawner;
 import com.dyn.robot.items.ItemWrench;
 import com.dyn.robot.items.RoboTab;
+import com.dyn.robot.items.equipment.ItemMemoryCard;
+import com.dyn.robot.items.equipment.ItemMemoryStick;
+import com.dyn.robot.items.equipment.ItemRedstoneMeter;
+import com.dyn.robot.items.equipment.ItemRobotSuit;
+import com.dyn.robot.items.equipment.ItemSIMCard;
 import com.dyn.robot.network.CodeEvent;
 import com.dyn.robot.network.NetworkManager;
 import com.dyn.robot.network.SocketEvent;
-import com.dyn.robot.network.messages.RobotErrorMessage;
+import com.dyn.robot.network.messages.MessageRobotError;
 import com.dyn.robot.proxy.Proxy;
 import com.dyn.robot.python.RobotScript;
+import com.dyn.robot.python.RobotTerminal;
 import com.dyn.robot.reference.Reference;
 import com.dyn.robot.utils.FileUtils;
 import com.dyn.robot.utils.PathUtility;
@@ -99,6 +102,7 @@ public class RobotMod {
 	public static final RoboTab roboTab = new RoboTab();
 
 	public static BlockRobot robot_block = new BlockRobot();
+	public static BlockRobotJammer robot_jammer = new BlockRobotJammer();
 	public static BlockRobotMagnet robot_magent = new BlockRobotMagnet();
 
 	public static final ItemRemote robot_remote = new ItemRemote();
@@ -112,6 +116,7 @@ public class RobotMod {
 	public static final ItemRobotWhistle whistle = new ItemRobotWhistle();
 	public static final ItemMemoryWipe neuralyzer = new ItemMemoryWipe();
 	public static final ItemReferenceManual manual = new ItemReferenceManual();
+	public static final ItemRobotSuit equipment = new ItemRobotSuit();
 
 	public static final SoundEvent ROBOT_ON = RobotMod.createSoundEvent("robot.on");
 	public static final SoundEvent ROBOT_REMOTE = RobotMod.createSoundEvent("robot.remote");
@@ -143,6 +148,9 @@ public class RobotMod {
 	// currently running scripts
 	public static Map<Integer, RobotScript> runningProcesses = Maps.newHashMap();
 
+	// current terminal sessions
+	public static Map<Integer, RobotTerminal> openSessions = Maps.newHashMap();
+
 	// an easier way to index recipes
 	public static Map<SimpleItemStack, List<IRecipe>> recipeMap = Maps.newHashMap();
 
@@ -158,6 +166,8 @@ public class RobotMod {
 	public static boolean saveScripts;
 
 	public static String scriptFolder;
+
+	public static boolean isSpectatingRobot;
 
 	/**
 	 * Create a {@link SoundEvent}.
@@ -220,7 +230,7 @@ public class RobotMod {
 		EntityRobot robot = (EntityRobot) world.getEntityByID(((CodeEvent.RobotErrorEvent) event).getEntityId());
 		robot.stopExecutingCode();
 		NetworkManager.sendTo(
-				new RobotErrorMessage(event.getCode(), event.getError(), event.getLine(), robot.getEntityId()),
+				new MessageRobotError(event.getCode(), event.getError(), event.getLine(), robot.getEntityId()),
 				(EntityPlayerMP) event.getPlayer());
 	}
 

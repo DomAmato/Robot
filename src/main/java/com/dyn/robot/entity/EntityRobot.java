@@ -22,13 +22,14 @@ import com.dyn.robot.entity.ai.EntityAIRobotAttackTarget;
 import com.dyn.robot.entity.inventory.RobotInventory;
 import com.dyn.robot.entity.pathing.PathNavigateRobot;
 import com.dyn.robot.items.ItemExpansionChip;
-import com.dyn.robot.items.ItemMemoryCard;
-import com.dyn.robot.items.ItemMemoryStick;
 import com.dyn.robot.items.ItemMemoryWipe;
-import com.dyn.robot.items.ItemRedstoneMeter;
 import com.dyn.robot.items.ItemRemote;
-import com.dyn.robot.items.ItemSIMCard;
 import com.dyn.robot.items.ItemWrench;
+import com.dyn.robot.items.equipment.ItemMemoryCard;
+import com.dyn.robot.items.equipment.ItemMemoryStick;
+import com.dyn.robot.items.equipment.ItemRedstoneMeter;
+import com.dyn.robot.items.equipment.ItemRobotSuit;
+import com.dyn.robot.items.equipment.ItemSIMCard;
 import com.dyn.robot.python.RobotScript;
 import com.dyn.robot.utils.FileUtils;
 import com.google.common.base.Optional;
@@ -52,6 +53,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -101,24 +103,22 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 	public RobotInventory robot_inventory;
 
-	private List<BlockPos> programPath = new ArrayList();
+	protected List<BlockPos> programPath = new ArrayList();
+	protected EnumFacing programDir;
+	protected boolean pauseCode = false;
 
-	private boolean shouldJump;
 	public Map<Long, String> messages = new TreeMap<>();
 
-	private boolean pauseCode = false;
 	private EntityAIWander wanderTask;
-	public int counter = 0;
 
-	private EnumFacing programDir;
-
+	protected boolean shouldJump;
 	protected boolean shouldSwingArm;
 
 	public EntityRobot(World worldIn) {
 		super(worldIn);
 		height = .9f;
 		width = 0.5f;
-		robot_inventory = new RobotInventory("Robot Inventory", 32);
+		robot_inventory = new RobotInventory("Robot Inventory", 33);
 		dataManager.register(EntityRobot.ROBOT_OWNER_UNIQUE_ID, Optional.absent());
 		dataManager.register(EntityRobot.ROBOT_NAME, "");
 		dataManager.register(EntityRobot.LAST_EXECUTED_SCRIPT, "");
@@ -185,6 +185,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public boolean climb(int amount) {
+		pauseCodeExecution();
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
@@ -210,10 +211,12 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				if (!blockdn.isPassable(world, dest) && block.isPassable(getEntityWorld(), dest)) {
 					addToProgramPath(dest);
 				} else {
+					resumeExecution();
 					return false;
 				}
 			}
 		}
+		resumeExecution();
 		return true;
 	}
 
@@ -229,14 +232,20 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	 */
 	@Override
 	protected void damageEntity(DamageSource damageSrc, float damageAmount) {
-		if ((damageSrc.getTrueSource() instanceof EntityPlayer)
-				|| ((damageSrc == DamageSource.FALL) && (damageAmount < 25))) {
-			return;
+		if ((damageSrc == DamageSource.FALL)) {
+			damageAmount = Math.max(0, damageAmount - 25);
 		}
 		super.damageEntity(damageSrc, damageAmount);
 	}
 
+	@Override
+	// the robot will drown instantly without a scuba suit
+	protected int decreaseAirSupply(int air) {
+		return -20;
+	}
+
 	public boolean descend(int amount) {
+		pauseCodeExecution();
 		BlockPos dest = getPosition();
 		if (!programPath.isEmpty()) {
 			dest = programPath.get(programPath.size() - 1);
@@ -261,14 +270,16 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 				} else {
 					Block block = world.getBlockState(dest).getBlock();
 					Block blockdn = world.getBlockState(dest.down()).getBlock();
-					if (!blockdn.isPassable(world, dest) && block.isPassable(getEntityWorld(), dest)) {
+					if (!blockdn.isPassable(world, dest) && block.isPassable(world, dest)) {
 						addToProgramPath(dest);
 					} else {
+						resumeExecution();
 						return false;
 					}
 				}
 			}
 		}
+		resumeExecution();
 		return true;
 	}
 
@@ -327,7 +338,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public float getDigSpeed(IBlockState state) {
-		float f = robot_inventory.getStackInSlot(2).getDestroySpeed(state);
+		float f = robot_inventory.getStackInSlot(RobotInventory.EQUIP_SLOT).getDestroySpeed(state);
 
 		if (f > 1.0F) {
 			int i = EnchantmentHelper.getEfficiencyModifier(this);
@@ -397,8 +408,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	}
 
 	public int getMemorySize() {
-		return (int) (robot_inventory.getStackInSlot(1) != ItemStack.EMPTY
-				? Math.pow(2, (4 + robot_inventory.getStackInSlot(1).getItemDamage()))
+		return (int) (robot_inventory.getStackInSlot(RobotInventory.RAM_SLOT) != ItemStack.EMPTY
+				? Math.pow(2, (4 + robot_inventory.getStackInSlot(RobotInventory.RAM_SLOT).getItemDamage()))
 				: 8);
 	}
 
@@ -608,8 +619,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		}
 		updateArmSwingProgress();
 		if ((FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) && (getOwner() != null)) {
-			if ((robot_inventory.getStackInSlot(4) != ItemStack.EMPTY) && detectRedstoneSignal() && !shouldExecuteCode()
-					&& robot_inventory.hasSDCard()) {
+			if ((robot_inventory.getStackInSlot(RobotInventory.METER_SLOT) != ItemStack.EMPTY) && detectRedstoneSignal()
+					&& !shouldExecuteCode() && robot_inventory.hasSDCard()) {
 				clearProgramPath();
 				startExecutingCode();
 
@@ -617,8 +628,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 					File scriptFile = new File(RobotMod.scriptsLoc, getRobotName() + "/" + LocalDate.now() + "/"
 							+ FileUtils.sanitizeFilename(LocalDateTime.now().toLocalTime() + ".py"));
 					try {
-						FileUtils.writeFile(scriptFile,
-								robot_inventory.getStackInSlot(0).getTagCompound().getString("text"));
+						FileUtils.writeFile(scriptFile, robot_inventory.getStackInSlot(RobotInventory.SDCARD_SLOT)
+								.getTagCompound().getString("text"));
 					} catch (IOException e) {
 						RobotMod.logger.error(
 								"Failed Logging Script File: " + FileUtils.sanitizeFilename(scriptFile.getName()), e);
@@ -629,12 +640,14 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 						RobotMod.runningProcesses.get(getEntityId()).endScript();
 						RobotMod.runningProcesses.replace(getEntityId(),
 								new RobotScript(Arrays.asList(RobotMod.pythonImportRegex
-										.matcher(robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+										.matcher(robot_inventory.getStackInSlot(RobotInventory.SDCARD_SLOT)
+												.getTagCompound().getString("text"))
 										.replaceAll("").split(Pattern.quote("\n"))), getOwner(), getEntityId()));
 					} else {
 						RobotMod.runningProcesses.put(getEntityId(),
 								new RobotScript(Arrays.asList(RobotMod.pythonImportRegex
-										.matcher(robot_inventory.getStackInSlot(0).getTagCompound().getString("text"))
+										.matcher(robot_inventory.getStackInSlot(RobotInventory.SDCARD_SLOT)
+												.getTagCompound().getString("text"))
 										.replaceAll("").split(Pattern.quote("\n"))), getOwner(), getEntityId()));
 					}
 				});
@@ -674,7 +687,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 						}
 					}
 					return true;
-				} else if (isOwner(player)) {
+				} else if (isOwner(player) || FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList()
+						.canSendCommands(player.getGameProfile())) {
 					if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
 						((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
 					} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
@@ -685,7 +699,8 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 		} else {
 			if (player.getActiveHand() == hand) {
 				if (itemstack != null) {
-					if (isOwner(player)) {
+					if (isOwner(player) || FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList()
+							.canSendCommands(player.getGameProfile())) {
 						if ((itemstack.getItem() instanceof ItemWrench) && isEntityAlive()) {
 							((ItemWrench) player.inventory.getCurrentItem().getItem()).setEntity(this);
 						} else if ((itemstack.getItem() instanceof ItemMemoryWipe) && isEntityAlive()) {
@@ -699,26 +714,37 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 							robot_inventory.setInventorySlotContents(robot_inventory.getOpenExpansionSlot(), is);
 						} else if ((itemstack.getItem() instanceof ItemMemoryCard) && isEntityAlive()) {
 							ItemStack is = itemstack.copy();
-							player.setHeldItem(hand, robot_inventory.getStackInSlot(0));
-							robot_inventory.setInventorySlotContents(0, is);
+							player.setHeldItem(hand, robot_inventory.getStackInSlot(RobotInventory.SDCARD_SLOT));
+							robot_inventory.setInventorySlotContents(RobotInventory.SDCARD_SLOT, is);
 						} else if ((itemstack.getItem() instanceof ItemMemoryStick)
-								&& (robot_inventory.getStackInSlot(1) == ItemStack.EMPTY) && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(RobotInventory.RAM_SLOT) == ItemStack.EMPTY)
+								&& isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);
-							robot_inventory.setInventorySlotContents(1, is);
+							robot_inventory.setInventorySlotContents(RobotInventory.RAM_SLOT, is);
 						} else if ((itemstack.getItem() instanceof ItemRedstoneMeter)
-								&& (robot_inventory.getStackInSlot(4) == ItemStack.EMPTY) && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(RobotInventory.METER_SLOT) == ItemStack.EMPTY)
+								&& isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);
-							robot_inventory.setInventorySlotContents(4, is);
+							robot_inventory.setInventorySlotContents(RobotInventory.METER_SLOT, is);
 						} else if ((itemstack.getItem() instanceof ItemSIMCard)
-								&& (robot_inventory.getStackInSlot(3) == ItemStack.EMPTY) && isEntityAlive()) {
+								&& (robot_inventory.getStackInSlot(RobotInventory.SIM_SLOT) == ItemStack.EMPTY)
+								&& isEntityAlive()) {
 							ItemStack is = itemstack.copy();
 							is.setCount(1);
 							itemstack.shrink(1);
-							robot_inventory.setInventorySlotContents(3, is);
+							robot_inventory.setInventorySlotContents(RobotInventory.SIM_SLOT, is);
+						} else if ((itemstack.getItem() instanceof ItemRobotSuit)
+								&& (robot_inventory.getStackInSlot(RobotInventory.SUIT_SLOT) == ItemStack.EMPTY)
+								&& isEntityAlive()) {
+							ItemStack is = itemstack.copy();
+							is.setCount(1);
+							itemstack.shrink(1);
+							robot_inventory.setInventorySlotContents(RobotInventory.SUIT_SLOT, is);
+							setItemStackToSlot(EntityEquipmentSlot.CHEST, is);
 						}
 					}
 				}
@@ -731,7 +757,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 	public void readEntityFromNBT(NBTTagCompound nbttagcompound) {
 		super.readEntityFromNBT(nbttagcompound);
 
-		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", Constants.NBT.TAG_LIST);
+		NBTTagList nbttaglist = nbttagcompound.getTagList("Items", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < nbttaglist.tagCount(); i++) {
 			NBTTagCompound itemtag = nbttaglist.getCompoundTagAt(i);
 			int slot = itemtag.getByte("Slot") & 0xFF;
@@ -840,7 +866,7 @@ public abstract class EntityRobot extends EntityCreature implements IEntityOwnab
 
 		NBTTagList nbttaglist = new NBTTagList();
 		for (int i = 0; i < robot_inventory.getSizeInventory(); i++) {
-			if (robot_inventory.getStackInSlot(i) != null) {
+			if (robot_inventory.getStackInSlot(i) != ItemStack.EMPTY) {
 				NBTTagCompound itemtag = new NBTTagCompound();
 				itemtag.setByte("Slot", (byte) i);
 				robot_inventory.getStackInSlot(i).writeToNBT(itemtag);

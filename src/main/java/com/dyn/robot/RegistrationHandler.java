@@ -1,6 +1,7 @@
 package com.dyn.robot;
 
 import com.dyn.robot.blocks.RobotBlockTileEntity;
+import com.dyn.robot.blocks.RobotJammerTileEntity;
 import com.dyn.robot.entity.SimpleRobotEntity;
 import com.dyn.robot.reference.Reference;
 
@@ -32,6 +33,7 @@ public class RegistrationHandler {
 	@SubscribeEvent()
 	public static void registerBlocks(final RegistryEvent.Register<Block> event) {
 		event.getRegistry().register(RobotMod.robot_block);
+		event.getRegistry().register(RobotMod.robot_jammer);
 		event.getRegistry().register(RobotMod.robot_magent);
 	}
 
@@ -46,7 +48,7 @@ public class RegistrationHandler {
 	public static void registerItemBlocks(final RegistryEvent.Register<Item> event) {
 		// instead of using the static instance create a new block instance instead?
 		event.getRegistry().register(RobotMod.robot_block.getItemBlock());
-
+		event.getRegistry().register(RobotMod.robot_jammer.getItemBlock());
 		event.getRegistry().register(RobotMod.robot_magent.getItemBlock());
 
 		RegistrationHandler.registerTileEntities();
@@ -65,6 +67,7 @@ public class RegistrationHandler {
 		event.getRegistry().register(RobotMod.whistle);
 		event.getRegistry().register(RobotMod.neuralyzer);
 		event.getRegistry().register(RobotMod.manual);
+		event.getRegistry().register(RobotMod.equipment);
 	}
 
 	/**
@@ -85,6 +88,7 @@ public class RegistrationHandler {
 
 	private static void registerTileEntities() {
 		GameRegistry.registerTileEntity(RobotBlockTileEntity.class, "robot_block_te");
+		GameRegistry.registerTileEntity(RobotJammerTileEntity.class, "robot_jammer_te");
 	}
 
 }

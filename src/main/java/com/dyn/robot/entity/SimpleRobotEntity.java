@@ -3,13 +3,17 @@ package com.dyn.robot.entity;
 import com.dyn.robot.RobotMod;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.block.Block;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -17,6 +21,7 @@ public class SimpleRobotEntity extends EntityRobot {
 
 	public final int on1 = 50;
 	public final int on2 = 75;
+	public int counter = 0;
 
 	public SimpleRobotEntity(World worldIn) {
 		this(worldIn, null);
@@ -44,6 +49,66 @@ public class SimpleRobotEntity extends EntityRobot {
 	}
 
 	@Override
+	public boolean canBreatheUnderwater() {
+		if (hasSuit() && (getSuit().getMetadata() == 2)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean climb(int amount) {
+		if (!super.climb(amount)) {
+			pauseCodeExecution();
+			BlockPos dest = getPosition();
+			if (!programPath.isEmpty()) {
+				dest = programPath.get(programPath.size() - 1);
+			}
+
+			for (int i = 0; i < amount; i++) {
+				dest = dest.up().offset(getProgrammedDirection());
+				Block block = world.getBlockState(dest).getBlock();
+				Block blockdn = world.getBlockState(dest.down()).getBlock();
+				if (!blockdn.isPassable(world, dest) && ((block == Blocks.LAVA) || (block == Blocks.FLOWING_LAVA))
+						&& hasSuit() && (getSuit().getMetadata() == 1)) {
+					addToProgramPath(dest);
+				} else {
+					resumeExecution();
+					return false;
+				}
+			}
+			resumeExecution();
+		}
+		return true;
+	}
+
+	@Override
+	public boolean descend(int amount) {
+		if (!super.descend(amount)) {
+			pauseCodeExecution();
+			BlockPos dest = getPosition();
+			if (!programPath.isEmpty()) {
+				dest = programPath.get(programPath.size() - 1);
+			}
+
+			for (int i = 0; i < amount; i++) {
+				dest = dest.down().offset(getProgrammedDirection());
+				Block block = world.getBlockState(dest).getBlock();
+				Block blockdn = world.getBlockState(dest.down()).getBlock();
+				if (!blockdn.isPassable(world, dest) && ((block == Blocks.LAVA) || (block == Blocks.FLOWING_LAVA))
+						&& hasSuit() && (getSuit().getMetadata() == 1)) {
+					addToProgramPath(dest);
+				} else {
+					resumeExecution();
+					return false;
+				}
+			}
+			resumeExecution();
+		}
+		return true;
+	}
+
+	@Override
 	protected void dropFewItems(boolean recentlyAttacked, int lootModify) {
 		super.dropFewItems(recentlyAttacked, lootModify);
 		ItemStack robotStack = new ItemStack(RobotMod.robot_block, 1);
@@ -59,6 +124,73 @@ public class SimpleRobotEntity extends EntityRobot {
 	@Override
 	public boolean getCanSpawnHere() {
 		// dont spawn robots
+		return false;
+	}
+
+	public ItemStack getSuit() {
+		if (robot_inventory.getSuit() != ItemStack.EMPTY) {
+			return robot_inventory.getSuit();
+		}
+		return getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+	}
+
+	public boolean hasSuit() {
+		return robot_inventory.hasSuit() | !(getItemStackFromSlot(EntityEquipmentSlot.CHEST).isEmpty());
+	}
+
+	@Override
+	public boolean isBurning() {
+		if (hasSuit() && (getSuit().getMetadata() == 1)) {
+			return false;
+		}
+		return super.isBurning();
+	}
+
+	@Override
+	public boolean isEntityInvulnerable(DamageSource source) {
+		if (source.getTrueSource() instanceof EntityPlayer) {
+			return true;
+		}
+
+		if (hasSuit()) {
+			switch (getSuit().getMetadata()) {
+			case 0:
+				if (source.isExplosion() || source.isMagicDamage() || source.isProjectile()
+						|| (source.getTrueSource() != null) || (source == DamageSource.GENERIC)
+						|| (source == DamageSource.CACTUS)) {
+					return true;
+				}
+			case 1:
+				if (source.isFireDamage()) {
+					extinguish();
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isInLava() {
+		//we have to do this otherwise movement is reduced greatly
+		if (!hasSuit() || (getSuit().getMetadata() != 1)) {
+			return super.isInLava();
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isInWater() {
+		//we have to do this otherwise movement is reduced greatly
+		if (!hasSuit() || (getSuit().getMetadata() != 2)) {
+			return super.isInWater();
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isPushedByWater() {
 		return false;
 	}
 
@@ -98,6 +230,13 @@ public class SimpleRobotEntity extends EntityRobot {
 	public void readSpawnData(ByteBuf additionalData) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected void setOnFireFromLava() {
+		if (!hasSuit() || (getSuit().getMetadata() != 1)) {
+			super.setOnFireFromLava();
+		}
 	}
 
 	public void slightMoveWhenStill() {

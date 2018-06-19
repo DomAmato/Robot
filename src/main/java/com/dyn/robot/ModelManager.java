@@ -3,6 +3,7 @@ package com.dyn.robot;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.dyn.robot.blocks.BlockRobotJammer;
 import com.dyn.robot.reference.Reference;
 
 import net.minecraft.block.Block;
@@ -81,6 +82,8 @@ public class ModelManager {
 	 */
 	private void registerBlockModels() {
 		registerBlockItemModel(RobotMod.robot_block.getDefaultState());
+		registerBlockItemModel(
+				RobotMod.robot_jammer.getDefaultState().withProperty(BlockRobotJammer.POWERED, Boolean.valueOf(true)));
 		registerBlockItemModel(RobotMod.robot_magent.getDefaultState());
 	}
 
@@ -180,6 +183,11 @@ public class ModelManager {
 		for (int i = 0; i < 8; i++) {
 			registerItemModelForMeta(RobotMod.ram, i,
 					new ModelResourceLocation(Reference.MOD_ID + ":robot_memory_" + i, "inventory"));
+		}
+
+		for (int i = 0; i < 3; i++) {
+			registerItemModelForMeta(RobotMod.equipment, i,
+					new ModelResourceLocation(Reference.MOD_ID + ":robot_suit_" + i, "inventory"));
 		}
 
 		registerItemModel(RobotMod.card);
