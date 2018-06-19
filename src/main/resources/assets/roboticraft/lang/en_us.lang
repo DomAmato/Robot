@@ -31,8 +31,13 @@ item.robot_wipe.name=Memory Wiper
 item.robot_manual.name=Python API Manual
 item.robot_sim.name=Robot SIM Card
 item.robot_meter.name=Redstone Meter
+item.robot_suit_0.name=Robot Armor
+item.robot_suit_1.name=Lava Suit
+item.robot_suit_2.name=Scuba Suit
+
 
 tile.robot_block.name=Robot
+tile.robot_jammer.name=Robot Jammer
 tile.robot_magnet.name=Magnetic Block
 
 robot.inventory=Robot Inventory

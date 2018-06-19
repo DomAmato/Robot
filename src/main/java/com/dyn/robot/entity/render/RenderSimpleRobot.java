@@ -25,6 +25,7 @@ public class RenderSimpleRobot extends RenderLiving<SimpleRobotEntity> {
 
 	public RenderSimpleRobot(RenderManager rendermanagerIn, ModelSimpleRobot modelDynRobot, float shadowSize) {
 		super(rendermanagerIn, modelDynRobot, shadowSize);
+		this.addLayer(new LayerRobotSuits(this));
 		this.addLayer(new LayerHeldItem(this) {
 			@Override
 			public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_,
@@ -59,6 +60,7 @@ public class RenderSimpleRobot extends RenderLiving<SimpleRobotEntity> {
 				}
 			}
 		});
+
 	}
 
 	@Override
