@@ -8,11 +8,11 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class RobotErrorMessage implements IMessage {
-	public static class Handler implements IMessageHandler<RobotErrorMessage, IMessage> {
+public class MessageRobotError implements IMessage {
+	public static class Handler implements IMessageHandler<MessageRobotError, IMessage> {
 
 		@Override
-		public IMessage onMessage(RobotErrorMessage message, MessageContext ctx) {
+		public IMessage onMessage(MessageRobotError message, MessageContext ctx) {
 			RobotMod.proxy.addScheduledTask(() -> {
 				RobotMod.proxy.handleErrorMessage(message.getError(), message.getCode(), message.getLine());
 			});
@@ -26,10 +26,10 @@ public class RobotErrorMessage implements IMessage {
 
 	private int line;
 
-	public RobotErrorMessage() {
+	public MessageRobotError() {
 	}
 
-	public RobotErrorMessage(String code, String error, int line, int robotid) {
+	public MessageRobotError(String code, String error, int line, int robotid) {
 		this.code = code;
 		this.error = error;
 		this.line = line;

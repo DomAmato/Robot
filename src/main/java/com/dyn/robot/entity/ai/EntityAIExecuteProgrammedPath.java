@@ -1,6 +1,7 @@
 package com.dyn.robot.entity.ai;
 
 import com.dyn.robot.RobotMod;
+import com.dyn.robot.api.RobotAPI;
 import com.dyn.robot.entity.EntityRobot;
 import com.dyn.robot.network.CodeEvent;
 
@@ -47,6 +48,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 				&& (robot.shouldExecuteCode() || (!robot.getProgramPath().isEmpty() && !robot.getNavigator().noPath()));
 		if (!doContinue) {
 			if (watchDog <= 0) {
+				RobotAPI.notifyFailure("Failed reaching destination, watchdog timer timed out");
 				MinecraftForge.EVENT_BUS
 						.post(new CodeEvent.FailEvent("Watchdog timed out", robot.getEntityId(), robot.getOwner()));
 				notifySuccess = false;
@@ -74,7 +76,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 					robot.rotate(robot.getProgrammedDirection().getHorizontalAngle());
 				}
 			}
-			RobotMod.logger.info("Stop AI Path Execution");
+			RobotMod.logger.debug(robot.getRobotName() + " Stopping AI Path Execution");
 		}
 		return doContinue;
 	}
@@ -92,7 +94,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 	 */
 	@Override
 	public void startExecuting() {
-		RobotMod.logger.info("Start AI Path Execution");
+		RobotMod.logger.debug(robot.getRobotName() + " Starting AI Path Execution");
 		prevDestination = destination = robot.getPosition();
 		watchDog = 30;
 	}
@@ -141,7 +143,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 			} else {
 				// only update when execution is not paused
 				if (!robot.getProgramPath().isEmpty()) {
-					RobotMod.logger.info("Executing next part of Program Path");
+					RobotMod.logger.debug("Executing next part of Program Path");
 					clampX = clampZ = isVertical = false;
 					notifySuccess = true;
 					watchDog = 30;
@@ -168,6 +170,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 									(destination.getZ()) + 0.5D, speed);
 							isVertical = true;
 						} else {
+							RobotAPI.notifyFailure("Failed trying to set destination");
 							MinecraftForge.EVENT_BUS.post(new CodeEvent.FailEvent("Failed trying to set destination",
 									robot.getEntityId(), robot.getOwner()));
 							notifySuccess = false;
@@ -180,7 +183,7 @@ public class EntityAIExecuteProgrammedPath extends EntityAIBase {
 						}
 					}
 				} else if (notifySuccess) {
-					RobotMod.logger.info("Notifying Success");
+					RobotMod.logger.debug("Notifying Success");
 					// the program path is empty lets send a 1 time event
 					MinecraftForge.EVENT_BUS
 							.post(new CodeEvent.RobotSuccessEvent("Success", robot.getEntityId(), robot.getOwner()));

@@ -76,7 +76,8 @@ public class EntityAIJumpToward extends EntityAIBase {
 	@Override
 	public void startExecuting() {
 		leapTarget = robot.getPosition().offset(robot.getProgrammedDirection(), 2);
-		RobotMod.logger.info("Jumping Towards: " + leapTarget + " from " + robot.getPosition());
+		RobotMod.logger
+				.debug(robot.getRobotName() + " Jumping Towards: " + leapTarget + " from " + robot.getPosition());
 		robot.rotate(MathHelper.wrapDegrees(robot.getProgrammedDirection().getHorizontalAngle()));
 		double d0 = (leapTarget.getX() + .5) - robot.posX;
 		double d1 = (leapTarget.getZ() + .5) - robot.posZ;

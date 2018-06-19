@@ -142,10 +142,4 @@ public class BlockRobot extends BlockFalling implements ITileEntityProvider {
 		}
 	}
 
-	@Override
-	public void onEndFalling(World worldIn, BlockPos pos, IBlockState state_1, IBlockState state_2) {
-		super.onEndFalling(worldIn, pos, state_1, state_2);
-
-	}
-
 }

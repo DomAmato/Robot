@@ -48,7 +48,7 @@ public class Python2MinecraftApi {
 	}
 
 	protected static void fail(String error) {
-		RobotMod.logger.info("Code Error: " + error);
+		RobotMod.logger.debug("Code Error: " + error);
 		Python2MinecraftApi.sendLine("FAIL|" + error);
 	}
 
