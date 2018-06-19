@@ -1,13 +1,11 @@
 package com.dyn.robot.entity.pathing;
 
-import java.util.Map;
-
 import com.dyn.robot.entity.EntityRobot;
-import com.google.common.collect.Maps;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.pathfinding.Path;
+import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -51,36 +49,11 @@ public class PathNavigateRobot extends PathNavigateGround {
 		}
 	}
 
-	// this was supposed to be used for deactivating robots but they could
-	// potentially jam up mazes and activities so this isnt actually helpful
-	public BlockPos findOpenSpace(int radius) {
-		BlockPos curPos = entity.getPosition();
-		if (world.isAirBlock(curPos)) {
-			return curPos;
-		}
-		Map<BlockPos, Double> airBlocks = Maps.newTreeMap();
-		for (int x = curPos.getX() - (radius / 2); Math.abs(x - curPos.getX()) <= (radius / 2); x++) {
-			for (int y = curPos.getY() - (radius / 2); Math.abs(y - curPos.getY()) <= (radius / 2); y++) {
-				for (int z = curPos.getZ() - (radius / 2); Math.abs(z - curPos.getZ()) <= (radius / 2); z++) {
-					if (world.isAirBlock(new BlockPos(x, y, z))) {
-						airBlocks.put(new BlockPos(x, y, z), curPos.distanceSqToCenter(x, y, z));
-					}
-				}
-			}
-		}
-
-		double closest = 1000;
-		BlockPos retPos = null;
-		for (BlockPos key : airBlocks.keySet()) {
-			if (super.getPathToPos(key) != null) {
-				if (closest > airBlocks.get(key)) {
-					retPos = key;
-					closest = airBlocks.get(key);
-				}
-			}
-		}
-
-		return retPos;
+	@Override
+	protected PathFinder getPathFinder() {
+		nodeProcessor = new RobotNodeProcessor();
+		nodeProcessor.setCanEnterDoors(true);
+		return new PathFinder(nodeProcessor);
 	}
 
 	@Override
@@ -92,6 +65,20 @@ public class PathNavigateRobot extends PathNavigateGround {
 	@Override
 	public Path getPathToPos(BlockPos pos) {
 		Path path = super.getPathToPos(pos);
+		// the robot really only moves one block at a time during code execution
+		// if ((path == null) && ((SimpleRobotEntity) entity).shouldExecuteCode()) {
+		// Block block = world.getBlockState(pos).getBlock();
+		// Block blockdn = world.getBlockState(pos.down()).getBlock();
+		// if (!blockdn.isPassable(world, pos) && ((block == Blocks.LAVA) || (block ==
+		// Blocks.FLOWING_LAVA))
+		// && ((SimpleRobotEntity) entity).hasSuit()
+		// && (((SimpleRobotEntity) entity).getSuit().getMetadata() == 1)) {
+		// PathPoint[] points = { new PathPoint((int) entity.posX, (int) entity.posY,
+		// (int) entity.posZ),
+		// new PathPoint(pos.getX(), pos.getY(), pos.getZ()) };
+		// path = new Path(points);
+		// }
+		// }
 		return path;
 	}
 
@@ -103,43 +90,4 @@ public class PathNavigateRobot extends PathNavigateGround {
 			return super.isDirectPathBetweenPoints(posVec31, posVec32, sizeX, sizeY, sizeZ);
 		}
 	}
-
-	// @Override
-	// protected void pathFollow() {
-	// Vec3d Vec3d = getEntityPosition();
-	// int i = currentPath.getCurrentPathLength();
-	//
-	// for (int j = currentPath.getCurrentPathIndex(); j <
-	// currentPath.getCurrentPathLength(); ++j) {
-	// if (currentPath.getPathPointFromIndex(j).y != (int) vec3.y) {
-	// i = j;
-	// break;
-	// }
-	// }
-	//
-	// float f = entity.width * entity.width * heightRequirement;
-	//
-	// for (int k = currentPath.getCurrentPathIndex(); k < i; ++k) {
-	// Vec3d vec31 = currentPath.getVectorFromIndex(entity, k);
-	//
-	// if (vec3.squareDistanceTo(vec31) < f) {
-	// currentPath.setCurrentPathIndex(k + 1);
-	// }
-	// }
-	//
-	// int j1 = MathHelper.ceil(entity.width);
-	// int k1 = (int) entity.height + 1;
-	// int l = j1;
-	//
-	// for (int i1 = i - 1; i1 >= currentPath.getCurrentPathIndex(); --i1) {
-	// if (isDirectPathBetweenPoints(vec3,
-	// currentPath.getVectorFromIndex(entity,
-	// i1), j1, k1, l)) {
-	// currentPath.setCurrentPathIndex(i1);
-	// break;
-	// }
-	// }
-	//
-	// checkForStuck(vec3);
-	// }
 }
