@@ -243,8 +243,8 @@ public class RobotMod {
 	}
 
 	private String generateBlockAPILine(String name, int id, int meta) {
-		return String.format("%1$-33s", name.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
-				+ " = Block(" + id + ", " + meta + ", \"" + WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
+		return String.format("%1$-33s", name) + " = Block(" + id + ", " + meta + ", \""
+				+ WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
 	}
 
 	private void generateBlocksAPIClass() {
@@ -259,17 +259,18 @@ public class RobotMod {
 					for (ItemStack item : items) {
 						if (Block.getBlockFromItem(item.getItem()) != Blocks.AIR) {
 							if (names.add(generateSetName(item.getDisplayName()))) {
-								writer.write(generateBlockAPILine(item.getDisplayName(), Block.getIdFromBlock(block),
-										item.getMetadata()));
+								writer.write(generateBlockAPILine(generateSetName(item.getDisplayName()),
+										Block.getIdFromBlock(block), item.getMetadata()));
 							} else {
 								if (names.add(generateSetName(block.getRegistryName().getResourcePath()))) {
-									writer.write(generateBlockAPILine(block.getRegistryName().getResourcePath(),
+									writer.write(generateBlockAPILine(
+											generateSetName(block.getRegistryName().getResourcePath()),
 											Block.getIdFromBlock(block), 0));
 								} else {
 									if (Block.getIdFromBlock(block) == 80) {
 										// Snow blocks
-										names.add(generateSetName("SNOW_BLOCK"));
-										writer.write(generateBlockAPILine("Snow Block", 80, 0));
+										names.add("SNOW_BLOCK");
+										writer.write(generateBlockAPILine("SNOW_BLOCK", 80, 0));
 									} else {
 										RobotMod.logger.info("Found Duplicate name for Block: "
 												+ block.getRegistryName().getResourcePath() + " - "
@@ -282,7 +283,7 @@ public class RobotMod {
 					}
 				} else {
 					if (names.add(generateSetName(block.getRegistryName().getResourcePath()))) {
-						writer.write(generateBlockAPILine(block.getRegistryName().getResourcePath(),
+						writer.write(generateBlockAPILine(generateSetName(block.getRegistryName().getResourcePath()),
 								Block.getIdFromBlock(block), 0));
 					} else {
 						RobotMod.logger.info("Found Duplicate name for Block: "
@@ -319,8 +320,8 @@ public class RobotMod {
 	}
 
 	private String generateItemAPILine(String name, int id, int meta) {
-		return String.format("%1$-33s", name.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", ""))
-				+ " = Item(" + id + ", " + meta + ", \"" + WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
+		return String.format("%1$-33s", name) + " = Item(" + id + ", " + meta + ", \""
+				+ WordUtils.capitalizeFully(name.replace("_", " ")) + "\")\n";
 	}
 
 	private void generateItemsAPIClass() {
@@ -337,11 +338,12 @@ public class RobotMod {
 					entry.getSubItems(CreativeTabs.SEARCH, items);
 					for (ItemStack item : items) {
 						if (names.add(generateSetName(item.getDisplayName()))) {
-							writer.write(generateItemAPILine(item.getDisplayName(), Item.getIdFromItem(item.getItem()),
-									item.getMetadata()));
+							writer.write(generateItemAPILine(generateSetName(item.getDisplayName()),
+									Item.getIdFromItem(item.getItem()), item.getMetadata()));
 						} else {
 							if (names.add(generateSetName(item.getItem().getRegistryName().getResourcePath()))) {
-								writer.write(generateItemAPILine(item.getItem().getRegistryName().getResourcePath(),
+								writer.write(generateItemAPILine(
+										generateSetName(item.getItem().getRegistryName().getResourcePath()),
 										Item.getIdFromItem(item.getItem()), item.getMetadata()));
 							} else {
 								switch (Item.getIdFromItem(item.getItem())) {
@@ -382,7 +384,8 @@ public class RobotMod {
 	}
 
 	private String generateSetName(String input) {
-		return input.toUpperCase().replaceAll(" ", "_").replaceAll("([^A-Z0-9a-z\\s_])+", "");
+		return input.toUpperCase().replaceAll(" ", "_").replaceAll("(\\b\\d+)", "_$1").replaceAll("([^A-Z0-9a-z\\s_])+",
+				"");
 	}
 
 	private File getJarFile(File dir) {
