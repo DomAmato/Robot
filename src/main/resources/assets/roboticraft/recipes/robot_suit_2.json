@@ -1,31 +1,31 @@
 {
 	"type": "minecraft:crafting_shaped",
 	"pattern": [
-		"QQQ",
-		"RCR",
-		"GGG"
+		" H ",
+		"LGL",
+		" B "
 	],
 	"key": {
-		"Q": {
-			"item": "minecraft:quartz",
-			"data": 0
-		},
-		"R": {
-			"item": "minecraft:redstone",
-			"data": 0
+		"L": {
+			"item": "minecraft:leather",
+      		"data": 0
 		},
 		"G": {
-			"item": "minecraft:gold_nugget",
-			"data": 0
+			"item": "minecraft:glass_pane",
+      		"data": 0
 		},
-		"C": {
-			"item": "minecraft:chest",
-			"data": 0
+		"H": {
+			"item": "minecraft:iron_helmet",
+      		"data": 0
+		},
+		"B": {
+			"item": "minecraft:iron_boots",
+      		"data": 0
 		}
 	},
 	"result": {
-		"item": "roboticraft:robot_memory",
-		"data": 0,
+		"item": "roboticraft:robot_suit",
+		"data": 2,
 		"count": 1
 	}
 }
