@@ -173,7 +173,7 @@ public class SimpleRobotEntity extends EntityRobot {
 
 	@Override
 	public boolean isInLava() {
-		//we have to do this otherwise movement is reduced greatly
+		// we have to do this otherwise movement is reduced greatly
 		if (!hasSuit() || (getSuit().getMetadata() != 1)) {
 			return super.isInLava();
 		}
@@ -182,7 +182,7 @@ public class SimpleRobotEntity extends EntityRobot {
 
 	@Override
 	public boolean isInWater() {
-		//we have to do this otherwise movement is reduced greatly
+		// we have to do this otherwise movement is reduced greatly
 		if (!hasSuit() || (getSuit().getMetadata() != 2)) {
 			return super.isInWater();
 		}
@@ -232,6 +232,11 @@ public class SimpleRobotEntity extends EntityRobot {
 
 	}
 
+	/*
+	 * This should never actually happen when the suit is on but just in case check
+	 * 
+	 * @see net.minecraft.entity.Entity#setOnFireFromLava()
+	 */
 	@Override
 	protected void setOnFireFromLava() {
 		if (!hasSuit() || (getSuit().getMetadata() != 1)) {
